@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Robotique Théorique</h3>
+      <ul>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html" class="active">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
+      </ul>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+      <h1>Transformation Homogène</h1>
+
+      <p>
+        Une <strong>transformation homogène</strong> est une représentation mathématique utilisée pour combiner
+        dans une seule matrice à la fois une <em>rotation</em> et une <em>translation</em> dans l'espace tridimensionnel.
+        On l'écrit généralement sous la forme d'une matrice 4×4 :
+      </p>
+
+     <p style="text-align:center;">
+        $$
+        \mathbf{T} =
+        \begin{bmatrix}
+        \mathbf{R} & \mathbf{t} \\
+        \mathbf{0} & 1
+        \end{bmatrix}
+        $$
+     </p>
+
+      <div class="highlight">
+        <p>
+          où <b>R</b> est la matrice de rotation \(3 \times 3\) décrivant l'orientation du repère, et <b>t</b> est
+          le vecteur de translation \(3 \times 1\) décrivant sa position. Le dernier élément (la ligne <code>[0 0 0 1]</code>)
+          permet d'exprimer rotations et translations avec une seule multiplication matricielle en coordonnées homogènes.
+        </p>
+      </div>
+
+      <hr>
+
+      <h3>Matrice de rotation usuelles (ou dite de passage)</h3>
+
+      <p>
+        Les <strong>matrices de rotation</strong> sont des outils mathématiques fait pour décrire 
+        l’orientation d’un repère dans l’espace tridimensionnel. 
+        Elles permettent de réaliser une rotation d’un vecteur ou d’un système de coordonnées autour 
+        d’un des trois axes principaux — <strong>X</strong>, <strong>Y</strong> ou <strong>Z</strong> — selon un angle donné.  
+        Chaque rotation élémentaire est représentée par une matrice \(3 \times 3\), et leur combinaison 
+        permet de définir n’importe quelle orientation dans l’espace.  
+        Ces matrices conservent les longueurs et les angles, ce qui en fait des transformations 
+        <em>orthogonales</em> avec un <em>déterminant égal à 1</em>. <br>Si la rotation s'effectue autour d'un des axes de base
+        il est facile d'écrire la matrice de passage
+      </p>
+
+        <p><strong>Rotation autour de l’axe X</strong> :</p>
+        $$
+        \mathbf{R_x}(\theta_x) =
+        \begin{bmatrix}
+        1 & 0 & 0 \\
+        0 & \cos(\theta_x) & -\sin(\theta_x) \\
+        0 & \sin(\theta_x) & \cos(\theta_x)
+        \end{bmatrix}
+        $$
+
+        <p><strong>Rotation autour de l’axe Y</strong> :</p>
+        $$
+        \mathbf{R_y}(\theta_y) =
+        \begin{bmatrix}
+        \cos(\theta_y) & 0 & \sin(\theta_y) \\
+        0 & 1 & 0 \\
+        -\sin(\theta_y) & 0 & \cos(\theta_y)
+        \end{bmatrix}
+        $$
+
+        <p><strong>Rotation autour de l’axe Z</strong> :</p>
+        $$
+        \mathbf{R_z}(\theta_z) =
+        \begin{bmatrix}
+        \cos(\theta_z) & -\sin(\theta_z) & 0 \\
+        \sin(\theta_z) & \cos(\theta_z) & 0 \\
+        0 & 0 & 1
+        \end{bmatrix}
+        $$
+
+        <hr>
+
+        <h3>Sens positif de rotation selon la règle de la main droite</h3>
+
+  <p>
+    La rotation positive autour d’un axe est définie par la <strong>règle de la main droite</strong> : 
+    positionnez votre pouce dans la direction positive de l’axe, et vos doigts indiquent le sens de rotation positive.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Axe</th>
+        <th>Direction du pouce</th>
+        <th>Sens positif (vue le long de l’axe)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>X</td>
+        <td>Vers X positif</td>
+        <td>Anti-horaire dans le plan YZ</td>
+      </tr>
+      <tr>
+        <td>Y</td>
+        <td>Vers Y positif</td>
+        <td>Anti-horaire dans le plan ZX</td>
+      </tr>
+      <tr>
+        <td>Z</td>
+        <td>Vers Z positif</td>
+        <td>Anti-horaire dans le plan XY</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    <br>
+  </p>
+  <div class="highlight">
+    <p>
+      Exemple concret pour l’axe X : si un point est situé sur l’axe Y positif, après une petite rotation positive autour de X, il se déplacera vers Z positif.  
+      Cette convention assure que toutes les rotations dans un repère cartésien droit sont cohérentes avec les propriétés des matrices de rotation.
+    </p>
+  </div>
+  <hr>
+
+  <h3>Propriétés importantes</h3>
+
+  <p> Par définition, les lignes et les colonnes sont des vecteurs unitaires. Celles-ci représente des vecteur 2 à 2 perpendiculaire, 
+    donc de produit scalaire nul. <br>
+    La matrice <sup>1</sup>M<sub>0</sub>, de passage de R<sub>1</sub> à R<sub>0</sub> : 
+
+    <p style="text-align:center;">
+      $$
+      {}^{1}\mathbf{M}_{0} = \begin{bmatrix}
+        {}^{1}\mathbf{x}_{0} & {}^{1}\mathbf{y}_{0} & {}^{1}\mathbf{z}_{0}
+        \end{bmatrix} = \begin{bmatrix}
+        \mathbf{x}_{0}.\mathbf{x}_{1} & \mathbf{y}_{0}.\mathbf{x}_{1} & \mathbf{z}_{0}.\mathbf{x}_{1} \\
+        \mathbf{x}_{0}.\mathbf{y}_{1} & \mathbf{y}_{0}.\mathbf{y}_{1} & \mathbf{z}_{0}.\mathbf{y}_{1} \\
+        \mathbf{x}_{0}.\mathbf{z}_{1} & \mathbf{z}_{0}.\mathbf{z}_{1} & \mathbf{z}_{0}.\mathbf{z}_{1}
+        \end{bmatrix}
+      $$
+    </p>
+      
+  </p>
+    <p>Il apparaît ainsi : </p>
+    <p>• Symétrie et orthogonalité :</p>
+    <p style="text-align:center;">
+      $$
+      {}^{1}\mathbf{M}_{0} =(^{0}\mathbf{M}_{1})^{T} = (^{0}\mathbf{M}_{1})^{-1}
+      $$
+    </p>
+
+    <p>• Déterminant est égal à 1 :</p>
+    <p style="text-align:center;">
+      $$
+      \det(^{0}\mathbf{M}_{1}) = \det(^{1}\mathbf{M}_{0}) = 1
+      $$
+    </p>
+
+    <p>• La position d’un vecteur <em>v</em> exprimée dans deux repères est reliée par :</p>
+    <p style="text-align:center;">
+      $$
+      {}^{0}\mathbf{v} = {}^{0}\mathbf{M}_{1}\,{}^{1}\mathbf{v}
+      \qquad\text{et}\qquad
+      {}^{1}\mathbf{v} = {}^{1}\mathbf{M}_{0}\,{}^{0}\mathbf{v}
+      $$
+
+
+    </p>
+
+    <p>• Enfin, la composition des transformations respecte la relation :</p>
+    <p style="text-align:center;">
+      $$
+      {}^{0}\mathbf{M}_{2} = {}^{0}\mathbf{M}_{1} \, {}^{1}\mathbf{M}_{2}
+      $$
+    </p>
+
+    <hr>
+    
+    <h3>Orientation déterminée par trois angles</h3>
+
+    <p>
+      En robotique, l’<strong>orientation</strong> d’un solide dans l’espace est souvent décrite par 
+      <strong>trois angles</strong> appelés <em>angles d’Euler</em> ou <em>angles nautiques</em>. 
+      Ces angles représentent une succession de rotations élémentaires autour des axes principaux du repère.
+    </p>
+
+    <p>
+      On définit généralement :
+    </p>
+
+    <ul>
+      <li><strong>α </strong> : rotation autour de l’axe <strong>Z</strong>,</li>
+      <li><strong>β </strong> : rotation autour de l’axe <strong>Y</strong>,</li>
+      <li><strong>γ </strong> : rotation autour de l’axe <strong>X</strong>.</li>
+    </ul>
+
+    <p>
+      La combinaison de ces trois rotations successives permet de déterminer 
+      la matrice de rotation globale :
+    </p>
+
+    <p>
+      Pour la séquence : rotation de \( \alpha \) autour de \(Z_0\), puis \( \beta \) autour de \(Y'\), puis \( \gamma \) autour de \(X''\),
+      la matrice de rotation résultante s’écrit :
+      \[
+        \mathbf{R}(\alpha,\beta,\gamma) = \mathbf{R}_z(\alpha)\,\mathbf{R}_y(\beta)\,\mathbf{R}_x(\gamma) =
+        \begin{bmatrix}
+          c_{\alpha}c_{\beta} & -s_{\alpha}c_{\gamma} + c_{\alpha}s_{\beta}s_{\gamma} & s_{\alpha}s_{\gamma} + c_{\alpha}s_{\beta}c_{\gamma} \\
+          s_{\alpha}c_{\beta} & c_{\alpha}c_{\gamma} + s_{\alpha}s_{\beta}s_{\gamma} & -c_{\alpha}s_{\gamma} + s_{\alpha}s_{\beta}c_{\gamma} \\
+          -s_{\beta}          & c_{\beta}s_{\gamma}                              & c_{\beta}c_{\gamma}
+        \end{bmatrix},
+      \]
+      avec \(c_{\cdot}=\cos(\cdot)\) et \(s_{\cdot}=\sin(\cdot)\).
+    </p>
+
+    <p>
+      Cette représentation est intuitive, mais elle peut présenter certaines limites 
+      comme la <em>singularité de cardan</em>, où deux axes de rotation deviennent confondus (pour  β = ± π/2).
+    </p>
+
+    <p>
+      On utilise souvent cette matrice pour resoudre le modèle géometrique direct des robots series
+    </p>
+
+    <p>
+      De même on utilise aussi la matrice de rotation de \( \psi \) autour de \(Z_0\), puis \( \theta \) autour de \(Y'\), puis \( \phi \) autour de \(Z''\)
+      Principalement pour les calculs liés aux poignets de robots 6 axes. La matrice de rotation résultante s’écrit : 
+      \[
+      \mathbf{R}(\psi,\theta,\phi) = \mathbf{R}_z(\psi)\,\mathbf{R}_y(\theta)\,\mathbf{R}_z(\phi) =
+      \begin{bmatrix}
+      c_{\psi} c_{\theta} c_{\phi} - s_{\psi} s_{\phi} & -c_{\psi} c_{\theta} s_{\phi} - s_{\psi} c_{\phi} & c_{\psi} s_{\theta} \\[6pt]
+      s_{\psi} c_{\theta} c_{\phi} + c_{\psi} s_{\phi} & -s_{\psi} c_{\theta} s_{\phi} + c_{\psi} c_{\phi} & s_{\psi} s_{\theta} \\[6pt]
+      -s_{\theta} c_{\phi} & s_{\theta} s_{\phi} & c_{\theta}
+      \end{bmatrix},
+      \]
+    </p>
+
+    <p>
+      Même limite que précedement si θ = 0 ou θ = π.
+    </p>
+
+    <div class="highlight">
+      <p>
+      On peut être amené à déterminer les angles cachés contenus dans les matrices de rotation afin de résoudre le modèle géométrique direct ou inverse d’un robot sériel.
+      Pour ce faire, la méthode la plus courante consiste à identifier les termes de la matrice.
+      </p>
+    </div>
+    <hr>
+
+    <h3>Transformations homogènes</h3>
+
+    
+    <ul>
+  
+    <li>La multiplication de matrices homogènes permet d’enchaîner plusieurs transformations :  
+      $$
+      {}^{0}\mathbf{T}_{2} = {}^{0}\mathbf{T}_{1} \, {}^{1}\mathbf{T}_{2}
+      $$</li>
+
+    <p>• Déterminant est égal à 1 :</p>
+    <p style="text-align:center;">
+      $$
+      \det(^{0}\mathbf{T}_{1}) = 1
+      $$
+    </p>
+    <li>L’inverse d’une matrice homogène est :  
+      $$
+      \mathbf{T}^{-1} =
+      \begin{bmatrix}
+      \mathbf{R}^T & -\mathbf{R}^T \mathbf{t} \\
+      \mathbf{0} & 1
+      \end{bmatrix}
+      $$</li>
+    <p>Les vecteurs de direction doivent être transformés avec le vecteur homogène [x, y, z, 0]
+      , tandis que les points utilisent [x, y, z, 1].</p>
+    <li> Attention néanmoins, différents de matrice de rotations simple on a :
+      $$
+      {}^{1}\mathbf{T}_{0} = ({}^{0}\mathbf{T}_{1})^{-1} ≠ ({}^{0}\mathbf{T}_{1})^{T}
+      $$
+    </li>
+  </ul>
+
+    <hr>
+
+    <h1>
+      Exemple pour mieux comprendre :
+    </h1>
+
+
+    <p> 
+      Le code Python ci-dessous permet de modéliser deux reperès avec chacun un vecteurs attaché, et de réaliser 
+      entre eux des rotations et translations en 3D grâce au principe de transformées homogènes.
+    </p>
+
+    <p>
+      voici par exmeple le résultat pour une rotation de :
+      <li>
+         π/2 suivant X  
+      </li>
+      <li>
+         π/4 suivant Y  
+      </li>
+      <li>
+          0  suivant Z  
+      </li>
+      
+    </p>
+
+    <p>et une translation de :
+      <li>
+         1 en suivant X  
+      </li>
+      <li>
+         0 en suivant Y  
+      </li>
+      <li>
+         0.5 en suivant X  
+      </li>      
+    </p>
+
+    <p>avec un vecteur <em>[1,0,0]</em> d'origine <em>[0.25,0,1]</em>:
+
+  <img src="\Modelisation\Robotique_theorique\transforme_homogene_screen.jpg" alt="Image d'exemple transformation homogène">
+<details >
+<summary > <b style="color: red;">Transformation homogène sur Python</b> 
+    </summary >
+  <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -----------------------------
+# Définition de la base orthonormée
+# -----------------------------
+vx = np.array([1.0, 0.0, 0.0])
+vy = np.array([0.0, 1.0, 0.0])
+vz = np.array([0.0, 0.0, 1.0])
+
+# Vecteurs et origine
+vecteur_R0 = np.array([1.0, 0.0, 0.0])
+vecteur_R0 /= np.linalg.norm(vecteur_R0)  # vecteur unitaire
+
+origin = np.array([0.0, 0.0, 0.0])
+origin_vecteur = np.array([0.25, 1.0, 0.0])
+
+# -----------------------------
+# Définition des angles et translations
+# -----------------------------
+rota_x = np.pi/2
+rota_y = np.pi/4
+rota_z = 0
+deplacement_3D = np.array([1.0, 0.0, 0.5])
+
+# -----------------------------
+# Matrice de rotation
+# -----------------------------
+
+#def rotation_matrix(axis, angle):           #autre méthode moins intuitive mais plus rapide en utilisant la formule de Rodrigues 
+#    axis = axis / np.linalg.norm(axis)      # A savoir : R = Icosθ + (1−cosθ)(uuT) + [u]​sinθ
+#    x, y, z = axis                          # avec [u] = matrice antisymétrique associée au produit vectoriel
+#    c = np.cos(angle)                       # et uuT le produit externe de l’axe avec lui-même
+#    s = np.sin(angle)                       # axis est un np.array([]) 3x1
+#    C = 1 - c
+#    R = np.array([
+#        [c + x*x*C, x*y*C - z*s, x*z*C + y*s],
+#        [y*x*C + z*s, c + y*y*C, y*z*C - x*s],
+#        [z*x*C - y*s, z*y*C + x*s, c + z*z*C]
+#    ])
+#    return R
+
+def rotation_matrix_X(angle):
+    c = np.cos(angle)                       
+    s = np.sin(angle)
+    R = np.array([
+        [1, 0, 0],
+        [0, c,-s],
+        [0, s, c]
+    ])
+    return R
+
+def rotation_matrix_Y(angle):
+    c = np.cos(angle)                       
+    s = np.sin(angle)
+    R = np.array([
+        [c , 0, s],
+        [0 , 1, 0],
+        [-s, 0, c]
+    ])
+    return R
+
+def rotation_matrix_Z(angle):
+    c = np.cos(angle)                       
+    s = np.sin(angle)
+    R = np.array([
+        [c,-s, 0],
+        [s, c, 0],
+        [0, 0, 1]
+    ])
+    return R
+
+# -----------------------------
+# Matrice de Rotation final
+# -----------------------------
+R_x = rotation_matrix_X(rota_x)
+R_y = rotation_matrix_Y(rota_y)
+R_z = rotation_matrix_Z(rota_z)
+
+M_rota = R_x @ R_y @ R_z
+
+# -----------------------------
+# Matrice homogène (rotation + translation)
+# -----------------------------
+T_final = np.eye(4)
+T_final[:3, :3] = M_rota
+T_final[:3, 3] = deplacement_3D
+
+
+# -----------------------------
+# Nouvelles bases après rotation
+# -----------------------------
+vx_R1 = T_final[:3, :3] @ vx    # /!\ on veux bien ici le nouveau vecteur exprimé dans la base initial /!\
+vy_R1 = T_final[:3, :3] @ vy    # d'ou la différence dans les formule données sur le site
+vz_R1 = T_final[:3, :3] @ vz    # on peut ajouter une transposé tel que T_final[:3, :3].T pour exprimer les resultats dans la nouvelle base
+
+# -----------------------------
+# Appliquer transformation aux vecteurs
+# -----------------------------
+origine_v_R1 = (T_final @ np.append(origin_vecteur, 1))[:3] # 1 car origine_v_R1 est un point -> applique rotation + translation
+vecteur_R1 = (T_final @ np.append(vecteur_R0, 0))[:3]       # 0 car vecteur_R0 est un vecteur -> applique seulement la rotation
+vecteur_R1_unit = vecteur_R1 / np.linalg.norm(vecteur_R1)  #gare un vecteur unitaire
+
+
+# -----------------------------
+# Tracer la scène
+# -----------------------------
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# Base initiale (rouge)
+ax.quiver(*origin, *vx, color='r', linewidth=2) # En Python, l’opérateur * “décompacte” une liste, un tuple ou un tableau en plusieurs arguments
+ax.quiver(*origin, *vy, color='r', linewidth=2)
+ax.quiver(*origin, *vz, color='r', linewidth=2)
+
+# Vecteur initial (bleu)
+ax.quiver(*origin_vecteur, *vecteur_R0, color='b', linewidth=2)
+
+# Nouvelle base (vert)
+ax.quiver(*T_final[:3, 3], *vx_R1, color='g', linewidth=2)
+ax.quiver(*T_final[:3, 3], *vy_R1, color='g', linewidth=2)
+ax.quiver(*T_final[:3, 3], *vz_R1, color='g', linewidth=2)
+
+# Vecteur final (jaune)
+ax.quiver(*origine_v_R1, *vecteur_R1_unit, color='y', linewidth=2)
+
+#  Réglages du graphique
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+L = 2.5
+ax.set_xlim(-L, L)
+ax.set_ylim(-L, L)
+ax.set_zlim(-L, L)
+ax.set_box_aspect([1, 1, 1])
+ax.set_title("Base initiale (rouge) & vecteur (bleu) >> transformée (vert) & vecteur (jaune)")
+plt.show()
+
+
+    </code></pre>
+</details>
+
+<hr>
+
+    <h3>
+      Sources annexes :
+    </h3>
+
+    <p>
+      <a href="https://gjlaurent.github.io/assets/cours/polyRobotiqueIndustrielle.pdf">Robotique industrielle de Guillaume Laurent & Nicolas Chaillet 2024</a>
+    </p>
+
+    </main>
+  </div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

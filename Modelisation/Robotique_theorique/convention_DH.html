@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Robotique Théorique</h3>
+      <ul>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html" class="active">Convention DH</a></li>
+      </ul>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+
+
+        <h1>Conventions de Denavit–Hartenberg (DH)</h1>
+
+        <p>
+        Les conventions de Denavit–Hartenberg permettent de décrire la géométrie d’un robot
+        manipulateur à l’aide de transformations homogènes successives. Elles sont utilisées 
+        pour établir la cinématique directe et inverse des bras articulés.
+        </p>
+
+        <p>
+        Il existe deux variantes principales :
+        </p>
+
+        <ul>
+        <li><strong>La convention DH standard</strong> (Denavit &amp; Hartenberg, 1955)</li>
+        <li><strong>La convention DH modifiée</strong> (MDH)</li>
+        </ul>
+
+        <p>
+        Ces deux conventions décrivent un enchaînement de rotations et translations, 
+        mais l’ordre et la position des axes diffèrent. Cela entraîne des matrices 
+        différentes et des règles d’assignation de repères distinctes.
+        </p>
+
+        <div class="highlight">
+            <p>
+             L’usage d’une variante plutôt qu’une autre provient souvent davantage d’une question d’habitude,
+             de tradition ou de compatibilité avec un référentiel existant (cours, livres, logiciels,
+             documentations industrielles), plutôt que d’un véritable avantage technique décisif. En pratique,
+             les deux conventions permettent de décrire correctement la cinématique d’un robot ; ce qui change
+             principalement, c’est la manière d’organiser les repères et la cohérence avec ce qui a déjà été 
+             adopté dans un projet ou par une communauté.
+            </p>
+        </div>
+
+        <p>
+            L'utilisation de la convention DH est intéressante pour systématiser les calculs du modèle géométrique.<br>
+            Cette méthode permet de traiter tout les cas de figures, même pour des robots particuliers. Cela permet aussi
+            de prendre en compte les défauts de fabrications pour des modèles très précis.
+        </p>
+
+        <hr>
+
+        <h2>1. Matrice DH modifiée</h2>
+
+        <p> 
+            Dans la matrice DH modifiée (comme dans la standard d'ailleurs) 
+            <li>L'axe <b>z<sub>i</sub></b> correspond à l'axe de l'articulation <b><em>i</em></b>.</li>
+            <li>L'axe <b>x<sub>i</sub></b> est porté par le perpendiculaire commune aux axes <b>z<sub>i</sub></b> et <b>z<sub>i+1</sub></b>.</li>
+            <li>
+            Si les axes des articulations <b><em>i</em></b> et <b><em>i+1</em></b> sont concourants, les origines des repères 
+            <em>O<sub>i</sub></em> et <em>O<sub>i+1</sub></em> sont placées au point d’intersection de ces axes.</li>
+            
+        </p>
+
+        <p>La transformation homogène entre les repères R<sub>i-1</sub> et R<sub>i</sub> est :</p>
+
+
+        <div>
+        $$
+        {}^{i-1}\mathbf{T}_{i}(\alpha_i,d_i,\theta_i,r_i)
+        =
+        \begin{bmatrix}
+        \cos\theta_i & -\sin\theta_i & 0 & d_i \\
+        \cos\alpha_i\,\sin\theta_i & \cos\alpha_i\,\cos\theta_i & -\sin\alpha_i & -r_i\sin\alpha_i \\
+        \sin\alpha_i\,\sin\theta_i & \sin\alpha_i\,\cos\theta_i & \cos\alpha_i & r_i\cos\alpha_i \\
+        0 & 0 & 0 & 1
+        \end{bmatrix}
+        $$
+        </div>
+
+        <p>Signification des paramètres :</p>
+
+       <div style="text-align: center;">
+            <p>
+                <strong>&alpha;<sub>i</sub></strong> : rotation entre z<sub>i-1</sub> et z<sub>i</sub> autour de x<sub>i-1</sub><br>
+                <strong>d<sub>i</sub></strong> : distance entre z<sub>i-1</sub> et z<sub>i</sub> le long de x<sub>i-1</sub><br>
+                <strong>&theta;<sub>i</sub></strong> : rotation entre x<sub>i-1</sub> et x<sub>i</sub> autour de z<sub>i</sub><br>
+                <strong>r<sub>i</sub></strong> : distance entre x<sub>i-1</sub> et x<sub>i</sub> le long de z<sub>i</sub>
+            </p>
+        </div>
+
+        <p>Convention de Denavit-Hartenberg (sur ce schéma α<sub>i</sub> < 0 et θ<sub>i</sub> < 0) :</p>
+
+        <img src="/Modelisation/Robotique_theorique/DH.jpg" alt="convention DH exemple">
+        <hr>
+
+  
+    <h3>
+      Exemple concret :
+    </h3>
+
+    <p><b>cas du PA10 :</b></p>
+
+    <p>
+        Le PA10 est un robot Mitsubushi, on le retrouve à 6 ou 7 degrés de libertés. 
+        Il est utilisé pour la recherche de nouvelles approches dans le domaine de la robotique industrielle.
+        Je l'ai utilisé lors de mon stage au Japon est il illustre parfaitement l'utilité de
+        la convention DH.   
+    </p>
+
+    <img src="/Modelisation/Robotique_theorique/PA10_joint.jpg" alt="organisation articulaire PA10-7C">
+    <div class="legend">
+        <p>
+            Système de coordonnées du PA10-7C
+        </p>
+    </div>
+ 
+    <img src="/Modelisation/Robotique_theorique/PA10_lenght.jpg" alt="longueur articulaire PA10-7C">
+    <div class="legend"> 
+        <p>
+            Longueur articulaire PA10-7C
+        </p>
+    </div>
+
+    <p> 
+        Avec ces informations on peut en deduire la matrice DH :
+    </p>
+    <div style="text-align: center;">
+    <table border="1" cellspacing="0" cellpadding="5" style="display: inline-table;">
+        <caption><strong>Paramètres DH du PA10-7C</strong></caption>
+        <thead>
+        <tr>
+            <th>i</th>
+            <th>&alpha;<sub>i</sub> (rad)</th>
+            <th>d<sub>i</sub> (m)</th>
+            <th>&theta;<sub>i</sub> (rad)</th>
+            <th>r<sub>i</sub> (m)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><td>1</td><td>0</td><td>0</td><td>q₁</td><td>0</td></tr>
+        <tr><td>2</td><td>-π/2</td><td>0</td><td>q₂</td><td>0.317</td></tr>
+        <tr><td>3</td><td>π/2</td><td>0</td><td>q₃</td><td>0</td></tr>
+        <tr><td>4</td><td>-π/2</td><td>0</td><td>q₄</td><td>0.45</td></tr>
+        <tr><td>5</td><td>π/2</td><td>0</td><td>q₅</td><td>0.48</td></tr>
+        <tr><td>6</td><td>-π/2</td><td>0</td><td>q₆</td><td>0</td></tr>
+        <tr><td>7</td><td>π/2</td><td>0</td><td>q₇</td><td>0.07</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p>
+        <br>
+    </p>
+    
+<div class="highlight">
+<p>
+
+
+    À noté que le PA10-6C (robot similaire avec 6 degrés de libertés) aurait une convention DH
+    similaire. Le seul changement aurait été que l'articulation redondante q<sub>3</sub> = 0
+</p>
+</div>
+
+    <details >
+<summary > <b style="color: red;">Convention DH sur Python</b> 
+    </summary >
+  <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+#Matrice MDH
+def DH(alpha1, d1, theta1, r1):
+    T = np.array([
+        [np.cos(theta1),            -np.sin(theta1),            0,  d1],
+        [np.cos(alpha1)*np.sin(theta1), np.cos(alpha1)*np.cos(theta1), -np.sin(alpha1), -r1*np.sin(alpha1)],
+        [np.sin(alpha1)*np.sin(theta1), np.sin(alpha1)*np.cos(theta1),  np.cos(alpha1),  r1*np.cos(alpha1)],
+        [0, 0, 0, 1]
+    ])
+    return T
+
+
+# Vecteur des angles articulaires
+q = np.array([0, 0, 0, 0, 0, 0, 0])
+
+# Matrice des paramètres DH
+DH_parameters = np.array([
+    [0,        0,        q[0], 0.317],
+    [-np.pi/2, 0,        q[1], 0],
+    [ np.pi/2, 0,        q[2], 0.45],
+    [-np.pi/2, 0,        q[3], 0],
+    [ np.pi/2, 0,        q[4], 0.48],
+    [-np.pi/2, 0,        q[5], 0],
+    [ np.pi/2, 0,        q[6], 0.07]
+])
+
+# -----------------------------
+# MGD
+# -----------------------------
+T = np.eye(4)
+points = [T[:3, 3]]   # sauvegarde pour le plot
+
+for i in range(DH_parameters.shape[0]):
+    alpha, d, theta, r = DH_parameters[i]
+    Ti = DH(alpha, d, theta, r)
+    T = T @ Ti
+    points.append(T[:3, 3])   # sauvegarde pour le plot
+
+
+# -----------------------------
+# DESSINE LE ROBOT
+# -----------------------------
+
+points = np.array(points)
+xs = points[:, 0]
+ys = points[:, 1]
+zs = points[:, 2]
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# plot 
+ax.plot(xs, ys, zs, '-o', markersize=8)
+
+
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.set_zlabel("Z")
+ax.set_title("Visualization du robot avec MDH")
+L = 1
+ax.set_xlim(-L, L)
+ax.set_ylim(-L, L)
+ax.set_zlim(-L, L)
+ax.set_box_aspect([1,1,1])
+ax.view_init(elev=30, azim=45)
+
+plt.show()
+    </code></pre>
+</details>
+
+    <hr>
+    <h3>
+      Sources annexes :
+    </h3>
+
+    <p>
+      <a href="https://gjlaurent.github.io/assets/cours/polyRobotiqueIndustrielle.pdf">Robotique industrielle de Guillaume Laurent & Nicolas Chaillet 2024</a> <br>
+      <a href="https://www.jeed.go.jp/english/ia/7thIA/u603g20000000krl-att/u603g20000000l1f.pdf">Manuel de programmation du PA10 par Mitsubushi</a> <br>
+      <a href="\Modelisation\Robotique_theorique\PA10_Moving_Range.pdf">Range de déplacement du PA10 par Mitsubushi</a> <br>
+    </p>
+</main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

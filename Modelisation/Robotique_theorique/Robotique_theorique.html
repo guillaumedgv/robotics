@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Robotique Théorique</h3>
+      <ul>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+      <h1>Robotique Théorique</h1>
+
+      <p>
+        La robotique théorique étudie les principes fondamentaux de la conception, de la commande
+        et de la modélisation des robots. Elle combine la mécanique, l’électronique et l’informatique
+        pour développer des systèmes intelligents capables de réaliser des tâches complexes.
+      </p>
+
+      <h2>Concepts clés</h2>
+      <ul>
+        <li>Modélisation cinématique et dynamique</li>
+        <li>Analyse des systèmes multi-degrés de liberté</li>
+        <li>Planification de trajectoire et optimisation</li>
+        <li>Contrôle des robots (linéaire et non-linéaire)</li>
+      </ul>
+
+      <div class="highlight">
+        Exemple : Un robot manipulateur peut être modélisé à l’aide de matrices homogènes
+        pour prédire la position de son effecteur dans l’espace.
+      </div>
+
+      <h2>Outils et méthodes</h2>
+      <p>
+        Pour la robotique théorique, on utilise souvent MATLAB, Simulink ou Python pour simuler
+        les mouvements et tester les algorithmes de commande avant de passer à l’implémentation physique.
+      </p>
+    </main>
+  </div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

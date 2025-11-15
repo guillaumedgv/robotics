@@ -1,0 +1,334 @@
+/* ============================
+    GLOBAL STYLE
+============================ */
+body { 
+  font-family: Arial, sans-serif; /* style de texte globale */  
+  background-color: #f4f4f4; /* couelur du fond */  
+  margin: 0; /* pas d'espace */  
+  padding: 0;
+  line-height: 1.6;
+  display: flex; 
+  flex-direction: column; /* stack les differents nav, main, footer verticalement */  
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+main {
+  max-width: 900px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {/* centre les h1 et h2  */  
+  text-align: center;
+  color: #292929;
+}
+
+p, li, span, strong, em, ins, del, mark { /* couelurs des textes */  
+  color: #555;
+}
+
+pre {   /* style de texte pour <pre> --> utile pour showcase le code */  
+  background: #222;
+  color: #eee;
+  padding: 15px;
+  border-radius: 8px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.copy-btn { /* le bouton copy des en tete de code */  
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #555;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.copy-btn:hover { /* style quand on passe la souris dessus */  
+  background: #777;
+}
+
+img, video {
+  display: block;
+  margin: 20px auto;
+  max-width: 80%;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.highlight { /* creation class highlight */  
+  background-color: #e8e8e8;   /* light gray background */
+  padding: 15px;               /* inner spacing */
+  border-left: 4px solid #292929; /* accent border */
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 1em;              /* keep font readable */
+  line-height: 1.6;
+}
+
+.legend {
+  font-size: 0.9em;              /* slightly smaller text */
+  color: #555;                   /* soft gray caption color */
+  font-style: italic;            /* classic caption style */
+  text-align: center;            /* centered text under image */
+  margin-top: 10px;              /* space above */
+  margin-bottom: 20px;           /* spacing below */
+  line-height: 1.4;
+}
+
+/* ============================
+   🧭 NAVIGATION
+============================ */
+nav {
+  background-color: #333;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+nav ul { /* menu de navigation */  
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+nav ul li { /* it makes each <li> a positioning parent for dropdowns --> liste qui déroule */  
+  position: relative;
+}
+
+nav ul li a { /* les menu de la nav */  
+  color: white;
+  text-decoration: none;
+  padding: 10px 15px;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+nav ul li:hover {
+  background-color: #555;
+}
+
+nav ul li a.active,
+nav ul li a.active-parent { /* que la page actuel soir mise en blanc dans la nav */  
+  background-color: white;
+  color: black;
+  font-weight: bold;
+}
+
+nav ul li ul { /* style menu deroulante */  
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #444;
+  padding: 0;
+  list-style: none;
+  min-width: 180px;
+  border-radius: 0 0 8px 8px;
+  z-index: 1000;
+}
+
+nav ul li:hover ul {
+  display: block;
+}
+
+nav ul li ul li a { /* liste menu deroulant */  
+  padding: 10px;
+  color: white;
+}
+
+nav ul li ul li a:hover {
+  background-color: #666;
+}
+
+nav ul li.night-mode-btn {
+  margin-left: auto;  /* pushes the button to the far right */
+}
+
+nav ul li.night-mode-btn button {
+  background: #555;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+nav ul li button#themeToggle:hover {
+  background: #777;
+}
+
+/* ============================
+    FOOTER
+============================ */
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #292929;
+  color: white;
+  margin-top: 40px;
+  font-size: 0.9em;
+  
+}
+
+/* ============================
+    SIDEBAR
+============================ */
+.container {
+  display: flex;
+  max-width: 1200px;
+  margin: 40px auto;
+  gap: 20px;
+}
+
+.sidebar {
+  width: 250px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+  height: fit-content; /* s'adapte au contenue */
+}
+
+.sidebar h3 {
+  margin-top: 0;
+  color: #292929;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar ul li a {
+  display: block;
+  text-decoration: none;
+  color: #555;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  transition: all 0.2s;
+}
+
+.sidebar ul li a:hover {
+  background-color: #ddd;
+}
+
+.sidebar ul li a.active {
+  background-color: #333;
+  color: white;
+  font-weight: bold;
+}
+
+/* Content next to sidebar */
+.content {
+  flex-grow: 1;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* ============================
+    RESPONSIVE
+============================ */
+@media (max-width: 900px) { /* quand on est sur tel ou page reduite */
+  .container {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    position: relative;
+    top: auto;
+    margin-bottom: 20px;
+  }
+  .content {
+    width: 100%;
+  }
+}
+
+/* ============================
+   🌙 NIGHT MODE
+============================ */
+body.night {
+  background-color: #121212;
+  color: #c0c0c0; /* main text color */
+}
+
+body.night main,
+body.night .content,
+body.night .sidebar {
+  background-color: #1a1a1a; /* unified dark background */
+  color: #c0c0c0;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
+body.night .intro,
+body.night .highlight {
+  background-color: #111;  /* emphasize */
+  border-left-color: #c0c0c0;
+  color: #c0c0c0;
+}
+
+
+
+body.night footer {
+  background-color: #222;
+  color: #c0c0c0;
+}
+
+body.night a {
+  color: #c0c0c0;
+}
+
+body.night a:hover {
+  color: #c0c0c0;
+}
+
+/* --- Night mode for highlight --- */
+body.night .highlight {
+  background-color: #111;      /* darker background for night */
+  border-left-color: #c0c0c0; /* accent in night mode */
+  color: #c0c0c0;              /* text color */
+  font-size: 1em;
+  line-height: 1.6;
+}
+
+body.night .legend {
+  color: #c0c0c0;
+}
+
+
+body.night h1, 
+body.night h2, 
+body.night h3, 
+body.night h4, 
+body.night h5, 
+body.night h6,
+body.night p,
+body.night li,
+body.night span,
+body.night strong,
+body.night em,
+body.night ins,
+body.night del,
+body.night mark {
+  color: #c0c0c0;
+}

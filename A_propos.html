@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>À propos</title>
+  <link rel="stylesheet" href="/style.css"> <!-- reuse your main stylesheet -->
+
+  <!-- Navbar insérée dynamiquement -->
+  <div id="navbar"></div>
+<script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+
+
+  <!-- Contenu principal -->
+ <main>
+  <h1>À propos</h1>
+
+  <p>
+    Je me présente : je m'appelle <strong>Guillaume Dengreville</strong>, j'ai 23 ans et je suis diplômé de 
+    <ins>Supmicrotech</ins> (anciennement <strong>ENSMM</strong>, ou École nationale supérieure de mécanique et des microtechniques) 
+    et ce avec une spécialité en <strong>systèmes robotique et mécatronique</strong>.<br>
+    Entre deux dessins ou parties d'échecs, j'ai décidé de créer un site pour immortaliser tout ce que j'ai appris au cours 
+    de mon parcours scolaire et de mes différents projets.<br>
+    L'objectif est d'organiser mes notes et de les partager avec le plus grand nombre, tout en évitant de transporter un classeur plein.
+  </p>
+
+  <h2>Philosophie de Modélisation</h2>
+  <p>
+    <strong>Chaque code présenté est simpliste et ne repose sur aucune bibliothèque pré-faite de robotique ou mécatronique.</strong>  
+    Ainsi, pas de :
+  </p>
+
+  <ul>
+    <li><del>Pybotics</del></li>
+    <li><del>Robotics System Toolbox</del></li>
+    <li><del>ROS</del></li>
+  </ul>
+
+  <p>
+    Le but est de comprendre <mark>réellement</mark> ce qui est fait, étape par étape, sans avoir à rentrer dans une algorithmique trop complexe inutilement.
+
+    J'espère pouvoir vous aidez dans vos projet future !
+  </p>
+
+  <p>
+  <ins>Si je me suis appuyé sur une source au cours d'un projet, elles sera disponible en bas de la dite page.</ins> <br>
+
+
+  N'hésitez pas à aller les voir aussi !
+  </p>
+
+  <div class="highlight">
+    Si vous souhaitez collaborer, discuter d’un projet ou simplement échanger des idées, n’hésitez pas à me contacter par <address>
+      <a href="mailto:guillaumedengrevillepro@gmail.com">mail</a>.
+    </address>
+  </div>
+</main>
+
+<footer>
+  © 2025 - Guillaume Dengreville
+</footer>
+
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Accueil</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar insérée dynamiquement -->
+  <div id="navbar"></div>
+<script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text prcque HTML = text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data; // comme ça tte les page on mm navbar
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <!-- Contenu principal -->
+  <main>
+
+    <h1>Bienvenue dans ma bibliothèque de Babel</h1>
+
+    <div class="highlight">
+      <p>
+        Ce site est dédié à la <strong>robotique, la modélisation des systèmes</strong> et
+        l’<strong>automatisation</strong> entre autre. J'y explique à la fois des projets pratiques,
+        des cours théoriques et des ressources pour mieux comprendre
+        certains systèmes complexes. 
+      </p>
+    </div>
+
+
+
+    <div style="text-align: center;">
+      <img src="/aled.jpg" alt="Image d'accueil" style="display:block; margin:20px auto; width:300px; height:auto; border-radius:10px;">
+      
+    </div>
+   
+      <p>
+        <strong>Dans une démarche de partage, tous les codes, fichiers 3D, références hardware, etc... 
+        sont fournis sur les pages des projets respectifs ! Pour plus de détails ou pour toute
+        autre question, contactez-moi <a href="mailto:guillaumedengrevillepro@gmail.com">ici</a>.</strong>
+      </p>
+
+    <h1>Bonne visite !</h1>
+
+  </main>
+
+  <footer>
+    © 2025 - Guillaume Dengreville 
+  </footer>
+
+</body>
+</html>
