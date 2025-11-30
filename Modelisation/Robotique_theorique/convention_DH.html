@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,9 +88,9 @@
     <aside class="sidebar">
       <h3>Robotique Théorique</h3>
       <ul>
-        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
-        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
-        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html" class="active">Convention DH</a></li>
+        <li><a href="Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="Modelisation/Robotique_theorique/convention_DH.html" class="active">Convention DH</a></li>
       </ul>
       </ul>
     </aside>
@@ -167,7 +167,7 @@ $$
 
         <p>Convention de Denavit-Hartenberg (sur ce schéma α<sub>i</sub> < 0 et θ<sub>i</sub> < 0) :</p>
 
-        <img src="/Modelisation/Robotique_theorique/DH.png" alt="convention DH exemple">
+        <img src="Modelisation/Robotique_theorique/DH.png" alt="convention DH exemple">
         
 
 
@@ -226,14 +226,14 @@ $$
         la convention DH.   
     </p>
 
-    <img src="/Modelisation/Robotique_theorique/PA10_joint.jpg" alt="organisation articulaire PA10-7C">
+    <img src="Modelisation/Robotique_theorique/PA10_joint.jpg" alt="organisation articulaire PA10-7C">
     <div class="legend">
         <p>
             Système de coordonnées du PA10-7C
         </p>
     </div>
  
-    <img src="/Modelisation/Robotique_theorique/PA10_lenght.jpg" alt="longueur articulaire PA10-7C">
+    <img src="Modelisation/Robotique_theorique/PA10_lenght.jpg" alt="longueur articulaire PA10-7C">
     <div class="legend"> 
         <p>
             Longueur articulaire PA10-7C
@@ -443,7 +443,7 @@ plt.show()
     <p>
       <a href="https://gjlaurent.github.io/assets/cours/polyRobotiqueIndustrielle.pdf">Robotique industrielle de Guillaume Laurent & Nicolas Chaillet 2024</a> <br>
       <a href="https://www.jeed.go.jp/english/ia/7thIA/u603g20000000krl-att/u603g20000000l1f.pdf">Manuel de programmation du PA10 par Mitsubushi</a> <br>
-      <a href="\Modelisation\Robotique_theorique\PA10_Moving_Range.pdf">Range de déplacement du PA10 par Mitsubushi</a> <br>
+      <a href="Modelisation\Robotique_theorique\PA10_Moving_Range.pdf">Range de déplacement du PA10 par Mitsubushi</a> <br>
       <a href="https://home.mis.u-picardie.fr/~fabio/Eng/documenti/Teaching/RI21-22/RobInd_Ch3p1.pdf">Cours Modélisation robotique industrielle université de Picardie</a> <br>
     </p>
 </main>
@@ -455,3 +455,4 @@ plt.show()
 
 </body>
 </html>
+
