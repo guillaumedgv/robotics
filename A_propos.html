@@ -9,7 +9,7 @@
   <div id="navbar"></div>
 <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -126,3 +126,4 @@
 </footer>
 
 </html>
+
