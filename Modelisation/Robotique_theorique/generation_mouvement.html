@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("navbar.html")
+  fetch("navbar_robot_theo.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -92,6 +92,11 @@
         <li><a href="Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
         <li><a href="Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
         <li><a href="Modelisation/Robotique_theorique/generation_mouvement.html" class="active">Génération de mouvement</a></li>
+        <li><a href="Modelisation/Robotique_theorique/jacobienne_manipulabilite.html" >Jacobienne</a></li>
+        <li><a href="Modelisation/Robotique_theorique/redondance.html">Redondance</a></li>
+        <li><a href="Modelisation/Robotique_theorique/parallele.html">Robot parallele</a></li>
+        <li><a href="Modelisation/Robotique_theorique/Controle_force.html" >Commande en Force</a></li>
+        <li><a href="Modelisation/Robotique_theorique/Impedance_Admittance.html">Impedance & Admitance</a></li>
       </ul>
       </ul>
     </aside>
@@ -888,3 +893,4 @@ plt.show()
 </body>
 
 </html>
+
