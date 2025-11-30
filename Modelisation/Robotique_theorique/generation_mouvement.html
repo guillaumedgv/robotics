@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,10 +88,10 @@
     <aside class="sidebar">
       <h3>Robotique Théorique</h3>
       <ul>
-        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
-        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
-        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
-        <li><a href="/Modelisation/Robotique_theorique/generation_mouvement.html" class="active">Génération de mouvement</a></li>
+        <li><a href="Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
+        <li><a href="Modelisation/Robotique_theorique/generation_mouvement.html" class="active">Génération de mouvement</a></li>
       </ul>
       </ul>
     </aside>
@@ -124,7 +124,7 @@
      Cela peut tout de même être un avantage si l’on souhaite simplement que le robot 
      aille vite d’un point A à un point B, sans contrainte particulière.
      </p>
-<img src="/Modelisation/Robotique_theorique/mouvement_articulaire.png" alt="mouvement espace articulaire">
+<img src="Modelisation/Robotique_theorique/mouvement_articulaire.png" alt="mouvement espace articulaire">
   <div class="legend">
           <p>Exemple d'un mouvement d'un point A à B dans l'espace articulaire vue de deux angles</p>
   </div> 
@@ -153,7 +153,7 @@ $$
   mouvement dans le monde réele et ensuite grâce au MGI les traduire en mouvement
   articulaire.
   
-  <img src="/Modelisation/Robotique_theorique/diff_space.png" alt="Difference_Joint_Operational_Space">
+  <img src="Modelisation/Robotique_theorique/diff_space.png" alt="Difference_Joint_Operational_Space">
   <div class="legend">
           <p>Différence de calcul entre l'espace articulaire et opérationnel</p>
   </div> 
@@ -217,7 +217,7 @@ $$
 
 
 
-<img src="/Modelisation/Robotique_theorique/profil_bangbang.png" alt="Profil_bangbang">
+<img src="Modelisation/Robotique_theorique/profil_bangbang.png" alt="Profil_bangbang">
   <div class="legend">
           <p>Exemple de profil suivant une loi trapézoïdal type Bang-Bang</p>
   </div>
@@ -290,7 +290,7 @@ $$
 
 
 
-<img src="/Modelisation/Robotique_theorique/profil_interpolation.png" alt="Profil_quintic">
+<img src="Modelisation/Robotique_theorique/profil_interpolation.png" alt="Profil_quintic">
   <div class="legend">
           <p>Exemple de profil suivant une loi d'interpolation linéare d'ordre 5</p>
   </div>
@@ -350,7 +350,7 @@ on doit recalculer q<sub>0</sub>, v<sub>0</sub> et a<sub>0</sub> à la fin de ch
   </p>
 
 
-<img src="/Modelisation/Robotique_theorique/profil_scurve.png" alt="Profil_Scruve">
+<img src="Modelisation/Robotique_theorique/profil_scurve.png" alt="Profil_Scruve">
   <div class="legend">
           <p>Exemple de profil suivant une loi S-curve</p>
   </div>
@@ -886,4 +886,5 @@ plt.show()
   </footer>
 
 </body>
+
 </html>
