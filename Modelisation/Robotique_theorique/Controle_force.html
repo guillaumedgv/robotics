@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Robotique Théorique</h3>
+      <ul>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/generation_mouvement.html">Génération de mouvement</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/jacobienne_manipulabilite.html" >Jacobienne</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/redondance.html">Redondance</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/parallele.html">Robot parallele</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/Controle_force.html" class="active">Commande en Force</a></li>
+      </ul>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+
+        <h1> Commande en Force</h1>
+
+        <p>
+            Le contrôle en force en robotique est une méthode de commande qui consiste à 
+            réguler les forces et les couples exercés par un robot lorsqu’il entre en 
+            contact avec son environnement.
+        </p>
+
+        <img src="/Modelisation/Robotique_theorique/cobot.jpg" alt="robot parallele">
+            <div class="legend">
+                    <p>Cobots (Universal Robot) utilisé pour la soudure</p>
+            </div> 
+        <p> 
+            Les robots qui utilisent ces commande nécéssite un hardware tout particulier 
+            (et un software aussi bien-sûr), de ce fait ils sont classés dans une case particulière 
+            en robotique. On parle de <b><em>Cobots</em></b>, pour Coopérative Robot.
+        </p>
+
+        <div class="highlight">
+            <p>
+                Ce système de commande est essentiel dans les tâches impliquant une interaction physique, 
+                comme la manipulation d’objets fragiles ou la chirurgie... <br>
+                
+            </p>
+        </div>
+
+        <hr>
+
+        <h3>
+            Dynamique Inverse 
+        </h3>
+
+        <p>
+            La <strong>dynamique inverse</strong> en robotique consiste à calculer les efforts (forces ou couples articulaires)
+            nécessaires pour produire un mouvement donné du robot. À partir des trajectoires souhaitées, définies par les
+            positions généralisées \( q(t) \), les vitesses \( \dot{q}(t) \) et les accélérations \( \ddot{q}(t) \), ainsi que du
+            modèle physique du robot.<br>
+            On détermine les commandes \( \tau(t) \) à appliquer aux actionneurs.
+            Pour un manipulateur rigide, la dynamique est généralement exprimée par :
+            \[
+            M(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) = \tau + J^T(q)f_{tip}
+            \]
+        </p>
+        <p>
+            Avec :
+            <ul>
+                <li>\( M(q) \) : matrice d'inertie du robot.</li>
+                <li>\( C(q,\dot{q}) \) : termes représentant les effets de Coriolis et centrifuges.</li>
+                <li>\( G(q) \) : vecteur des efforts dus à la gravité.</li>
+                <li>\( J(q) \) : matrice jacobienne reliant les vitesses articulaires à celles de l’effecteur.</li>
+                <li>\( f_{tip} \) : forces externes appliquées au robot (contacts, interactions) appliqué à l'effecteur.</li>
+            </ul>
+        </p>
+        
+        <hr>
+
+        <p>
+            <h3>Algorithme</h3>
+        </p>
+
+        <p> 
+            Pour résoudre l'équation on utilise un algorithme récursif du nom de Newton-Euler.<br>
+            Elle repose sur les lois fondamentales de la mécanique de Newton pour les forces 
+            et d’Euler pour les rotations, appliquées à chaque solide du robot considéré comme 
+            un corps rigide. 
+        </p>
+
+        <p>
+            Le calcul se déroule en deux étapes principales : <br>
+        </ul>
+                <li>Une phase « <b>aller</b> » (forward recursion)</li>
+                <p>
+                    Elle permet de déterminer, de la base vers l’effecteur, les vitesses et accélérations de chaque articulation.
+                </p>
+                <li>Une phase « <b>retour</b> » (backward recursion)</li>
+                <p>
+                    Elle permet quand à elle de calculer de l’effecteur vers la base, les forces et moments transmis entre les maillons
+                </p>     
+            </ul>
+        </p>
+
+        <p>
+            <b><em>Newton-Euler</em></b>:
+        </p>
+
+        <p>
+            <u> Phase Forward : </u>
+        </p>  
+
+        <p>
+        Soit \( n \) le nombre d’articulations. Pour \( i = 1 \) à \( n \), on calcule :
+        </p>
+
+        <p>
+        \[
+        \omega_i = {}^{i-1}R_i^T \left( \gamma_{i-1} + U_i \dot{q}_i \right)
+        \]
+        \[
+        \alpha_i = {}^{i-1}R_i^T \left( \alpha_{i-1} + U_i \ddot{q}_i + \gamma_{i-1} \times (U_i \dot{q}_i) \right)
+        \]
+        \[
+        a_i = {}^{i-1}R_i^T a_{i-1} + \alpha_i \times r_i + \gamma_i \times (\gamma_i \times r_i)
+        \]
+        \[
+        a_{CI_i} = a_i + \alpha_i \times r_{CI_i} + \gamma_i \times (\gamma_i \times r_{CI_i})
+        \]
+        </p>
+
+        <p>
+        où :
+        </p> 
+
+        <ul>
+        <li>\( \omega \) est la vitesse angulaire,</li>
+        <li>\( \alpha \) est l’accélération angulaire,</li>
+        <li>\( a \) est l’accélération linéaire,</li>
+        <li>\( a_{CI} \) est l’accélération linéaire du centre de masse,</li>
+        <li>\( r_i \) est le vecteur reliant les bases \( i-1 \) et \( i \),</li>
+        <li>\( r_{CI_i} \) est le vecteur reliant la base \( i \) au centre d’inertie,</li>
+        <li>\( U_i \) est l’axe de rotation de l’articulation \( i \),</li>
+        <li>\( {}^{i-1}R_i^T \) est la matrice de rotation de la base \( i \) vers la base \( i-1 \).</li>
+        </ul>
+
+        <p> 
+            Avec \( \omega_0 \) et  \( \alpha_0 \) = 0 et \( a_0 \) = - \(\vec{g} \)
+        </p>
+
+        <p>
+            <br>
+        </p>
+        <p>
+            <u> Phase Backward : </u>
+        </p>  
+
+        <p>
+            Pour \( i = n \) à \( 1 \), on calcule :
+        </p>
+
+       <p>
+        Pour la phase retour (du dernier lien vers la base), on calcule pour chaque articulation :
+        </p>
+
+        <p>
+        \[
+        f_i = {}^{i-1}R_i^T f_{i+1} + m_i \, a_{CI_i}
+        \]
+        \[
+        \tau_i = {}^{i-1}R_i^T \tau_{i+1}
+        + \left( {}^{i-1}R_i^T f_{i+1} \right) \times (-r_{CI_i})
+        - (m_i \, a_{CI_i}) \times r_{CI_i}
+        + I_{n_i} \, \alpha_i
+        + \omega_i \times \left( I_{n_i} \, \omega_i \right)
+        \]
+        </p>
+
+        <p>
+        où :
+        </p>
+
+        <ul>
+        <li>\( f_i \) : force transmise par le lien \( i \),</li>
+        <li>\( \tau_i \) : couple exercé au niveau de l’articulation \( i \),</li>
+        <li>\( m_i \) : masse du lien \( i \),</li>
+        <li>\( I_{n_i} \) : matrice d’inertie du lien \( i \),</li>
+        <li>\( a_{CI_i} \) : accélération du centre d’inertie du lien \( i \),</li>
+        <li>\( \omega_i \) : vitesse angulaire du lien \( i \),</li>
+        <li>\( r_{CI_i} \) : vecteur reliant l’articulation \( i \) au centre d’inertie,</li>
+        <li>\( {}^{i-1}R_i^T \) : matrice de rotation de la base \( i \) vers la base \( i-1 \).</li>
+        </ul>
+
+        <p> 
+            Avec \( f_n \) et  \( \tau_n \) = 0 et \( {}^{n-1}R_n \) = \( I \) la matrice identité.
+        </p>
+
+        <div class="highlight">
+            <p>
+                On peut simplement avec la forward et backward pass obtenir les commandes en couple,
+                et donc en courant, requise pour commander des trajectoires. 
+            </p>
+        </div>
+
+        <p>
+           <b>Calcul des différentes matrices</b>
+        </p>
+
+        <p>
+           Il peut être interessant de simuler comment un robot se deplace dans un espace donnée,
+            sous une gravité particulière avec ou sans force exterieur : 
+        </p>
+
+        <p>
+            Si on note l'algorithme précédent \( NE \) alors on déduire de l'équation plus haute que :
+        </p>
+        <p>
+        <ul>
+        <li>\( NE \) avec \( \dot{q} \) et \( \ddot{q} \) = 0  donne \( G \),</li> 
+        <li>\( NE \) avec \( \ddot{q} \) et \( g \) = 0  donne \( C \),</li> 
+        <li>\( NE \) pour \( i = 1 \) à \( n \) avec \( \dot{q} \) et \( g \) = 0 et \( \ddot{q}_{i}\) = 1 donne \( M \),</li> 
+        </ul>   
+        </p>
+
+            <p>
+                (chaque \( \tau_M \) est une colonne de \( M \))
+            </p>
+
+        <p>
+            Ainsi une fois chaque matrice calculé, il ne reste qu'a résoudre : 
+        </p>
+        
+       <p>
+        \[
+        \ddot{q} = \frac{\tau + J^T(q)f_{tip} - C(\dot{q},q) - G(q)}{M^{-1}}
+        \]
+        </p>
+
+        <p>
+        où :
+        </p>
+
+        <p>
+        <ul>
+        <li>\( \tau \)  = \( \tau_{ext} \) - \( \tau_{friction} \) ,</li> 
+        </ul>
+        </p>
+
+        <p>
+            Ensuite, pour finir on intègre avec <em>RK4 ou Euler-Symplectic</em> pour obtenir finalement : 
+            \(
+            \dot{q}_{\text{new}} \text{ et } q_{\text{new}}.
+            \)
+        </p>
+
+        <div class="highlight">
+            <p>
+                Je recommande <b>fortement</b> d'aller voir le <a href=https://fr.scribd.com/document/653413621/06-NewtonEulerDynamics> 
+                Cours du professeur Alessandro de Luca à l'Université de Rome</a> pour mieux comprendre cet algorithme 
+                et tout ce qui tourne autour.<br>
+               
+                Dans ces calculs on touche à quelque chose de complexe, ainsi il y a de <b>nombreuses</b>
+                convention etc... Il est donc assez important de tester soit même pour avoir quelque chose
+                qui fonctionne comme attendu !  <br>
+            </p>
+        </div>
+        
+        <hr>
+
+        <h3> Exemple en code</h3>
+
+        <p>
+            Voici les algorithmes qui permettent de visualiser sur un robot 2 axes quelconque sous les effets de 
+            à la gravité de la friction. <br>
+            Ces codes sont à utiliser ensemble et sont sur <b>Matlab</b> pour faciliter les calculs matriciels.
+        </p>
+
+        <img src="/Modelisation/Robotique_theorique/robot_animation.gif" alt="inverse Dynamics">
+            <div class="legend">
+                    <p>Gif Resultat 2 axes sans force exterieur </p>
+            </div> 
+
+           <details>
+    <summary > <b style="color: red;">Visualisation dynamique inverse</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+close all;
+
+%% Initialisation
+iteration =800;
+O0 = [0;0;0];
+l = [1,1];
+g = -9.81;
+q0 = [pi/2;0]; % angles Initiaux 
+dq0 = [0;0];   % vitesse
+dt = 0.01; % pas -> plus petit plus précis
+ddq0 = [0;0];  % acceleration
+
+% Data storage
+q_plot = zeros(2, iteration);
+dq_plot = zeros(2, iteration);
+ddq_plot = zeros(2, iteration);
+
+
+m = [1,1]; % Masse 
+
+% Setup figure for animation
+figure(1); clf;
+axis equal;
+axis([-l(1)*2,2* l(1), -l(1)*2, l(1)*2, -l(1)*2, l(1)*2]);
+view(15, 30);
+xlabel('X-axis'); ylabel('Y-axis'); zlabel('Z-axis');
+title('3D Motion of the Link');
+grid on; hold on;
+
+%% Simulation 
+for i = 1:iteration
+    
+    [MM,ddq_new] = Forward_dynamique_matrice_2(q0, dq0, dt, g); % juste pour le plot
+
+    %  RK4 Integration 
+    [q_new, dq_new] = RK4_Integration(q0, dq0, dt, g);
+
+    % Sauvegarde pour Plot
+    q_plot(:,i) = q_new;
+    dq_plot(:,i) = dq_new;
+    ddq_plot(:,i) = ddq_new;
+
+
+    % Update les valeurs 
+    q0 = q_new;
+    dq0 = dq_new;
+    ddq0 = ddq_new;
+
+    % Matrices de Transformation 
+    T01 = [cos(q_new(1,:)), 0, sin(q_new(1,:)), 0;
+            0, 1, 0, 0;
+           -sin(q_new(1,:)), 0, cos(q_new(1,:)), 0;
+            0, 0, 0, 1];
+
+    T01(3,4) = l(1);
+    
+    T12 = [cos(q_new(2,:)), 0, sin(q_new(2,:)), 0;
+               0, 1, 0, 0;
+              -sin(q_new(2,:)), 0, cos(q_new(2,:)), 0;
+               0, 0, 0, 1];
+        
+    T12(3,4) = l(2);
+
+
+    % Draw the Robot
+    cla; % Clear les axes pour animations
+    Draw_Cord(q_new, l);
+
+    % Pause
+    pause(0.01);
+end
+
+%% Plot Results
+time = (0:iteration-1) * dt;
+
+% Tracé des angles q
+figure(2);
+plot(time, q_plot(1, :), 'r', 'DisplayName', 'q1');
+hold on;
+plot(time, q_plot(2, :), 'g', 'DisplayName', 'q2');
+xlabel('Temps (s)');
+ylabel('Angles (rad)');
+title('Évolution des angles articulaires');
+legend('show');
+grid on;
+
+% Tracé des vitesses dq
+figure(3);
+plot(time, dq_plot(1, :), 'r', 'DisplayName', 'dq1');
+hold on;
+plot(time, dq_plot(2, :), 'g', 'DisplayName', 'dq2');
+xlabel('Temps (s)');
+ylabel('Vitesses (rad/s)');
+title('Évolution des vitesses articulaires');
+legend('show');
+grid on;
+
+% Tracé des accélérations ddq
+
+figure(4);
+plot(time, ddq_plot(1, :), 'r', 'DisplayName', 'ddq1');
+hold on;
+plot(time, ddq_plot(2, :), 'g', 'DisplayName', 'ddq2');
+xlabel('Temps (s)');
+ylabel('Accélérations (rad/s²)');
+title('Évolution des accélérations articulaires');
+legend('show');
+grid on;
+
+
+     </code></pre>
+      </details>
+
+      <details>
+    <summary > <b style="color: red;">Algorithme NE </b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+function [Masse_M,ddq_new] = Forward_dynamique_matrice_2(q, dq, dt, g)
+
+    %% INITIALISATION
+   
+    ddq_1 = zeros(2,1);
+    g1 = 0;
+
+    
+    % Calcul les couples Initiaux quand ddq = 0 & g = 0 (effect de Coriolis & centripetal)
+    [accel_centre_masse_1, accel_an_1, v_an_1] = dynamique_inverse_forward_matrice_2(q, dq, ddq_1, g1);
+    tau_1 = dynamique_inverse_backward_matrice_2(accel_centre_masse_1, accel_an_1, v_an_1, q, g1);
+
+
+    % Calcul couples due à la gravité (ddq = 0,dq=0 ,g ≠ 0)
+    ddq_3 = zeros(2,1);
+    dq_3 = zeros(2,1);
+    [accel_centre_masse_3, accel_an_3, v_an_3] = dynamique_inverse_forward_matrice_2(q, dq_3, ddq_3, g);
+    tau_3 = dynamique_inverse_backward_matrice_2(accel_centre_masse_3, accel_an_3, v_an_3, q, g);
+
+    %% COMPUTE MASSE MATRIX M(q)
+    g2 = 0;
+    dq2 = zeros(2,1);
+    Masse_M = zeros(2,2); 
+
+    for i = 1:2
+        ddq2 = zeros(2,1);
+        ddq2(i) = 1; 
+
+        [accel_centre_masse_2, accel_an_2, v_an_2] = dynamique_inverse_forward_matrice_2(q, dq2, ddq2, g2);
+        tau_2 = dynamique_inverse_backward_matrice_2(accel_centre_masse_2, accel_an_2, v_an_2, q, g2);
+
+        Masse_M(:, i) = tau_2'; 
+
+        
+    end
+
+
+    %friction visqueuse --> depend vitesse
+    coef_friction = 0; % valeur random (fct du medium) 
+    c= [coef_friction*dq(1);coef_friction*dq(2)];
+
+    %-------------------------
+    % Calcul de l'acceleration 
+    %-------------------------
+
+    tau_ext = zeros(2,1); % External torques (set to zero for now)
+
+    % Resoud M(q) * ddq = τ_ext - (Coriolis & Centripetal) - Gravity
+    ddq = pinv(Masse_M)* (tau_ext - tau_1' - tau_3'-c);
+    
+
+    % Resultats
+    ddq_new = ddq;
+
+end
+     </code></pre>
+      </details>
+      
+      <details>
+    <summary > <b style="color: red;">NE Forward pass</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+function [accel_ci, accel_an, v_an] = dynamique_inverse_forward_matrice_2(q, dq, ddq, g)
+
+    %% Conditions Initial 
+    v_an_0 = [0; 0; 0];      % vitesse angulaire 
+    accel_lin_0 = [0; 0; -g]; % acceleration linéaire (gravité)
+    accel_an_0 = [0; 0; 0];   % acceleration angulaire
+
+  
+    l = [1,1]; % longueur des liens
+
+   
+    % Matrice Transformation Homogene 
+    T01 = [cos(q(1)), 0, sin(q(1)), 0;
+               0, 1, 0, 0;
+              -sin(q(1)), 0, cos(q(1)), 0;
+               0, 0, 0, 1];
+
+    T01(3,4) = l(1);
+    
+    T12 = [cos(q(2)), 0, sin(q(2)), 0;
+               0, 1, 0, 0;
+              -sin(q(2)), 0, cos(q(2)), 0;
+               0, 0, 0, 1];
+        
+    T12(3,4) = l(2);
+
+    %% Rotation and Position 
+    R01 = T01(1:3, 1:3);
+    R12 = T12(1:3, 1:3);
+    r = [T01(1:3, 4),T12(1:3, 4)]; % Position outil
+    r1_ci = T01(1:3, 4) / 2;  % centre de masse lien 1
+    r2_ci = T12(1:3, 4) / 2;  % centre de masse lien 2
+
+
+    %% Calcul
+    v_an_1 = R01' * (v_an_0 + [0; 1; 0] * dq(1));
+    v_an_2 = R12' * (v_an_1 + [0; 1; 0] * dq(2));
+
+    accel_an_1 = R01' * (accel_an_0 + cross(dq(1)*v_an_0, [0; 1; 0]) + [0; 1; 0] * ddq(1));
+    accel_an_2 = R12' * (accel_an_1 + cross(dq(2)*v_an_1, [0; 1; 0]) + [0; 1; 0] * ddq(2));
+
+    accel_lin_1 = R01' * accel_lin_0 + cross(accel_an_1, r(:,1))+ cross(v_an_1, cross(v_an_1, r(:,1)));
+    accel_lin_2 = R12' * accel_lin_1 + cross(accel_an_2, r(:,2))+ cross(v_an_2, cross(v_an_2, r(:,2)));
+   
+    accel_ci_1 = accel_lin_1 + cross(accel_an_1, r1_ci)+ cross(v_an_1, cross(v_an_1, r1_ci));
+    accel_ci_2 = accel_lin_2 + cross(accel_an_2, r2_ci)+ cross(v_an_2, cross(v_an_2, r2_ci));
+
+
+    accel_ci = [accel_ci_1, accel_ci_2];
+    accel_an = [accel_an_1, accel_an_2];
+    v_an = [v_an_1, v_an_2];
+
+end
+     </code></pre>
+      </details>
+
+      <details>
+     <summary > <b style="color: red;">NE Backward pass</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+    function tau = dynamique_inverse_backward_matrice_2(accel_centre_masse, accel_an, v_an, q, g)
+    
+        % Parameters
+        m = [1,1];        % Masse (kg)
+        l = [1,1];      % longueur bras (m)
+        
+    
+        rayon=0.05; %rayon lien (random)
+    
+    
+        % Elements matrice inertie
+        I_xx = (1/12) * m(1) * (3*rayon^2 + l(1)^2);
+        I_zz = I_xx;
+        I_yy = (1/2) * m(1) * rayon^2;
+    
+        % Matrice du tenseur d'inertie
+        In = [I_xx, 0, 0;
+              0, I_yy, 0;
+              0, 0, I_zz];
+    
+    
+        % Initialisation
+        f_n = [0; 0; 0]; % Force exterieur sur outil
+        tau_n = [0; 0; 0]; % Couple exterieur sur outil
+        R_n = eye(3); % Assume base outil fixe
+    
+        % Matrice transfo
+        T01 = [cos(q(1)), 0, sin(q(1)), 0;
+               0, 1, 0, 0;
+              -sin(q(1)), 0, cos(q(1)), 0;
+               0, 0, 0, 1];
+
+        T01(3,4) = 1;
+    
+        T12 = [cos(q(2)), 0, sin(q(2)), 0;
+               0, 1, 0, 0;
+              -sin(q(2)), 0, cos(q(2)), 0;
+               0, 0, 0, 1];
+        
+        T12(3,4) = 1;
+
+    
+        %% Rotation and Position 
+    
+        R12 = T12(1:3, 1:3);
+        
+        r1_ci = T01(1:3, 4) / 2;  % centre de masse lien 1
+        r2_ci = T12(1:3, 4) / 2;  % centre de masse lien 2
+    
+        % Calcul force et couple
+        f_2 = R_n * f_n + m(2) * accel_centre_masse(1:3, 2);
+        
+        tau_2 = R_n * tau_n + cross(R_n * f_n, -r2_ci) - cross(m(2) * accel_centre_masse(1:3, 2), r2_ci) + In * accel_an(1:3, 2) + cross(v_an(1:3, 2), In * v_an(1:3, 2));
+        tau_1 = R12 * tau_2 + cross(R12 * f_2, -r1_ci) - cross(m(1) * accel_centre_masse(1:3, 1), r1_ci) + In * accel_an(1:3, 1) + cross(v_an(1:3, 1), In * v_an(1:3, 1));
+    
+        % Resultats
+        tau = [tau_1(2),tau_2(2)]; 
+    
+    end
+     </code></pre>
+      </details> 
+
+      <details >    
+     <summary > <b style="color: red;">RK4</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+function [q_new, dq_new] = RK4_Integration(q, dq, dt, g)
+    % Runge-Kutta 4th order integration for 2-DOF robot dynamics
+
+    % Compute k1
+    [~,ddq1] = Forward_dynamique_matrice_2(q, dq, dt, g);
+    k1_q = dq;
+    k1_dq = ddq1;
+
+    % Compute k2
+    [~,ddq2] = Forward_dynamique_matrice_2(q + 0.5 * dt * k1_q, dq + 0.5 * dt * k1_dq, dt, g);
+    k2_q = dq + 0.5 * dt * k1_dq;
+    k2_dq = ddq2;
+
+    % Compute k3
+    [~,ddq3] = Forward_dynamique_matrice_2(q + 0.5 * dt * k2_q, dq + 0.5 * dt * k2_dq, dt, g);
+    k3_q = dq + 0.5 * dt * k2_dq;
+    k3_dq = ddq3;
+
+    % Compute k4
+    [~,ddq4] = Forward_dynamique_matrice_2(q + dt * k3_q, dq + dt * k3_dq, dt, g);
+    k4_q = dq + dt * k3_dq;
+    k4_dq = ddq4;
+
+    % Final update
+    q_new = q + (dt / 6) * (k1_q + 2*k2_q + 2*k3_q + k4_q);
+    dq_new = dq + (dt / 6) * (k1_dq + 2*k2_dq + 2*k3_dq + k4_dq);
+end
+
+     </code></pre>
+      </details>
+
+      <details >    
+     <summary > <b style="color: red;">Fonction dessin du 2 axes</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+function Draw_Cord(q, l)
+
+    O0 = [0; 0; 0];
+
+    O1 = O0 + [l(1)*sin(q(1)); 0; l(1)*cos(q(1))];
+
+    O2 = O1 + [l(2)*sin(q(1)+q(2)); 0; l(2)*cos(q(1)+q(2))];
+
+    hold on;
+
+    plot3([O0(1), O1(1)], [O0(2), O1(2)], [O0(3), O1(3)], 'b', 'LineWidth', 3);
+    % Plot link 2
+    plot3([O1(1), O2(1)], [O1(2), O2(2)], [O1(3), O2(3)], 'r', 'LineWidth', 3);
+
+    [sx, sy, sz] = sphere(10);
+    r = 0.05; 
+
+    % Base
+    surf(r*sx + O0(1), r*sy + O0(2), r*sz + O0(3), 'FaceColor', 'k', 'EdgeColor', 'none');
+    % Joint 1
+    surf(r*sx + O1(1), r*sy + O1(2), r*sz + O1(3), 'FaceColor', 'k', 'EdgeColor', 'none');
+    % End-effector
+    surf(r*sx + O2(1), r*sy + O2(2), r*sz + O2(3), 'FaceColor', 'g', 'EdgeColor', 'none');
+
+end
+
+     </code></pre>
+      </details>
+
+        <hr>
+    <h3>
+      Sources annexes :
+    </h3>
+
+    <p>
+         <a href=https://www.youtube.com/@AlexandreGirard87> Alexandre Girard professeur à Sherbrooke</a> <br>
+         <a href=https://modernrobotics.northwestern.edu/nu-gm-book-resource/8-1-3-understanding-the-mass-matrix/#department> Cours de northwestern disponible en ligne</a> <br>
+         <a href=https://fr.scribd.com/document/653413621/06-NewtonEulerDynamics> Cours du professeur Alessandro de Luca Université de Rome</a> <br>
+    </p>
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

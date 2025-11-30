@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("navbar_robot_theo.html")
+  fetch("/navbar.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,9 +88,9 @@
     <aside class="sidebar">
       <h3>Robotique Théorique</h3>
       <ul>
-        <li><a href="Transformation_homogene.html">Transformation Homogène</a></li>
-        <li><a href="mgd_mgi_6axes.html" class="active">Résolution MGD & MGI seriel</a></li>
-        <li><a href="convention_DH.html">Convention DH</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html" class="active">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
       </ul>
       </ul>
     </aside>
@@ -143,7 +143,7 @@
 
     </p>
 
-    <img src="8_possibilités.png" alt="possibilites">
+    <img src="/Modelisation/Robotique_theorique/8_possibilités.png" alt="possibilites">
 
     <div class="legend"> 
       Les 8 différentes posibilités de configuration d'un robot pour un point dans l'espace
@@ -462,7 +462,7 @@ np.round([position_effecteur[0],position_effecteur[1],position_effecteur[2],rota
 </p>
 
 
- <img src="q1.png" alt="Vue_de_coté_et_de_haut_d'un_robot_6_axes"> 
+ <img src="/Modelisation/Robotique_theorique/q1.png" alt="Vue_de_coté_et_de_haut_d'un_robot_6_axes"> 
  <div class="legend">
   Vue de coté et de haut d'un robot 6 axes quelconque
  </div>
@@ -492,7 +492,7 @@ np.round([position_effecteur[0],position_effecteur[1],position_effecteur[2],rota
 <summary > <b style="color: red;">Preuve théorique de q<sub>2</sub> et q<sub>3</sub></b>
     </summary >
     <p >
-         <img src="q2.png" alt="Schema_3_axes">
+         <img src="/Modelisation/Robotique_theorique/q2.png" alt="Schema_3_axes">
          <div class="legend">
           Schema pour calcul des angles q<sub>2</sub> et q<sub>3</sub> d'un robot 3 axes
          </div> 
@@ -876,8 +876,4 @@ print(np.round(q[:6],2))
   </footer>
 
 </body>
-
 </html>
-
-
-

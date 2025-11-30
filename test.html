@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Test Page</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
 
 
   <!-- --- MathJax for LaTeX equations --- -->
@@ -19,7 +19,7 @@
   <div id="navbar"></div>
 <script>
   // Load navbar dynamically from external file
-  fetch("navbar.html")
+  fetch("/navbar.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -130,15 +130,15 @@ console.log("Somme =", somme(data));
     <h2>🖼️ Exemple d’image et de GIF</h2>
     <p>Une image fixe et un GIF d’illustration :</p>
 
-    <img src="frog.jpg" alt="Image d'exemple">
-    <img src="construction_wip.gif" alt="Animation GIF" style="max-width:400px;">
+    <img src="/frog.jpg" alt="Image d'exemple">
+    <img src="/construction_wip.gif" alt="Animation GIF" style="max-width:400px;">
 
     <h2>🎥 Petite vidéo</h2>
     <p>Voici une courte vidéo d’exemple :</p>
 
     <!-- 🔹 Option 1 : Vidéo locale (place le fichier dans /videos/) -->
     <video controls>
-      <source src="VID_a_vide_Lucka_Guillaume.mp4" type="video/mp4">
+      <source src="/VID_a_vide_Lucka_Guillaume.mp4" type="video/mp4">
       Votre navigateur ne supporte pas la lecture vidéo.
     </video>
 
@@ -163,4 +163,3 @@ console.log("Somme =", somme(data));
 
 </body>
 </html>
-

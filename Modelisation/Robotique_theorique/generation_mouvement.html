@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Robotique Théorique</h3>
+      <ul>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/generation_mouvement.html" class="active">Génération de mouvement</a></li>
+      </ul>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+        <h1>
+            Génération de Mouvement
+        </h1>
+
+        <p>
+  La génération de mouvement en robotique consiste à produire une trajectoire temporelle respectant
+  les contraintes cinématiques, dynamiques et géométriques d’un robot. Deux approches principales
+  existent : la planification en <strong>espace articulaire</strong> et en <strong>espace opérationnel</strong>.
+</p>
+
+<hr>
+
+<h3>Espace articulaire (ou Joint Space en anglais)</h3>
+<p>
+  La trajectoire est définie directement sur chaque articulation, sous la forme :
+  $$ q(t) = [q_1(t), \dots, q_n(t)]^T $$
+  Cette approche garantit le respect naturel des limites articulaires, de vitesse et d'accélération.
+</p>
+
+<div class="highlight">
+    <p>
+     Cet espace articulaire est le plus simple à se représenter, 
+     néanmoins, il a un inconvénient majeur : on ne contrôle pas la trajectoire ! <br>
+     Cela peut tout de même être un avantage si l’on souhaite simplement que le robot 
+     aille vite d’un point A à un point B, sans contrainte particulière.
+     </p>
+<img src="/Modelisation/Robotique_theorique/mouvement_articulaire.png" alt="mouvement espace articulaire">
+  <div class="legend">
+          <p>Exemple d'un mouvement d'un point A à B dans l'espace articulaire vue de deux angles</p>
+  </div> 
+
+     <p>
+        Cela s'explique par le fait que la reliation entre articulations et effecteur 
+        final vu précedement n'est pas linéaire.
+        $$
+x = f(q)
+$$
+    </p>
+    
+</div>
+<p>
+    <br>
+</p>
+<hr>
+
+
+<h3>Espace opérationnel (ou Operational Space en anglais)</h3>
+<p>
+  Ici, on planifie la pose de l’effecteur final :
+  $$ x(t) = [p(t), \theta(t)] $$
+  
+  La différence notable avec l'espace articulaire est que l'on va calculer nos 
+  mouvement dans le monde réele et ensuite grâce au MGI les traduire en mouvement
+  articulaire.
+  
+  <img src="/Modelisation/Robotique_theorique/diff_space.png" alt="Difference_Joint_Operational_Space">
+  <div class="legend">
+          <p>Différence de calcul entre l'espace articulaire et opérationnel</p>
+  </div> 
+
+  <p>
+    On peut donc planifier dans cet espace toute les trajectoire, même complexe, en les
+    définissant avec une simple formule matématique.
+  </p>
+</p>
+<p>
+    <br>
+</p>
+<hr>
+
+
+<h3>Générer du mouvement</h3>
+<p>
+  Selon le niveau de fluidité requis et les moteurs utilisés, une trajectoire peut avoir comme contrainte :
+</p>
+<ul>
+  <li>Une vitesse continue</li>
+  <li>Une accélération continue</li>
+  <li>Un jerk limité (dérivé de l'accélération >> induis des vibrations)</li>
+</ul>
+
+<p> Tout ces paramètres vont être gérer par ce que l'on apelle une loi de mouvement.</p>
+
+<hr>
+
+<h3>Lois de mouvement classiques</h3>
+<p>
+     Une loi de mouvement définit la manière dont la position,
+     la vitesse, l’accélération ou le jerk d’un robot ou de ses articulations évoluent
+     au cours du temps pour accomplir une tâche donnée.
+</p>
+
+<h4>Profil trapézoïdal de vitesse (ou Loi Bang-Bang)</h4>
+
+<p>
+    La <b>loi de profil trapézoïdal</b> consiste à appliquer l’accélération maximal 
+    pour atteindre une position cible en un temps minimal. Cela permet un mouvement
+    rapide et optimal en durée, on ne définit d’ailleurs pas de temps final 
+    pour ce type de trajectoire. On définit ses accélérations et décélérations maximales.<br>
+    Elle est efficace pour exploiter pleinement les limites du robot, mais produit 
+    des changements brusques de vitesse et d’accélération, peu confortables pour 
+    le matériel ou l’humain.
+</p>
+
+<p>
+  Accélération constante (souvent maximal), vitesse constante, puis décélération (souvent maximal) :
+  $$
+  v(t)=
+  \begin{cases}
+    a t & 0\le t\le t_a \\
+    v_{\max} & t_a < t \le T-t_d \\
+    v_{\max} - a(t-(T-t_d)) & T-t_d < t\le T
+  \end{cases}
+  $$
+  <br>
+</p>
+
+
+
+<img src="/Modelisation/Robotique_theorique/profil_bangbang.png" alt="Profil_bangbang">
+  <div class="legend">
+          <p>Exemple de profil suivant une loi trapézoïdal type Bang-Bang</p>
+  </div>
+
+<h4>Interpolation linéaire (le plus souvent d'ordre 5 : quintic)</h4>
+
+<p>
+  Les <b>lois polynomiales</b>, comme celle d'ordre 5, sont largement utilisées en 
+  robotique pour obtenir une trajectoire lisse et facilement adaptable. 
+  En général, on impose une vitesse et une accélération nulles aux instants 
+  initial et final afin de réduire l’usure des moteurs et d’assurer un 
+  mouvement plus doux. Pour obtenir une telle loi de mouvement, on doit résoudre un système 
+    d'équations. Pour cela on calcule \( \dot q(t) \) et \( \ddot q(t) \) 
+    puis on impose les conditions initiales : 
+</p>
+
+<p>
+    \[
+      q(t)=a_0+a_1t+a_2t^2+a_3t^3+a_4t^4+a_5t^5
+    \]
+  </p>
+
+  <p>
+    \[
+      \dot q(t)=a_1+2a_2t+3a_3t^2+4a_4t^3+5a_5t^4
+    \]
+    \[
+      \ddot q(t)=2a_2+6a_3t+12a_4t^2+20a_5t^3
+    \]
+  </p>
+
+  <p>
+    Conditions initiales et finales :
+  </p>
+
+  <p>
+    \[
+      q(0)=q_{\text{initial}},\qquad q(t_{\text{final}})=q_{\text{final}}
+    \]
+    \[
+      \dot q(0)=\dot q(t_{\text{final}})=\ddot q(0)=\ddot q(t_{\text{final}})=0
+    \]
+  </p>
+
+  <p>
+    On pose \(D=q_{\text{initial}}-q_{\text{final}}\) pour l'espace articulaire ou
+     \(D= {\|\vec{v_{déplacement}}\|}\) pour l'espace opérationel et on résout le 
+     système pour obtenir :
+  </p>
+
+  <p>
+    \[
+      a_1=a_2=0,\qquad
+      a_3=\frac{10D}{t_{\text{final}}^{3}},\qquad
+      a_4=-\frac{15D}{t_{\text{final}}^{4}},\qquad
+      a_5=\frac{6D}{t_{\text{final}}^{5}}.
+    \]
+    <br>
+  </p>
+
+  <p> Ainsi on obtient :
+
+    \[
+    s(t) = a_5 t^5 + a_4 t^4 + a_3 t^3
+    \]
+
+    C'est une valeur entre 0 et 1 qui correspond globalement à un pourcentage de 
+    progression de la trajectoire voulu à chaque instant <em>t</em>.
+  </p>
+
+
+
+<img src="/Modelisation/Robotique_theorique/profil_interpolation.png" alt="Profil_quintic">
+  <div class="legend">
+          <p>Exemple de profil suivant une loi d'interpolation linéare d'ordre 5</p>
+  </div>
+
+<h4>Lois S-curve</h4>
+
+
+  <p>La <strong>loi en S</strong> est une loi de commande temporelle utilisée pour générer 
+    des trajectoires lisses avec un jerk faible. 
+
+  <p>Un profil S classique à 7 segments (symétrique) :<br>
+    <ul>
+      <li>accroissement de l'accélération (jerk<sub>max</sub>)</li>
+      <li>pallier d'acceleration (jerk=0)</li>
+      <li>diminution de l'accélération (-jerk<sub>max</sub>)</li>
+      <li>palier de vitesse (optionnel)</li>
+      <li>Symétrie</li>
+    </ul>
+  </p>
+
+  <p>
+    Attention, comme la S-curve est une succession de phases avec jerk constant,
+on doit recalculer q<sub>0</sub>, v<sub>0</sub> et a<sub>0</sub> à la fin de chaque phase. 
+  </p>
+
+
+  <strong>Équations élémentaires (intégration du jerk)</strong>
+
+  <p>Dans un segment où le jerk est constant \(j(t)=J\) sur un intervalle \([0,\tau]\) et 
+    en posant les conditions initiales locales \(a(0)=a_0,\; v(0)=v_0,\; q(0)=q_0\), 
+    on obtient par intégration successive :</p>
+
+  <p>
+    \[
+      a(t)=a_0 + J\,t
+    \]
+    \[
+      v(t)=v_0 + a_0 t + \tfrac{1}{2} J\,t^2
+    \]
+    \[
+      q(t)=q_0 + v_0 t + \tfrac{1}{2} a_0 t^2 + \tfrac{1}{6} J\,t^3
+    \]
+  </p>
+
+  <p>Si \(J=0\) (segment à accélération constante) alors :</p>
+
+  <p>
+    \[
+      a(t)=a_0
+    \]
+    \[
+      v(t)=v_0 + a_0 t
+    \]
+    \[
+      q(t)=q_0 + v_0 t + \tfrac{1}{2} a_0 t^2
+    \]
+  </p>
+
+
+<img src="/Modelisation/Robotique_theorique/profil_scurve.png" alt="Profil_Scruve">
+  <div class="legend">
+          <p>Exemple de profil suivant une loi S-curve</p>
+  </div>
+
+
+
+<hr>
+
+<h3>Exemple de génération de mouvement</h3>
+
+<p> Les algorithmes pour générer ces type de trajectoires sont simple à comprendre et assez similaire entre eux
+  mais ils répondent à toute les questions que l'on peut se poser sur ce domaine. Je les trouves personnelement
+  très interessent.
+</p>
+
+<p> Je traite ici de la partie "simple" de la génération de trajectoire. 
+Dans les imprimantes 3D, machine CNC ou encore robot, la trajectoire ne se 
+contente pas d'une s-curve ou une loi polynomial pré-calculée.
+</p>
+<p>
+En pratique, les machines doivent maintenir une vitesse élevée tout en s'adaptant en temps réel 
+aux changements, comme les arrondis en gardant un pourcentage de vitesse (valeur modifiable sur les robot Fanuc).
+Cela implique de recalculer en permanence la position \(q(t)\), la vitesse \(v(t)\), l'accélération \(a(t)\) 
+et même le jerk \(J(t)\) pour chaque axe en fonction du point suivant à l'avance pour avoir une 
+transition fluide. 
+</p>
+
+  <details >
+<summary > <b style="color: red;">Trajectoire polynomial ordre 5 Espace articulaire sur Python</b>
+    </summary >
+  <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import numpy as np
+import matplotlib.pyplot as plt
+from MGI_MGD_seriel_6dof import MGI, MGD
+
+
+position_voulu = np.array([0, 0, 1, np.pi/4, np.pi/4, np.pi/4])
+
+# position dans l'espace articulaire
+q_initial = np.array([1.922224631525124, 1.619903638183552, -2.310259254916983, -2.010302677805242, 0.574500393551889, 1.012628466170302]) 
+q_final = MGI(position_voulu)  
+
+D = q_final - q_initial
+
+tf = 2.0  # secondes
+freq_sample = 200 # nombre d’échantillons
+
+echantillonage = np.linspace(0, tf, freq_sample)  
+
+valeur_qi = np.zeros((freq_sample, 6)) # pour les plots
+pose = np.zeros((freq_sample, 6))  
+
+# --- coefficients loi cintique ---
+a = 6 * D / tf**5 # seulement D pour que chaque joint atteigne exactement sa position finale
+b = -15 * D / tf**4
+c = 10 * D / tf**3
+
+qt = q_initial.copy()
+
+# --- génération trajectoire pour chaque axe ---
+for i in range(6):
+    qk = qt[i]
+    for j, t in enumerate(echantillonage):
+
+        # loi cintique
+        qt[i] = qk + a[i] * t**5 + b[i] * t**4 + c[i] * t**3
+        valeur_qi[j, i] =  qt[i]
+
+    # calcul des poses cartésiennes pour cet axe pour les plots
+    for p in range(freq_sample):
+        pose[p, :] = MGD(valeur_qi[p, :])
+
+
+
+#===============
+# ---- PLOT----
+#===============
+
+# --- Plot des articulations qi ---
+plt.figure(figsize=(10,6))
+for i in range(6):
+    plt.plot(echantillonage, valeur_qi[:, i], label=f'q{i+1}', linewidth=2)
+
+plt.xlabel('Temps [s]')
+plt.ylabel('Angle [rad]')
+plt.title('Évolution des articulations q_i')
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+
+# --- Scatter 3D des positions cartésiennes ---
+fig = plt.figure(figsize=(8,6))
+ax = fig.add_subplot(111, projection='3d')
+
+ax.scatter(
+    pose[:,0],  # X
+    pose[:,1],  # Y
+    pose[:,2],  # Z
+    c=range(freq_sample),  # optionnel : couleur suivant le temps
+    cmap='viridis',
+    s=20
+)
+
+ax.set_xlabel('X [m]')
+ax.set_ylabel('Y [m]')
+ax.set_zlabel('Z [m]')
+ax.set_title('Scatter des positions XYZ de l\'effecteur')
+ax.grid(True)
+
+plt.tight_layout()
+plt.show()
+
+  </code></pre>
+      </details>
+
+      <details >
+<summary > <b style="color: red;">Trajectoire ligne/hélice polynomial ordre 5 Espace opérationnel sur Python</b>
+    </summary >
+  <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import numpy as np
+import matplotlib.pyplot as plt
+from MGI_MGD_seriel_6dof import MGI as MGI
+
+freq_sample = 200       # nombre d’échantillons
+temps_ini = 0.0        
+temps_fin = 2.0          
+
+positions_xyz = []
+positions_qi = []
+
+# position dans l'espace operationel (si dans espace articulaire adapter plus bas) 
+position_fin = np.array([-0.5,0.4,0.5,0,0,0])
+position_ini = np.array([0.5,0.2,0.3,0,0,0])
+
+# ditance de déplacement 
+deplacement = position_fin - position_ini
+norme_eucli = np.linalg.norm(deplacement)
+
+# vecteur direction normalisé (ligne droite de A à B)
+vecteur_p = deplacement / norme_eucli
+
+# instants d’échantillonnage
+echantillonage = np.linspace(temps_ini, temps_fin, freq_sample)
+
+# ======================================
+# Si on veut une trajectoire Helicoidale 
+# ======================================
+vecteur_xyz = position_fin[:3] - position_ini[:3] 
+norme_eucli = np.linalg.norm(vecteur_xyz)
+vecteur_xyz = vecteur_xyz / norme_eucli
+
+# génère les deux vecteurs perpendiculaires
+if np.allclose(vecteur_xyz, [0,0,1]):
+    perp1 = np.array([1,0,0])
+else:
+    perp1 = np.cross(vecteur_xyz, [0,0,1])
+    perp1 /= np.linalg.norm(perp1)
+perp2 = np.cross(vecteur_xyz, perp1)
+
+# paramètre quintique
+T = temps_fin - temps_ini
+a = 6 * norme_eucli / T**5 # norm_eucli pour normaliser la direction du mouvement
+b = -15 * norme_eucli / T**4
+c = 10 * norme_eucli / T**3
+
+
+amp = 0.05  # rayon de l'helice
+freq = 10   # nombre de tour de l'helice
+
+for t in echantillonage:
+
+    # loi temporelle 
+    s = a*t**5 + b*t**4 + c*t**3 # valeur entre 0 et 1 (equivalent à pourcentage de progression)
+
+    #============================================
+    # si on voulait la trajectoire ligne droite
+    #============================================
+    #pt = position_ini + s * vecteur_p
+    #positions_xyz.append(pt)
+
+    # facteur hélicoïde : 0 au début et à la fin (sin(0) = sin(pi) = 0) --> commencer et finir a position_ini et position_final 
+    facteur_offset = np.sin(np.pi * s / norme_eucli)**1.5 #(**1.5 pour etre plus smooth)
+
+    # offset par rapport à la ligne droite (2 sinusoide sur plan perpendiculaire)
+    offset = amp *facteur_offset* (np.cos(2*np.pi*freq*t/T) * perp1 + np.sin(2*np.pi*freq*t/T) * perp2)
+
+    # full 3D position
+    pt_xyz = position_ini[:3] + s * vecteur_xyz + offset
+    pt = np.concatenate([pt_xyz, position_ini[3:]])  # keep orientation
+    positions_xyz.append(pt) #sauvegarde valeurs
+
+    # cinématique inverse delta → calcul des q_i pour les plots
+    qi = MGI(pt)
+    positions_qi.append(qi) #sauvegarde valeurs
+
+
+# conversion en tableau numpy pour plot
+positions_xyz = np.array(positions_xyz)
+positions_qi = np.array(positions_qi)
+
+
+
+# ----------------- Calcul de dq & ddq -----------------
+dt = echantillonage[1] - echantillonage[0]
+dq = np.gradient(positions_qi, dt, axis=0)
+ddq = np.gradient(dq, dt, axis=0)
+
+
+
+
+# =====================
+# PLOT Q 
+# =====================
+plt.figure(figsize=(10,6))
+for i in range(6):
+    plt.plot(echantillonage, positions_qi[:, i], label=f'q{i+1}', linewidth=2)
+
+plt.xlabel('Temps [s]')
+plt.ylabel('Angle [°]')
+plt.title('Évolution des articulations')
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.tight_layout()
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# ----------------- PLOT DQ -----------------
+plt.figure(figsize=(10,6))
+for i in range(6):
+    plt.plot(echantillonage, dq[:, i], label=f'dq{i+1}')
+plt.xlabel('Time [s]')
+plt.ylabel('Velocity [rad/s]')
+plt.title('Joint Velocities dq_i')
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.legend()
+plt.show()
+
+# ----------------- PLOT DDQ -----------------
+plt.figure(figsize=(10,6))
+for i in range(6):
+    plt.plot(echantillonage, ddq[:, i], label=f'ddq{i+1}')
+plt.xlabel('Time [s]')
+plt.ylabel('Acceleration [rad/s²]')
+plt.title('Joint Accelerations ddq_i')
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.legend()
+plt.show()
+
+
+# ----------------- PLOT TRAJECTOIRE -----------------
+fig = plt.figure(figsize=(8,6))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(
+    positions_xyz[:,0],
+    positions_xyz[:,1],
+    positions_xyz[:,2],
+    c=range(freq_sample),
+    s=10
+)
+
+ax.set_xlabel('X [m]')
+ax.set_ylabel('Y [m]')
+ax.set_zlabel('Z [m]')
+ax.set_title('Scatter des points XYZ')
+ax.grid(True)
+
+plt.tight_layout()
+plt.show()
+  </code></pre>
+      </details> 
+
+      <details >
+<summary > <b style="color: red;">Trajectoire ligne S-curve Espace opérationnel sur Python</b>
+    </summary >
+  <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import numpy as np
+import matplotlib.pyplot as plt
+from MGI_MGD_seriel_6dof import MGI  # fonction de cinématique inverse
+
+# ============================
+# PARAMÈTRES 
+# ============================
+freq_sample = 200           # nombre d’échantillons dans le temps
+temps_ini = 0.0             
+temps_fin = 2.0             
+T = temps_fin - temps_ini   # durée totale du mouvement
+
+position_ini = np.array([0.5, 0.2, 0.3, 0, 0, 0])   # position initiale (X,Y,Z + orientation)
+position_fin = np.array([-0.5, 0.4, 0.5, 0, 0, 0]) 
+
+
+deplacement = position_fin - position_ini    # vecteur déplacement de A à B
+norm = np.linalg.norm(deplacement)             
+
+# paramètres S-curve 
+J_max = 20   # jerk maximal 
+a_max = 2    # accélération maximale
+
+# ============================
+# FONCTION S-CURVE EN 7 SEGMENTS
+# ============================
+def compute_scurve_7seg(t, norm, T, J_max, a_max):
+ 
+    # Durées des phases symétriques 
+    t1 = a_max / J_max
+    t3 = t1
+    t5 = t1
+    t7 = t1
+
+    # durée de la phase de vitesse constante (cruise)
+    t4 = 1
+
+    # temps restant pour phases d’accélération intermédiaires
+    remaining_time = (T/2) - (t1 + t3 + t4/2)  
+    t2 = max(remaining_time, 0)
+    t6 = t2
+
+    # assemblage des segments et cumul des temps
+    t_seg = [t1, t2, t3, t4, t5, t6, t7]
+    t_cumu = np.cumsum(t_seg)  
+
+    # calculer toutes les positions cumulées aux fins des segments
+    v1_end = 0.5*J_max*t1**2
+    q1_end = (1/6)*J_max*t1**3
+
+    v2_end = v1_end + a_max*t2
+    q2_end = q1_end + v1_end*t2 + 0.5*a_max*t2**2
+
+    v3_end = v2_end + a_max*t3 - 0.5*J_max*t3**2
+    q3_end = q2_end + v2_end*t3 + 0.5*a_max*t3**2 - (1/6)*J_max*t3**3
+
+    v4_end = v3_end
+    q4_end = q3_end + v3_end*t4
+
+    v5_end = v4_end + -0.5*J_max*t5**2
+    q5_end = q4_end + v4_end*t5 + (1/6)*(-J_max)*t5**3
+
+    v6_end = v5_end + (-a_max)*t6
+    q6_end = q5_end + v5_end*t6 + 0.5*(-a_max)*t6**2
+
+    q7_end = q6_end + v6_end*t7 + 0.5*(-a_max)*t7**2 + (1/6)*J_max*t7**3
+
+ 
+    # détermination de la phase actuelle selon t
+    if t < t_cumu[0]:  # Phase 1 : jerk positif
+        dt = t
+        J = J_max
+        a = J*dt
+        v = 0.5*J*dt**2
+        q = (1/6)*J*dt**3
+
+    elif t < t_cumu[1]:  # Phase 2 : accélération constante
+        dt = t - t_cumu[0]
+        J = 0
+        a = a_max
+        v0 = v1_end
+        q0 = q1_end
+        v = v0 + a*dt
+        q = q0 + v0*dt + 0.5*a*dt**2
+
+    elif t < t_cumu[2]:  # Phase 3 : jerk négatif
+        dt = t - t_cumu[1]
+        J = -J_max
+        a0 = a_max
+        v0 = v2_end
+        q0 = q2_end
+        a = a0 + J*dt
+        v = v0 + a0*dt + 0.5*J*dt**2
+        q = q0 + v0*dt + 0.5*a0*dt**2 + (1/6)*J*dt**3
+
+    elif t < t_cumu[3]:  # Phase 4 : vitesse constante (cruise)
+        dt = t - t_cumu[2]
+        J = 0
+        a = 0
+        v0 = v3_end
+        q0 = q3_end
+        v = v0
+        q = q0 + v*dt
+
+    elif t < t_cumu[4]:  # Phase 5 : jerk négatif
+        dt = t - t_cumu[3]
+        J = -J_max
+        a0 = 0
+        v0 = v4_end
+        q0 = q4_end
+        a = a0 + J*dt
+        v = v0 + a0*dt + 0.5*J*dt**2
+        q = q0 + v0*dt + 0.5*a0*dt**2 + (1/6)*J*dt**3
+
+    elif t < t_cumu[5]:  # Phase 6 : accélération négative constante
+        dt = t - t_cumu[4]
+        J = 0
+        a = -a_max
+        v0 = v5_end
+        q0 = q5_end
+        v = v0 + a*dt
+        q = q0 + v0*dt + 0.5*a*dt**2
+
+    else :  # Phase 7 : jerk positif pour terminer doucement
+        dt = t - t_cumu[5]
+        J = J_max
+        a0 = -a_max
+        v0 = v6_end
+        q0 = q6_end
+        a = a0 + J*dt
+        v = v0 + a0*dt + 0.5*J*dt**2
+        q = q0 + v0*dt + 0.5*a0*dt**2 + (1/6)*J*dt**3
+    
+    return q, v, a, J
+
+
+# ============================
+# TABLEAU DE TEMPS
+# ============================
+echantillonage = np.linspace(temps_ini, temps_fin, freq_sample)
+
+# ============================
+# CALCUL DE LA TRAJECTOIRE
+# ============================
+positions_xyz = []  # plot des positions en XYZ
+positions_qi = []   # plot des positions articulaires
+
+q_list, qdot_list, qddot_list, qjerk_list = [], [], [], []
+
+for t in echantillonage:
+    # calcul de la S-curve à l'instant t
+    q, v, a, J = compute_scurve_7seg(t, norm, T, J_max, a_max)
+    
+    # normalisation de la progression s(t) [0,1] >> permet de travailler en “pourcentage de progression”
+    
+    q_list.append(q)
+    qdot_list.append(v)
+    qddot_list.append(a)
+    qjerk_list.append(J)
+    
+    # calcul de la position intermédiaire sur la ligne droite
+    pt = position_ini + q    * deplacement
+    positions_xyz.append(pt)
+    
+    # calcul de la cinématique inverse pour obtenir les angles articulaires
+    qi = MGI(pt)
+    positions_qi.append(qi)
+
+
+positions_xyz = np.array(positions_xyz)
+positions_qi = np.array(positions_qi)
+
+# ============================
+# CALCUL DES VITESSES ET ACCÉLÉRATIONS
+# ============================
+dt = echantillonage[1] - echantillonage[0]
+dq = np.gradient(positions_qi, dt, axis=0)     # vitesses articulaires
+ddq = np.gradient(dq, dt, axis=0)              # accélérations articulaires
+dddq = np.gradient(ddq, dt, axis=0)            # jerks articulaires
+
+# ============================
+# PLOTS
+# ============================
+
+# Angles articulaires q_i
+plt.figure(figsize=(8,5))
+for i in range(positions_qi.shape[1]):
+    plt.plot(echantillonage, positions_qi[:,i], label=f'q{i+1}')
+plt.title("Angles articulaires q_i")
+plt.xlabel("Temps [s]")
+plt.ylabel("q_i [rad]")
+plt.legend()
+plt.grid(True)
+
+#  Trajectoire 3D
+fig = plt.figure(figsize=(8,6))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot(positions_xyz[:,0], positions_xyz[:,1], positions_xyz[:,2], c='b')
+ax.set_xlabel('X [m]')
+ax.set_ylabel('Y [m]')
+ax.set_zlabel('Z [m]')
+ax.set_title('Trajectoire 3D')
+ax.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Déplacement q
+plt.figure(figsize=(8,5))
+plt.plot(echantillonage, q_list, linewidth=2)
+plt.title("Déplacement S-curve q(t)")
+plt.xlabel("Temps [s]")
+plt.ylabel("s(t)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Vitesse dq
+plt.figure(figsize=(8,5))
+plt.plot(echantillonage, qdot_list, linewidth=2)
+plt.title("Vitesse S-curve dq(t)")
+plt.xlabel("Temps [s]")
+plt.ylabel("ṡ(t)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Accélération ddq
+plt.figure(figsize=(8,5))
+plt.plot(echantillonage, qddot_list, linewidth=2)
+plt.title("Accélération S-curve ddq(t)")
+plt.xlabel("Temps [s]")
+plt.ylabel("s̈(t)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Jerk j(t)
+plt.figure(figsize=(8,5))
+plt.plot(echantillonage, qjerk_list, linewidth=2)
+plt.title("Jerk S-curve j(t)")
+plt.xlabel("Temps [s]")
+plt.ylabel("j(t)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+
+  </code></pre>
+      </details>
+    </main>
+  </div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

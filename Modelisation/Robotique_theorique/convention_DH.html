@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("navbar_robot_theo.html")
+  fetch("/navbar.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,9 +88,9 @@
     <aside class="sidebar">
       <h3>Robotique Théorique</h3>
       <ul>
-        <li><a href="Transformation_homogene.html">Transformation Homogène</a></li>
-        <li><a href="mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
-        <li><a href="convention_DH.html" class="active">Convention DH</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html" class="active">Convention DH</a></li>
       </ul>
       </ul>
     </aside>
@@ -124,69 +124,96 @@
 
         <div class="highlight">
             <p>
-             L’usage d’une variante plutôt qu’une autre provient souvent davantage d’une question d’habitude,
-             de tradition ou de compatibilité avec un référentiel existant (cours, livres, logiciels,
-             documentations industrielles), plutôt que d’un véritable avantage technique décisif. En pratique,
-             les deux conventions permettent de décrire correctement la cinématique d’un robot ; ce qui change
-             principalement, c’est la manière d’organiser les repères et la cohérence avec ce qui a déjà été 
-             adopté dans un projet ou par une communauté.
-            </p>
-        </div>
-
-        <p>
-            L'utilisation de la convention DH est intéressante pour systématiser les calculs du modèle géométrique.<br>
+             L'utilisation de la convention DH est intéressante pour systématiser les calculs du modèle géométrique.<br>
             Cette méthode permet de traiter tout les cas de figures, même pour des robots particuliers. Cela permet aussi
             de prendre en compte les défauts de fabrications pour des modèles très précis.
-        </p>
-
-        <hr>
-
-        <h2>1. Matrice DH modifiée</h2>
-
-        <p> 
-            Dans la matrice DH modifiée (comme dans la standard d'ailleurs) 
-            <li>L'axe <b>z<sub>i</sub></b> correspond à l'axe de l'articulation <b><em>i</em></b>.</li>
-            <li>L'axe <b>x<sub>i</sub></b> est porté par le perpendiculaire commune aux axes <b>z<sub>i</sub></b> et <b>z<sub>i+1</sub></b>.</li>
-            <li>
-            Si les axes des articulations <b><em>i</em></b> et <b><em>i+1</em></b> sont concourants, les origines des repères 
-            <em>O<sub>i</sub></em> et <em>O<sub>i+1</sub></em> sont placées au point d’intersection de ces axes.</li>
-            
-        </p>
-
-        <p>La transformation homogène entre les repères R<sub>i-1</sub> et R<sub>i</sub> est :</p>
-
-
-        <div>
-        $$
-        {}^{i-1}\mathbf{T}_{i}(\alpha_i,d_i,\theta_i,r_i)
-        =
-        \begin{bmatrix}
-        \cos\theta_i & -\sin\theta_i & 0 & d_i \\
-        \cos\alpha_i\,\sin\theta_i & \cos\alpha_i\,\cos\theta_i & -\sin\alpha_i & -r_i\sin\alpha_i \\
-        \sin\alpha_i\,\sin\theta_i & \sin\alpha_i\,\cos\theta_i & \cos\alpha_i & r_i\cos\alpha_i \\
-        0 & 0 & 0 & 1
-        \end{bmatrix}
-        $$
-        </div>
-
-        <p>Signification des paramètres :</p>
-
-       <div style="text-align: center;">
-            <p>
-                <strong>&alpha;<sub>i</sub></strong> : rotation entre z<sub>i-1</sub> et z<sub>i</sub> autour de x<sub>i-1</sub><br>
-                <strong>d<sub>i</sub></strong> : distance entre z<sub>i-1</sub> et z<sub>i</sub> le long de x<sub>i-1</sub><br>
-                <strong>&theta;<sub>i</sub></strong> : rotation entre x<sub>i-1</sub> et x<sub>i</sub> autour de z<sub>i</sub><br>
-                <strong>r<sub>i</sub></strong> : distance entre x<sub>i-1</sub> et x<sub>i</sub> le long de z<sub>i</sub>
             </p>
         </div>
+
+        <hr>     
+
+        <h2>Matrice DH</h2>
+
+<ul>
+    <li>L’axe <b>z<sub>i</sub></b> correspond à l’axe de l’articulation <b>i</b>.</li>
+    <li>L’axe <b>x<sub>i</sub></b> est porté par le <em>perpendiculaire commun</em> aux axes <b>z<sub>i</sub></b> et <b>z<sub>i+1</sub></b>.</li>
+    <li>Si les axes <b>z<sub>i</sub></b> et <b>z<sub>i+1</sub></b> sont concourants, les origines des repères <em>O<sub>i</sub></em> et <em>O<sub>i+1</sub></em> sont placées au point d’intersection de ces axes.</li>
+</ul>
+
+<p>La transformation homogène entre les repères \(R_{i-1}\) et \(R_i\) est :</p>
+
+<div>
+$$
+{}^{i-1}\mathbf{T}_i =
+\begin{bmatrix}
+\cos\theta_i & -\sin\theta_i\cos\alpha_i & \sin\theta_i\sin\alpha_i & a_i\cos\theta_i \\
+\sin\theta_i & \cos\theta_i\cos\alpha_i & -\cos\theta_i\sin\alpha_i & a_i\sin\theta_i \\
+0 & \sin\alpha_i & \cos\alpha_i & d_i \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+</div>
+
+<p>Signification des paramètres :</p>
+
+<div style="text-align: center;">
+    <p>
+        <strong>\(\alpha_i\)</strong> : angle entre <b>z<sub>i-1</sub></b> et <b>z<sub>i</sub></b> autour de <b>x<sub>i-1</sub></b><br>
+        <strong>\(a_i\)</strong> : distance entre <b>z<sub>i-1</sub></b> et <b>z<sub>i</sub></b> le long de <b>x<sub>i-1</sub></b><br>
+        <strong>\(\theta_i\)</strong> : angle entre <b>x<sub>i-1</sub></b> et <b>x<sub>i</sub></b> autour de <b>z<sub>i</sub></b><br>
+        <strong>\(d_i\)</strong> : distance entre <b>x<sub>i-1</sub></b> et <b>x<sub>i</sub></b> le long de <b>z<sub>i</sub></b>
+    </p>
+</div>
 
         <p>Convention de Denavit-Hartenberg (sur ce schéma α<sub>i</sub> < 0 et θ<sub>i</sub> < 0) :</p>
 
-        <img src="DH.jpg" alt="convention DH exemple">
-        <hr>
+        <img src="/Modelisation/Robotique_theorique/DH.png" alt="convention DH exemple">
+        
 
+
+        <div class="highlight">
+          <p>
+            Pour établir la conventions DH standard, les deux étapes se font dans cet ordre :
+            <br>
+            <br>
+                    Une translation de <b>d<sub>i</sub></b> du repère choisi le long de l’axe 
+                    <b>z<sub>i-1</sub></b> et faire une rotation de <b>&theta;<sub>i</sub></b> autour de 
+                    l’axe <b>z<sub>i</sub></b>.
+            </p>
+              
   
-    <h3>
+  
+  <p>
+    Puis ensuite faire une translation de <b>a<sub>i</sub></b> du repère choisi le long de l’axe 
+    <b>x<sub>i</sub></b> et faire une rotation de <b>&alpha;<sub>i</sub></b> autour de 
+    l’axe <b>x<sub>i</sub></b>.
+</p>
+
+
+          </div>
+
+          <hr>
+      <h2>Matrice DHM</h2>
+          <p> 
+      Avec la matrice DH modifiéen la transformation homogène entre les repères R<sub>i-1</sub> et R<sub>i</sub> 
+      est inversée. En effet l’ordre des deux étapes de rotations et translations</strong> est inversé par rapport à la DH standard.
+     
+  <div>
+  $$
+  {}^{i-1}\mathbf{T}_{i}(\alpha_i,d_i,\theta_i,r_i)
+  =
+  \begin{bmatrix}
+  \cos\theta_i & -\sin\theta_i & 0 & d_i \\
+  \cos\alpha_i\,\sin\theta_i & \cos\alpha_i\,\cos\theta_i & -\sin\alpha_i & -r_i\sin\alpha_i \\
+  \sin\alpha_i\,\sin\theta_i & \sin\alpha_i\,\cos\theta_i & \cos\alpha_i & r_i\cos\alpha_i \\
+  0 & 0 & 0 & 1
+  \end{bmatrix}
+  $$
+  </div>
+
+<hr>
+  
+    <h3> 
       Exemple concret :
     </h3>
 
@@ -199,14 +226,14 @@
         la convention DH.   
     </p>
 
-    <img src="PA10_joint.jpg" alt="organisation articulaire PA10-7C">
+    <img src="/Modelisation/Robotique_theorique/PA10_joint.jpg" alt="organisation articulaire PA10-7C">
     <div class="legend">
         <p>
             Système de coordonnées du PA10-7C
         </p>
     </div>
  
-    <img src="PA10_lenght.jpg" alt="longueur articulaire PA10-7C">
+    <img src="/Modelisation/Robotique_theorique/PA10_lenght.jpg" alt="longueur articulaire PA10-7C">
     <div class="legend"> 
         <p>
             Longueur articulaire PA10-7C
@@ -216,29 +243,64 @@
     <p> 
         Avec ces informations on peut en deduire la matrice DH :
     </p>
+
     <div style="text-align: center;">
-    <table border="1" cellspacing="0" cellpadding="5" style="display: inline-table;">
-        <caption><strong>Paramètres DH du PA10-7C</strong></caption>
-        <thead>
-        <tr>
-            <th>i</th>
-            <th>&alpha;<sub>i</sub> (rad)</th>
-            <th>d<sub>i</sub> (m)</th>
-            <th>&theta;<sub>i</sub> (rad)</th>
-            <th>r<sub>i</sub> (m)</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr><td>1</td><td>0</td><td>0</td><td>q₁</td><td>0</td></tr>
-        <tr><td>2</td><td>-π/2</td><td>0</td><td>q₂</td><td>0.317</td></tr>
-        <tr><td>3</td><td>π/2</td><td>0</td><td>q₃</td><td>0</td></tr>
-        <tr><td>4</td><td>-π/2</td><td>0</td><td>q₄</td><td>0.45</td></tr>
-        <tr><td>5</td><td>π/2</td><td>0</td><td>q₅</td><td>0.48</td></tr>
-        <tr><td>6</td><td>-π/2</td><td>0</td><td>q₆</td><td>0</td></tr>
-        <tr><td>7</td><td>π/2</td><td>0</td><td>q₇</td><td>0.07</td></tr>
-        </tbody>
-    </table>
-    </div>
+<table border="1" cellspacing="0" cellpadding="5" style="display: inline-table;">
+    <caption><strong>Paramètres DHM du PA10-7C</strong></caption>
+    <thead>
+    <tr>
+        <th>i</th>
+        <th>&alpha;<sub>i</sub> (rad)</th>
+        <th>d<sub>i</sub> (m)</th>
+        <th>&theta;<sub>i</sub> (rad)</th>
+        <th>r<sub>i</sub> (m)</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr><td>1</td><td>0</td><td>0</td><td>q<sub>1</sub></td><td>0.317</td></tr>
+        <tr><td>2</td><td>-π/2</td><td>0</td><td>q<sub>2</sub></td><td>0</td></tr>
+        <tr><td>3</td><td>π/2</td><td>0</td><td>q<sub>3</sub></td><td>0.45</td></tr>
+        <tr><td>4</td><td>-π/2</td><td>0</td><td>q<sub>4</sub></td><td>0</td></tr>
+        <tr><td>5</td><td>π/2</td><td>0</td><td>q<sub>5</sub></td><td>0.48</td></tr>
+        <tr><td>6</td><td>-π/2</td><td>0</td><td>q<sub>6</sub></td><td>0</td></tr>
+        <tr><td>7</td><td>π/2</td><td>0</td><td>q<sub>7</sub></td><td>0.07</td></tr>
+    </tbody>
+</table>
+</div>
+<br>
+
+<p>On peut déduire ainsi les paramètre DH du PA10-6CE, un robot similaire, avec cette méthode
+  (il n'est pas mathematiquement possible d'avoir un matrice DH de 6 lignes si on veut avoir la bonne
+  orientation de rotation du poignet, donc on rajoute la ligne 4)
+</p>
+
+    <div style="text-align: center;">
+<table border="1" cellspacing="0" cellpadding="5" style="display: inline-table;">
+    <caption><strong>Paramètres DH du PA10-6CE</strong></caption>
+    <thead>
+    <tr>
+        <th>i</th>
+        <th>&alpha;<sub>i</sub> (rad)</th>
+        <th>d<sub>i</sub> (m)</th>
+        <th>&theta;<sub>i</sub> (rad)</th>
+        <th>r<sub>i</sub> (m)</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr><td>1</td><td>π/2</td><td>0</td><td>q<sub>1</sub></td><td>0.317</td></tr>
+        <tr><td>2</td><td>0</td><td>0.45</td><td>q<sub>2</sub> + π/2</td><td>0</td></tr>
+        <tr><td>3</td><td>0</td><td>0.48</td><td>q<sub>3</sub></td><td>0</td></tr>
+        <tr><td>4</td><td>-π/2</td><td>0</td><td>π/2</td><td>0</td></tr>
+        <tr><td>5</td><td>π/2</td><td>0</td><td>q<sub>4</sub></td><td>0</td></tr>
+        <tr><td>6</td><td>-π/2</td><td>0</td><td>q<sub>5</sub></td><td>0</td></tr>
+        <tr><td>7</td><td>0</td><td>0.07</td><td>q<sub>6</sub></td><td>0</td></tr>
+
+    </tbody>
+</table>
+</div>
+
+
+
 
     <p>
         <br>
@@ -246,58 +308,101 @@
     
 <div class="highlight">
 <p>
-
-
-    À noté que le PA10-6C (robot similaire avec 6 degrés de libertés) aurait une convention DH
-    similaire. Le seul changement aurait été que l'articulation redondante q<sub>3</sub> = 0
+    On voit bien que la notation du PA10-6CE est plus intuitive en convention DH
+    et le PA10-7C en convention DHM.
 </p>
 </div>
 
     <details >
-<summary > <b style="color: red;">Convention DH sur Python</b> 
+<summary > <b style="color: red;">Convention DH & Modelisation Dessin sur Python</b> 
     </summary >
   <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
 import numpy as np
 import matplotlib.pyplot as plt
+ 
+#Matrice DH classique
+def DH(alpha, a, theta, d):
+ 
+    ct = np.cos(theta)
+    st = np.sin(theta)
+    ca = np.cos(alpha)
+    sa = np.sin(alpha)
 
-
-#Matrice MDH
-def DH(alpha1, d1, theta1, r1):
     T = np.array([
-        [np.cos(theta1),            -np.sin(theta1),            0,  d1],
-        [np.cos(alpha1)*np.sin(theta1), np.cos(alpha1)*np.cos(theta1), -np.sin(alpha1), -r1*np.sin(alpha1)],
-        [np.sin(alpha1)*np.sin(theta1), np.sin(alpha1)*np.cos(theta1),  np.cos(alpha1),  r1*np.cos(alpha1)],
-        [0, 0, 0, 1]
+        [ ct, -st*ca,  st*sa, a*ct],
+        [ st,  ct*ca, -ct*sa, a*st],
+        [ 0,    sa,     ca,    d  ],
+        [ 0,    0,      0,     1  ]
     ])
     return T
 
+# Matrice DH modifié
+def DH_M(alpha, a, theta, d):
+
+    ct = np.cos(theta)
+    st = np.sin(theta)
+    ca = np.cos(alpha)
+    sa = np.sin(alpha)
+    
+    return np.array([
+        [ct,    -st,      0,      a  ],
+        [st*ca, ct*ca,  -sa,    -sa*d],
+        [st*sa, ct*sa,   ca,     ca*d],
+        [0,       0,      0,      1  ]
+    ])
 
 # Vecteur des angles articulaires
-q = np.array([0, 0, 0, 0, 0, 0, 0])
+q_6dof = np.array([0, 0, 0 ,0, 0, 0])
+q_7dof = np.array([0, 0, 0 ,0, 0, 0, 0])
 
-# Matrice des paramètres DH
-DH_parameters = np.array([
-    [0,        0,        q[0], 0.317],
-    [-np.pi/2, 0,        q[1], 0],
-    [ np.pi/2, 0,        q[2], 0.45],
-    [-np.pi/2, 0,        q[3], 0],
-    [ np.pi/2, 0,        q[4], 0.48],
-    [-np.pi/2, 0,        q[5], 0],
-    [ np.pi/2, 0,        q[6], 0.07]
+# Matrice des paramètres DH pa10-6ce
+DH6_parameters = np.array([
+    [np.pi/2,   0,          q_6dof[0],          0.317],
+    [0,         0.45,       q_6dof[1]+np.pi/2,  0],
+    [0,         0.48,       q_6dof[2],          0],
+    [-np.pi/2,         0,     np.pi/2,          0],     # pour contrecarrer la rotation mathématiquement impossible à enlever
+    [np.pi/2,   0,          q_6dof[3],          0],
+    [-np.pi/2,  0,          q_6dof[4],          0],
+    [0,         0.07,       q_6dof[5],          0],
+
+])
+
+# Matrice des paramètres DH pa10-7c
+DH7_parameters = np.array([
+    [ 0,       0,   q_7dof[0], 0.317],
+    [-np.pi/2, 0,   q_7dof[1], 0    ],
+    [ np.pi/2, 0,   q_7dof[2], 0.45 ],
+    [-np.pi/2, 0,   q_7dof[3], 0    ],
+    [ np.pi/2, 0,   q_7dof[4], 0.48 ],
+    [-np.pi/2, 0,   q_7dof[5], 0    ],
+    [ np.pi/2, 0,   q_7dof[6], 0.07 ]
 ])
 
 # -----------------------------
 # MGD
 # -----------------------------
-T = np.eye(4)
-points = [T[:3, 3]]   # sauvegarde pour le plot
 
-for i in range(DH_parameters.shape[0]):
-    alpha, d, theta, r = DH_parameters[i]
-    Ti = DH(alpha, d, theta, r)
-    T = T @ Ti
-    points.append(T[:3, 3])   # sauvegarde pour le plot
+six = True # si on veut utiliser le robot 6 ou le 7 axes
 
+if six :
+    T = np.eye(4)
+    points = [T[:3, 3]]   # sauvegarde pour le plot
+
+    for i in range(DH6_parameters.shape[0]): # On calcul les transformées homogènes succesive
+        alpha, a, theta, d = DH6_parameters[i]
+        Ti = DH(alpha, a, theta, d)
+        T = T @ Ti
+        points.append(T[:3, 3])   # sauvegarde pour le plot
+
+else :
+    T = np.eye(4)
+    points = [T[:3, 3]]  
+
+    for i in range(DH7_parameters.shape[0]): 
+        alpha, a, theta, d = DH7_parameters[i]
+        Ti = DH_M(alpha, a, theta, d)
+        T = T @ Ti
+        points.append(T[:3, 3])  
 
 # -----------------------------
 # DESSINE LE ROBOT
@@ -318,7 +423,7 @@ ax.plot(xs, ys, zs, '-o', markersize=8)
 ax.set_xlabel("X")
 ax.set_ylabel("Y")
 ax.set_zlabel("Z")
-ax.set_title("Visualization du robot avec MDH")
+ax.set_title("Visualization du robot avec DH")
 L = 1
 ax.set_xlim(-L, L)
 ax.set_ylim(-L, L)
@@ -338,7 +443,8 @@ plt.show()
     <p>
       <a href="https://gjlaurent.github.io/assets/cours/polyRobotiqueIndustrielle.pdf">Robotique industrielle de Guillaume Laurent & Nicolas Chaillet 2024</a> <br>
       <a href="https://www.jeed.go.jp/english/ia/7thIA/u603g20000000krl-att/u603g20000000l1f.pdf">Manuel de programmation du PA10 par Mitsubushi</a> <br>
-      <a href="PA10_Moving_Range.pdf">Range de déplacement du PA10 par Mitsubushi</a> <br>
+      <a href="\Modelisation\Robotique_theorique\PA10_Moving_Range.pdf">Range de déplacement du PA10 par Mitsubushi</a> <br>
+      <a href="https://home.mis.u-picardie.fr/~fabio/Eng/documenti/Teaching/RI21-22/RobInd_Ch3p1.pdf">Cours Modélisation robotique industrielle université de Picardie</a> <br>
     </p>
 </main>
 </div>
@@ -349,7 +455,3 @@ plt.show()
 
 </body>
 </html>
-
-
-
-

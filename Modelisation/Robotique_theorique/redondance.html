@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Robotique Théorique</h3>
+      <ul>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/generation_mouvement.html">Génération de mouvement</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/jacobienne_manipulabilite.html" >Jacobienne</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/redondance.html" class="active">Redondance</a></li>
+      </ul>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+        <h1>Principe de redondance</h1>
+
+        <p>
+             En robotique, la redondance désigne le fait qu’un robot possède plus de degrés
+             de liberté que nécessaire pour accomplir une tâche donnée. Cette surabondance
+             de mouvements possibles lui permet d’atteindre le même objectif de plusieurs
+             façons différentes. Elle est utile pour éviter les obstacles, améliorer la 
+             précision, optimiser l’énergie consommée, éviter les configurations singulières
+             ou encore tenir compte de contraintes supplémentaires, tout en maintenant la
+             position ou l’orientation souhaitée de l’outil.
+        </p>
+
+     
+
+        <div class="highlight">
+            <p>
+                On retrouve une abondance de robot redondant dans la recherche (robot humanoide...), mais aussi sur des lignes
+                de production où ils font la soudure ou encore dans la robotique médicale 
+                où la redondance facilite le contact avec l'Homme
+            </p>
+        </div>
+
+
+        <p>
+            Cette redondance peut se traduire par des articulations supplémentaires comme 
+            une articulation supplémentaire, ou par des dispositifs plus 
+            globaux comme une grosse glissière au sol qui déplace tout le robot.
+        </p>
+
+        <hr>
+
+        <h3> Adaptation des calculs</h3>
+
+        <p>
+            Si la redondance est extremement utile pour certaine utilisation elle nécéssite
+            de s'y adapter du coté software. <br>
+            En effet, comme expliqué plus haut, avoir plusieurs solution pour une tache donnée fait que le
+            MGI n'est plus solvable. Avoir plusieur choix est un avantage mais cela nous oblige à choisir 
+            une solution, ce qui peut être complexe. Le MGD quant à lui reste inchangé.
+        </p>
+
+        <b>MGI Numérique</b>
+
+        <p>
+            Pour résoudre ce problème on utilise l'algorithme MGI Numérique (de Newton-Raphson).
+        </p>
+
+        <p>
+            Le principe ressemble à la résolution d'un polynome de degrés 3 par itération
+        </p>
+
+        <p>
+            On considère un robot à <em>n</em> articulations décrites par les coordonnées articulaires.
+            Le MGI numérique consiste à résoudre pour \(q\) l'équation non linéaire :
+        
+            \[ f(q)= x_d, \]
+        </p>
+        <p>
+            où \(x_d\) est la pose désirée. On définit l'erreur :
+            \[ e(q) = x_d - f(q). \]
+        </p>
+
+      <p>
+        Le problème de l’inversion revient alors à trouver un zéro de cette fonction d’erreur. 
+      </p>
+
+      <p>
+        Partant d’un point \(q_0\) (de préférence proche du zéro à trouver), 
+        la méthode consiste à une approximation affine \(p\) de \(e\) autour du point \(q_0\) 
+        à l’aide de son développement de Taylor au premier ordre :
+      </p>
+
+      <p>
+      \[
+      p(q) = e(q_0) + J(q_0) \cdot (q - q_0)
+      \]
+      </p>
+
+      <p>
+        avec \(J(q_0)\) la matrice jacobienne de la fonction \(e\). La jacobienne de \(e\)
+         est identique à celle de \(f\) puisque \(x^*\) est constant.
+      </p>
+
+      <p>
+        On calcule alors un nouveau point \(q_1\) solution de l’équation :
+      </p>
+
+      <p>
+      \[
+      e(q_0) + J(q_0) \cdot (q - q_0) = 0
+      \]
+      </p>
+
+      <p>Soit :</p>
+
+      <p>
+      \[
+      q_1 = q_0 - [J(q_0)]^{-1} \cdot e(q_0)
+      \]
+      </p>
+
+      <p>Sous certaines hypothèses, le point \(q_1\) sera plus proche du vrai zéro de \(e\) que le point \(q_0\) précédent.</p>
+
+      <p>On peut ensuite réitérer le processus, c’est-à-dire définir \(q_{k+1}\) comme la solution de l’équation :</p>
+
+      <p>
+      \[
+      e(q_k) + J(q_k) \cdot (q - q_k) = 0
+      \]
+      </p>
+
+      <p>soit en remplaçant la fonction \(e\) :</p>
+
+      <p>
+      \[
+      x^* - f(q_k) + J(q_k) \cdot (q - q_k) = 0
+      \]
+      </p>
+
+      <p>Ce qui correspond à définir la récurrence suivante :</p>
+
+      <p>
+      \[
+      q_{k+1} = q_k - [J(q_k)]^{-1} \cdot (f(q_k) - x^*)
+      \]
+      </p>
+
+
+       
+        <hr>
+        <h3>Amortissement et gestion des singularités</h3>
+
+        <p>
+            Pour éviter les problèmes numériques quand \(\ J J^T\) est mal conditionné, on utilise souvent une version amortie :
+        </p>
+
+        <p>
+            \[ J^+ = (\ J J^T + \lambda^2 I)^{-1}J^T. \]
+
+        </p>
+        
+        <p>
+            Le paramètre \(\lambda\) sert à stabiliser le calcul de l’inverse
+            lorsque \(J J^T\) est presque singulier, c’est-à-dire que certaines directions de 
+            l’espace sont très “plates” et pourraient amplifier les erreurs numériques. 
+            Sans \(\lambda\), on utiliserait simplement le pseudo-inverse classique,
+            mais si \(J J^T\) a des valeurs propres très petites, l’inversion devient instable et bruitée.
+        </p>
+
+        <p>
+            Ajouter \(\lambda^2 I\) revient à amortir les petites valeurs propres, ce qui rend la matrice plus robuste à l’inversion. En pratique :
+            <ul>
+                <li>Pseudo-inverse classique : sensible aux directions presque singulières → grosses erreurs possibles.</li>
+                <li>Version amortie (ou damped) : contrôle la sensibilité → mouvement plus stable et régulier.</li>
+            </ul>
+        </p>
+
+        <p>
+            Cela correspond à la méthode dite <em>Moore-Penrose régularisé</em> ou 
+            <em>Damped Least Squares</em> (DLS), très utile pour les robots redondants ou
+            lorsque les articulations sont proches de leurs limites.
+        </p>
+
+        <hr>
+        <h3>
+            Null Space Projection
+        </h3>
+
+
+        <p>
+            Cependant, le système ne converge pas nécessairement vers la "meilleure solution" 
+            ou celle que l'on voudrait. La solution finale dépend fortement du guess initial.
+        </p>
+
+        <p>
+            Ainsi il est intérressant de réussir à influencer le robot à "choisir" une solution qui favorise
+            par exmeple une solution fluide, ou qui reste dans les limite angulaire, de vitesse... 
+        </p>
+
+        <p>
+            Pour ce faire on utilise une matrice de Null Space Projection que l'on note \(N\) tel que :
+
+            \[
+            N = I - J^+ J.
+            \]
+        </p>
+
+        <p>
+            La matrice \(N\) projette n’importe quel vecteur dans le <em>null space</em>
+            de la tâche principale. Concrètement, cela signifie que si vous appliquez un 
+            mouvement dans la direction \(N v\) (pour un vecteur \(v\) quelconque), 
+            ce mouvement n’affectera pas la réalisation de la tâche principale. 
+        </p>
+
+        <p>
+            En d’autres termes :
+            <ul>
+                <li>\(J^+ J\) représente la partie du mouvement qui contribue à la tâche principale.</li>
+                <li>\(I - J^+ J = N\) correspond à la partie “libre” qui ne modifie pas la tâche principale.</li>
+            </ul>
+        </p>
+
+        <p>
+          Ainsi on a finalement :
+          \[ \Delta q = J^+e + \alpha Nv, \] 
+          où \(v \) est un vecteur choisi pour satisfaire un critère secondaire, et \(\alpha \)
+          est un facteur d'échelle pour ajuster l'influence du null space
+        </p>
+
+
+        <hr>
+        <h3>
+            Exemple de code
+        </h3>
+
+        <p>
+            Voici les codes pour manipuler les notions présentées plus haut.
+
+            <div class="highlight">
+              <p>
+                Les paramètres important sont surtout \(\alpha \), \(\lambda \) et la tolerance. Une petite 
+                modification change drastiquement la trajectoire et plus généralement si la solutions
+                converge. <br>
+                Il est <b>très facile</b> de diverger si on joue avec \(N \) de manière générale !  
+              </p>
+
+            </div>
+        </p>
+
+        <img src="/Modelisation/Robotique_theorique/redondance_GIF.gif" alt="Animation GIF" style="max-width:400px;">
+
+            <details >
+    <summary > <b style="color: red;">MGI Numérique sur Python</b> 
+        </summary >
+    <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import numpy as np
+np.set_printoptions(precision=4, suppress=True, floatmode='fixed')
+
+# même MGD que dans les autres cours adapté pour le PA10, 7 axes
+def MGD_7dof(q_i):
+
+    DH7_parameters = np.array([
+    [ 0,       0,   q_i[0], 0.317],
+    [-np.pi/2, 0,   q_i[1], 0    ],
+    [ np.pi/2, 0,   q_i[2], 0.45 ],
+    [-np.pi/2, 0,   q_i[3], 0    ],
+    [ np.pi/2, 0,   q_i[4], 0.48 ],
+    [-np.pi/2, 0,   q_i[5], 0    ],
+    [ np.pi/2, 0,   q_i[6], 0.07 ]
+    ])
+
+    def DH_M(alpha, a, theta, d):
+
+        ct = np.cos(theta)
+        st = np.sin(theta)
+        ca = np.cos(alpha)
+        sa = np.sin(alpha)
+        
+        return np.array([
+            [ct,    -st,      0,      a  ],
+            [st*ca, ct*ca,  -sa,    -sa*d],
+            [st*sa, ct*sa,   ca,     ca*d],
+            [0,       0,      0,      1  ]
+        ])
+    
+
+    T = np.eye(4)
+    T_tot = [np.eye(4)] 
+
+    for i in range(DH7_parameters.shape[0]): 
+        alpha, a, theta, d = DH7_parameters[i]
+        Ti = DH_M(alpha, a, theta, d)
+        T = T @ Ti
+        T_tot.append(T)  
+
+
+    position_effecteur = T[:3, 3]
+
+    rota_y =  np.arcsin(-T[2,0])
+    if abs(np.cos(rota_y)) > 1e-6:
+            rota_x = np.arctan2(T[2, 1], T[2, 2]) 
+            rota_z = np.arctan2(T[1, 0], T[0, 0]) 
+    else:
+            # Cas singulier : θ ≈ 0 ou π
+            rota_z = np.arctan2(-T[0, 1], T[1, 1])
+            rota_x = 0.0
+
+    #autres solutions valide d'identification de ZYX 
+    #q[4] = np.pi - q[4]
+    #q[3] = q[3] + np.pi
+    #q[5] = q[5] + np.pi
+
+
+    
+    position_final = [position_effecteur[0],position_effecteur[1],position_effecteur[2],rota_x,rota_y,rota_z]
+
+    # return aussi les Ti pour les plots plus bas et la jacobienne
+    return position_final, T_tot
+
+
+# De même, jacobienne adaptée au PA10-7c
+def Jacobian_geometrical_7dof(q):
+
+    xf , Mtot = MGD_7dof(q)
+
+    Jc = np.zeros((6, 7))
+
+    for i in range(7):
+        
+        T =  Mtot[i+1]          # /!\ i+1 avec convention DHM /!\
+        position = T[0:3, 3]    
+        Ui = T[0:3, 2]          # toujours axe Z_i avec la convention DH  
+
+        Jc[3:6, i] = Ui
+
+        Jv = np.cross(Ui, xf[:3] - position)
+
+        Jc[0:3, i] = Jv
+
+    return Jc
+
+
+
+def MGI_NUM(xf, initial_guess):
+    i=0     # simplement pour savoir ou on en est dans le calcul (peut etre long)
+    qi_num = initial_guess.astype(float) 
+    ite_max = 20000 
+    tolerance = 1e-5        #les 3 paramètres on une influence enorme sur si cela converge ou pas
+    lam = 0.05          
+    alpha = 0.001
+
+    lb_an = np.array([-177,-94,-174,-137,-255,-165,-255]) # limite articulaire haute et basse en degré du PA10 
+    ub_an = np.array([177,94,174,137,255,165,255]) 
+
+    lb_an = (lb_an * np.pi) / 180 # on convertis en radians
+    ub_an = (ub_an * np.pi) / 180
+
+    while i < ite_max:
+        i += 1
+        current_pos,_ = MGD_7dof(qi_num)
+        erreur = xf - current_pos
+
+        if np.linalg.norm(erreur) < tolerance:
+            print(f"Convergé en {i} iterations")
+            break
+
+        J = Jacobian_geometrical_7dof(qi_num)
+        DLS_J =  np.linalg.inv(J.T @ J + lam**2 * np.eye(7)) @ J.T # calcul jacobienne DLS
+
+        N = np.eye(7) - DLS_J @ J # la null space matrice
+
+        # pour rester dans les limites articulaires
+        #w = -lam * (qi_num - lb_an) * (qi_num < lb_an) - lam * (qi_num - ub_an) * (qi_num > ub_an) # vetceur objectif secondaire
+
+        v = np.zeros(7)  # vecteur secondaire
+
+        # Forcer l'utilisation de la redondance
+        if abs(v[2]) < 0.1:
+            v[2] = +0.1   # pousse q3 vers la limite haute
+        else:
+            v[2] = -0.1   # pousse q3 vers la limite basse
+
+        # Appliquer dans la mise à jour MGI numérique avec gain alpha
+
+        qi_num += DLS_J @ erreur + alpha * (N @ v) #+ alpha * (N @ w)
+
+ 
+
+    if i == ite_max: 
+         print("Attention: iteration maximum atteint sans avoir la tolerance.") 
+    return qi_num
+
+      
+
+        </code></pre>
+    </details>
+
+     <details >
+    <summary > <b style="color: red;">Représentation Trajectoire avec le MGI numérique sur Python</b> 
+        </summary >
+    <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import numpy as np
+import matplotlib.pyplot as plt
+from MGI_num import *
+
+
+#meme genberation de points que pour une ligne en 6axes
+freq_sample = 200       # nombre d’échantillons
+temps_ini = 0.0        
+temps_fin = 2.0          
+
+positions_xyz = []
+positions_qi = []
+
+# position dans l'espace operationel 
+position_fin = np.array([-0.5,0,0.7,0,0,0])
+position_ini = np.array([0.5,0,0.3,0,0,0])
+
+# distance de déplacement 
+deplacement = position_fin - position_ini
+norme_eucli = np.linalg.norm(deplacement)
+
+# vecteur direction normalisé (ligne droite de A à B)
+vecteur_p = deplacement / norme_eucli
+
+# instants d’échantillonnage
+echantillonage = np.linspace(temps_ini, temps_fin, freq_sample)
+
+
+# paramètre quintique
+T = temps_fin - temps_ini
+a = 6 * norme_eucli / T**5 # norm_eucli pour normaliser la direction du mouvement
+b = -15 * norme_eucli / T**4
+c = 10 * norme_eucli / T**3
+
+
+
+# le qi_guess np.zeros(7) marche la pluspart du temps mais toujours mieux de calculer le 1er
+# avec des parametre facil et update ici pour faciliter le calcul du 1er
+qi_guess = np.array([-0.4179 , 2.7490 , 2.6607 , 1.9887 ,-2.8963 ,-0.8163, -0.2011])
+
+
+i=0
+for t in echantillonage:
+    i +=1
+    print(i)
+    # loi temporelle 
+    s = a*t**5 + b*t**4 + c*t**3 # valeur entre 0 et 1 (equivalent à pourcentage de progression)
+
+    pt = position_ini + s * vecteur_p
+    positions_xyz.append(pt)
+
+
+    # cinématique inverse delta → calcul des q_i pour les plots avec mgi numérique
+    qi = MGI_NUM(pt,qi_guess)
+    qi_guess = qi #on prend la valeur d'avant pour être sur d'être proche d'une solution
+    
+    positions_qi.append(qi) #sauvegarde valeurs
+
+
+# conversion en tableau numpy pour plot
+positions_qi = np.array(positions_qi)
+
+
+
+# ----------------- Calcul de dq & ddq -----------------
+dt = echantillonage[1] - echantillonage[0]
+dq = np.gradient(positions_qi, dt, axis=0)
+ddq = np.gradient(dq, dt, axis=0)
+
+
+# difference consecutive entre les qi 
+dq_sum = np.diff(positions_qi, axis=0)  
+
+#on fait la somme
+cumulative_distance_per_joint = np.sum(np.abs(dq_sum), axis=0) 
+print("deplacement total en rad des qi =",cumulative_distance_per_joint)
+
+# =====================
+# PLOT Q 
+# =====================
+plt.figure(figsize=(10,6))
+for i in range(7):
+    plt.plot(echantillonage, positions_qi[:, i], label=f'q{i+1}', linewidth=2)
+
+plt.xlabel('Temps [s]')
+plt.ylabel('Angle [rad]')
+plt.title('Évolution des articulations')
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.tight_layout()
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# ----------------- PLOT DQ -----------------
+plt.figure(figsize=(10,6))
+for i in range(7):
+    plt.plot(echantillonage, dq[:, i], label=f'dq{i+1}')
+plt.xlabel('Time [s]')
+plt.ylabel('Velocity [rad/s]')
+plt.title('Joint Velocities dq_i')
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.legend()
+plt.show()
+
+# ----------------- PLOT DDQ -----------------
+plt.figure(figsize=(10,6))
+for i in range(7):
+    plt.plot(echantillonage, ddq[:, i], label=f'ddq{i+1}')
+plt.xlabel('Time [s]')
+plt.ylabel('Acceleration [rad/s²]')
+plt.title('Joint Accelerations ddq_i')
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.legend()
+plt.show()
+
+#============================================
+ # Animation avec un plot du 7 axes et de la traj 
+#============================================
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+ax.set_xlim(-1,1)
+ax.set_ylim(-1,1)
+ax.set_zlim(0,1.5)
+ax.set_box_aspect([1,1,1])
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.set_zlabel("Z")
+ax.set_title("7-DOF Robot Animation")
+
+robot_line, = ax.plot([], [], [], '-o', markersize=6, linewidth=2)
+
+positions_xyz = np.array(positions_xyz)
+
+ax.scatter(
+    positions_xyz[:,0],
+    positions_xyz[:,1],
+    positions_xyz[:,2],
+    c=range(len(positions_xyz)),
+    s=10
+)
+
+for q in positions_qi:  
+
+    _, T_tot = MGD_7dof(q)
+    
+    points = np.array([T[:3,3] for T in T_tot])  
+
+    xs = points[:,0]
+    ys = points[:,1]
+    zs = points[:,2]
+
+    # update 
+    robot_line.set_data(xs, ys)
+    robot_line.set_3d_properties(zs)
+
+    plt.draw()
+    plt.pause(0.01)
+
+    
+
+        </code></pre>
+    </details>
+        
+
+           <hr>
+    <h3>
+      Sources annexes :
+    </h3>
+
+    <p>
+         <a href="https://gjlaurent.github.io/assets/cours/polyRobotiqueIndustrielle.pdf">Robotique industrielle de Guillaume Laurent & Nicolas Chaillet 2024</a> <br>
+         <a href="https://www.youtube.com/@AlexandreGirard87">Chaine Youtube d'Alexandre Girard</a> <br>
+
+    </p>
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

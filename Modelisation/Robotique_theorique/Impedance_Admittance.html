@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Robotique Théorique</h3>
+      <ul>
+        <li><a href="/Modelisation/Robotique_theorique/Transformation_homogene.html">Transformation Homogène</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/mgd_mgi_6axes.html">Résolution MGD & MGI seriel</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/convention_DH.html">Convention DH</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/generation_mouvement.html">Génération de mouvement</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/jacobienne_manipulabilite.html" >Jacobienne</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/redondance.html">Redondance</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/parallele.html">Robot parallele</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/Controle_force.html" >Commande en Force</a></li>
+        <li><a href="/Modelisation/Robotique_theorique/Impedance_Admittance.html" class="active">Impedance & Admitance</a></li>
+    </ul>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+
+        <h1> Commande en Impédance et Admittance</h1>
+
+       <p>
+            Le contrôle en impédance ou en admittance en robotique est une méthode de commande à pars. 
+            Elle ne régule ni la force ou les couples, ni les positions, mais la relation entre les deux.
+        </p>
+
+        <p>
+          Ces types de commande sont aussi réservé aux <em>cobots</em>. Il favorise une interaction
+          humain-machine plus "naturel".
+        </p>
+
+        <h3> Controle en Impédance </h3>
+
+        <p>
+          Le principe d'un controle en impédance est simple, il s'agit de simuler chaque articulations,
+          ou simplement l'effecteur (dependent de l'espace choisie) comme un système masse, ressort, 
+          amortisseur.
+        </p>
+
+        <p>
+          Ainsi le robot va forcer plus si on l'empeche de suivre sa trajectoire en fonction de son
+          espacement avec celle-ci mais de manière fluide.
+        </p>
+
+        <p>
+          <u>On peut noter (dans l'espace opérationel): </u>
+        </p>
+
+        <p>
+          \[
+          F = M_x\ddot{e} + B_x\dot{e} + K_xe
+          \]
+        </p>
+
+        <p>
+          Et on passe ensuite en couple avec :
+
+          \[
+          \tau = J^T(q) F
+          \]
+
+        </p>
+
+        <ul>
+        <li>\(F\) : force appliquée par le robot.</li>
+        <li>\(M_x, B_x, K_x\) : matrice de masse, amortissement et raideur virtuels choisis par l'utilisateur.</li>
+        <li>\(e = x - x_d\) l'erreur entre le position actuel et désiré.</li>
+        </ul>
+
+        <p>
+          <u>Dans l'espace articulaire : </u>
+        </p>
+
+        <p> 
+          \[
+          \tau = M_q\ddot{e} + B_q\dot{e} + K_qe
+          \]
+        </p>
+
+
+        <ul>
+        <li>\(\tau\) : couple moteur appliquée par le robot.</li>
+        <li>\(M_q, B_q, K_q\) : matrice de masse, amortissement et raideur virtuels choisis par l'utilisateur.</li>
+        <li>\(e = q - q_d\) l'erreur entre le position actuel et désiré.</li>
+        </ul>
+
+        <div class="highlight">
+          <p>
+            En réalité on omet généralement le le terme \(M\) pour l'impédance
+          </p>
+        </div>
+
+        <img src="/Modelisation/Robotique_theorique/robot_impedance.gif" alt="impedance"> 
+            <div class="legend">
+                    <p>Gif Resultat 2 axes controlé en impédance </p> 
+            </div> 
+
+        <details>
+    <summary > <b style="color: red;">Controle en Impédance sur Matlab</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+
+close all;
+
+%% initialization
+
+l=[1,1];
+
+iteration = 300;
+
+
+
+q_d = zeros(2,iteration); % Pose et traj visés à chaque instant.
+dq_d = zeros(2,iteration);% on pourrait remplacer par une traj 
+
+K = [2000,0;
+     0,2000]; % rigidité (val au hasard)
+
+B = [150,0;
+     0, 150]; % amortissement (val au hasard)
+
+dt = 0.001;
+
+F = zeros(2, iteration);  % Initialisation de la force
+F(2, (iteration/2):iteration) = 10 ; 
+
+Masse_M = zeros(2,2); % masse matrice inertie 
+
+g = -9.81; % gravité -> defini sur Z dans la dyna inverse
+
+q_precedent = [pi/2;0]; % => val ini de q incrémenté
+
+dq_precedent = [0;0]; % => val ini de qq incrément
+
+q_plot = zeros(2, iteration);
+dq_plot = zeros(2, iteration);
+tau_corio_plot = zeros(2, iteration);
+tau_g_plot = zeros(2, iteration);
+tau_f_plot = zeros(2, iteration);
+tau_impedance_plot = zeros(2, iteration);
+
+
+% Setup figure for animation
+figure(1); clf;
+axis equal;
+axis([-2*l(1), 2*l(1), -2*l(1), 2*l(1), -2*l(1), 2*l(1)]);
+view(15, 30);
+xlabel('X-axis'); ylabel('Y-axis'); zlabel('Z-axis');
+grid on; hold on;
+
+
+for i=1:iteration
+i
+
+    %% calcul dyna inverse => ddq, dq et q
+
+  
+    % calcul tau quand ddq = 0 and g = 0 (Coriolis & centripetal effects)
+    ddq_1 = zeros(2,1);
+    g1 = 0;
+    [accel_centre_masse_1, accel_an_1, v_an_1] = dynamique_inverse_forward_matrice_2(q_precedent, dq_precedent, ddq_1, g1);
+    tau_corio = dynamique_inverse_backward_matrice_2(accel_centre_masse_1, accel_an_1, v_an_1, q_precedent, g1);
+
+    % calcul tau avec gravité (ddq = 0,dq=0 ,g ≠ 0)
+    ddq_3 = zeros(2,1);
+    dq_3 = zeros(2,1);
+    [accel_centre_masse_3, accel_an_3, v_an_3] = dynamique_inverse_forward_matrice_2(q_precedent, dq_3, ddq_3, g);
+    tau_g = dynamique_inverse_backward_matrice_2(accel_centre_masse_3, accel_an_3, v_an_3, q_precedent, g);
+
+    % Mass matrice inertie M(q)
+    g2 = 0;
+    dq2 = zeros(2,1);
+    Masse_M = zeros(2,2); 
+
+    for j = 1:2
+        ddq2 = zeros(2,1);
+        ddq2(j) = 1; 
+
+        [accel_centre_masse_2, accel_an_2, v_an_2] = dynamique_inverse_forward_matrice_2(q_precedent, dq2, ddq2, g2);
+        tau_2 = dynamique_inverse_backward_matrice_2(accel_centre_masse_2, accel_an_2, v_an_2, q_precedent, g2);
+
+        Masse_M(:, j) = tau_2'; 
+    end
+
+    %% calcul perte accel avec la friction 
+
+    %friction visqueuse --> depend vitesse
+    coef_friction = 0; %valeur random 
+
+    friction= [coef_friction*dq_precedent(1);coef_friction*dq_precedent(2)];
+
+
+    %% calcul Torque dans different moteur du a la force sur effecteur
+
+    J = Jacobian_geometrical_2dof([q(1);q(2)],[l(1);l(2)]);
+
+    tau_f = J(1:2,1:2)'*F(:,i);
+
+
+    %% calcul Torque avec ecart q_d et q_precedent 
+
+    tau_impedance =  K*(q_d(:,i)-q_precedent) + B*(dq_d(:,i)-dq_precedent) ; % + Masse_M*(q_d(:,i)-q_precedent) 
+
+    %% calcul tau_ext
+
+    tau_ext = tau_f + tau_impedance; % check signe
+
+
+    %% SOLVE FOR ACCELERATION (ddq)
+
+    % Solve M(q) * ddq = τ_ext - coriolis - Gravity
+    ddq = pinv(Masse_M)* (tau_ext - tau_corio' - tau_g' -friction);
+
+    dq = dq_precedent + ddq * dt; % Update velocity first
+    q = q_precedent + dq * dt; % Then update position
+
+
+    %update le plot
+    q_plot(:,i) = q;
+    dq_plot(:,i) = dq;
+    tau_corio_plot(:,i) = tau_corio;
+    tau_g_plot(:,i) = tau_g;
+    tau_f_plot(:,i) = tau_f;
+    tau_impedance_plot(:,i) = tau_impedance;
+
+
+
+    % update les q et dq
+    q_precedent = q;
+    dq_precedent = dq;
+
+    %pour le plot
+
+    O0 = [0;0;0]; %dim 3 pour Draw_Cord 
+
+    T01 =  [cos(q(1)), 0, sin(q(1)), 0;
+            0, 1, 0, 0;
+            -sin(q(1)), 0, cos(q(1)), 0;
+            0, 0, 0, 1];
+
+    T01(1,4) = l(1);
+
+
+     T12 =  [cos(q(2)), 0, sin(q(2)), 0;
+            0, 1, 0, 0;
+            -sin(q(2)), 0, cos(q(2)), 0;
+            0, 0, 0, 1];
+
+     T12(1,4) = l(2);
+
+    T02 = T01*T12;
+
+
+    % Draw the Robot
+    cla;
+    Draw_Cord(q,l);
+
+    % Pause for animation
+    pause(0.01);
+
+end
+
+time = (0:iteration-1) * dt;
+
+
+% Joint Position Plot
+figure(2);
+plot(time, q_plot(1, :), 'r', 'DisplayName', 'q1');
+hold on;
+plot(time, q_plot(2, :), 'g', 'DisplayName', 'q2');
+xlabel('Temps (s)');
+ylabel('Angles (rad)');
+title('Évolution des angles articulaires');
+legend('show');
+grid on;
+
+% Tracé des vitesses dq
+figure(3);
+plot(time, dq_plot(1, :), 'r', 'DisplayName', 'dq1');
+hold on;
+plot(time, dq_plot(2, :), 'g', 'DisplayName', 'dq2');
+xlabel('Temps (s)');
+ylabel('Vitesses (rad/s)');
+title('Évolution des vitesses articulaires');
+legend('show');
+grid on;
+
+% Tracé tau corio
+figure(4);
+plot(time, tau_corio_plot(1, :), 'r', 'DisplayName', 'articulation 1');
+hold on;
+plot(time, tau_corio_plot(2, :), 'g', 'DisplayName', 'articulation 2');
+xlabel('Temps (s)');
+ylabel('tau)');
+title('tau_corio');
+legend('show');
+grid on;
+
+% Tracé tau g
+figure(5);
+plot(time, tau_g_plot(1, :), 'r', 'DisplayName', 'articulation 1');
+hold on;
+plot(time, tau_g_plot(2, :), 'g', 'DisplayName', 'articulation 2');
+xlabel('Temps (s)');
+ylabel('tau)');
+title('tau_g');
+legend('show');
+grid on;
+
+% Tracé tau f
+figure(6);
+plot(time, tau_f_plot(1, :), 'r', 'DisplayName', 'articulation 1');
+hold on;
+plot(time, tau_f_plot(2, :), 'g', 'DisplayName', 'articulation 2');
+xlabel('Temps (s)');
+ylabel('tau)');
+title('tau_f');
+legend('show');
+grid on;
+
+% Tracé tau impedance
+figure(7);
+plot(time, tau_impedance_plot(1, :), 'r', 'DisplayName', 'articulation 1');
+hold on;
+plot(time, tau_impedance_plot(2, :), 'g', 'DisplayName', 'articulation 2');
+xlabel('Temps (s)');
+ylabel('tau)');
+title('tau_impedance');
+legend('show');
+grid on;
+        </code></pre>
+      </details>
+
+      <details>
+    <summary > <b style="color: red;">Dessin 2 axes Matlab</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+function Draw_Cord(q, l)
+
+    O0 = [0; 0; 0];
+
+    O1 = O0 + [l(1)*sin(q(1)); 0; l(1)*cos(q(1))];
+
+    O2 = O1 + [l(2)*sin(q(1)+q(2)); 0; l(2)*cos(q(1)+q(2))];
+
+    hold on;
+
+    plot3([O0(1), O1(1)], [O0(2), O1(2)], [O0(3), O1(3)], 'b', 'LineWidth', 3);
+    % Plot link 2
+    plot3([O1(1), O2(1)], [O1(2), O2(2)], [O1(3), O2(3)], 'r', 'LineWidth', 3);
+
+    [sx, sy, sz] = sphere(10);
+    r = 0.05; 
+
+    % Base
+    surf(r*sx + O0(1), r*sy + O0(2), r*sz + O0(3), 'FaceColor', 'k', 'EdgeColor', 'none');
+    % Joint 1
+    surf(r*sx + O1(1), r*sy + O1(2), r*sz + O1(3), 'FaceColor', 'k', 'EdgeColor', 'none');
+    % End-effector
+    surf(r*sx + O2(1), r*sy + O2(2), r*sz + O2(3), 'FaceColor', 'g', 'EdgeColor', 'none');
+
+end
+        </code></pre>
+      </details>
+
+      <details>
+      <summary > <b style="color: red;">Jacobienne 2 axes Matlab</b>
+        </summary >
+      <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+    
+function Jc = Jacobian_geometrical_2dof(q,l)
+
+
+% on calcul aux centre d'inertie donc xf doit etre le centre d'inertie
+% de chaque partie
+
+
+T01 =  [cos(q(1)), -sin(q(1)),0,0;
+        sin(q(1)), cos(q(1)),0,0;
+        0,0,1,0;
+        0,0,0,1];
+
+T12 = [ cos(q(2)), -sin(q(2)),0,l(1);
+        sin(q(2)), cos(q(2)),0,0;
+        0,0,1,0;
+        0,0,0,1];
+
+T02 = T01*T12;
+
+T2P =  [1,0,0,l(2);
+        0,1,0,0;
+        0,0,1,0;
+        0,0,0,1];
+
+T0P = T02 * T2P;
+
+xf = T0P(1:3, 4);
+   
+        position01 = T01(1:3, 4);
+        U01 = T01(1:3, 3);% Jw  % equivaut a Zi-1
+        Jc01 = cross(U01, (xf - position01));
+
+        position02 = T02(1:3, 4);
+        U02 = T02(1:3, 3); % tourne aussi autour de z
+        Jc12 = cross(U02, (xf - position02));
+
+        Jc = [Jc01,Jc12];
+      
+    
+end
+        </code></pre>
+      </details>
+
+
+        <hr>
+
+        <h3> Controle en Admittance </h3>
+
+        <p>
+          Le controle est l'inverse du controle en impédance. Il est moins commun car il nécéssite
+          des capteurs des forces sur le robot. On le retrouve généralement dans les "Teach-Mode" 
+          de cobots.<br>
+          En effet, le robot répond en déplacement à une force exterieur.
+        </p>
+
+        <p>
+          Les équations sont extremement similaire mais inversé : 
+        </p>
+
+        <p>
+          \[
+          F_{ext} = M\ddot{x} + B\dot{x} + Kx 
+          \]
+        </p>
+
+         <ul>
+        <li>\(F_{ext}\) : force appliquée <b>sur</b> le robot.</li>
+        <li>\( x\) : le déplacement induit.</li>
+        </ul>
+
+
+      <hr>
+
+
+      <h3> Aparté sur la Compliance & Rigidité </h3>
+
+      <p>
+        La rigidité décrit la capacité d’un robot à résister à une force externe sans se déformer. 
+        C'est le terme \( K\) dans les équation précédente. On l'oppose à son inverse : la 
+        <em>compliance</em> \( C\).
+       </p>
+
+      <p>Dans l'espace des joints :</p>
+
+
+      <p>
+      \[
+      \tau = K_q\,\Delta q
+      \]
+      </p>
+
+
+      <p>avec \(K_q\) la raideur articulaire. La compliance articulaire est définie par :</p>
+
+
+      <p>
+      \[
+      C_q = K_q^{-1}
+      \]
+      </p>
+
+
+      <p>La relation cinématique locale entre les joints et l'effecteur est :</p>
+
+
+      <p>
+      \[
+      \Delta x = J(q)\,\Delta q
+      \]
+      </p>
+
+
+      <p>En remplaçant \(\Delta q = C_q\,\tau\) :</p>
+
+
+      <p>
+      \[
+      \Delta x = J\,C_q\,\tau
+      \]
+      </p>
+
+
+      <p>La relation statique entre couples articulaires et force externe est :</p>
+
+
+      <p>
+      \[
+      \tau = J^T\,F_{ext}
+      \]
+      </p>
+
+
+      <p>En combinant :</p>
+
+
+      <p>
+      \[
+      \Delta x = J\,C_q\,J^T\,F_{ext}
+      \]
+      </p>
+
+
+      <p>On définit la compliance dans l'espace opérationnel :</p>
+
+
+      <p>
+      \[
+      C_x = J\,C_q\,J^T
+      \]
+      </p>
+
+
+      <p>Si la matrice est inversible, la raideur opérationnelle vaut :</p>
+
+
+      <p>
+      \[
+      K_x = C_x^{-1} = (J\,C_q\,J^T)^{-1}
+      \]
+      </p>
+
+
+      <p>La relation force–déplacement à l'effecteur devient alors :</p>
+
+
+      <p>
+      \[
+      F_{ext} = K_x\,\Delta x
+      \]
+      </p>
+
+        <hr>
+    <h3>
+      Sources annexes :
+    </h3>
+
+    <p>
+         <a href=https://www.youtube.com/@AlexandreGirard87> Alexandre Girard professeur à Sherbrooke</a> <br>
+    </p>
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>
