@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_projet.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -112,7 +112,7 @@
         </p>
 
 
-        <img src="\Projet\delta_industrie.jpg" alt="delta_photo">
+        <img src="delta_industrie.jpg" alt="delta_photo">
             <div class="legend">
                     <p>Robot Delta type utilisé dans l'industrie en général</p>
             </div> 
@@ -144,7 +144,7 @@
             Néanmoins les robots de type Delta sont un peu plus complexe que le robot scara 2 axes
             présenté dans ce cours. Ainsi pour ceux qui voudrait avoir la preuve des calculs,
             vous pouvez télécharger ou ouvrir le 
-            <a href=\Projet\DeltaKin.pdf> cours en pdf de Robert L. Williams II</a> 
+            <a href=DeltaKin.pdf> cours en pdf de Robert L. Williams II</a> 
             de l'université de l'Ohio. Il utilise une notation un peu différentes mais néanmoins assez
             similaire pour ne pas être perdu. 
     
@@ -156,7 +156,7 @@
         </p>
         <br>
 
-        <img src="\Projet\delta_espace.jpg" alt="delta_MGI">
+        <img src="delta_espace.jpg" alt="delta_MGI">
             <div class="legend">
                     <p>visualisation MGI & de l'espace de travail type d'un robot Delta</p>
             </div> 
@@ -426,7 +426,7 @@ print(sa, sb)
         </p>
 
 
-        <img src="\Projet\delta_traj.gif" alt="inverse Dynamics">
+        <img src="delta_traj.gif" alt="inverse Dynamics">
             <div class="legend">
                     <p>Trajectoire carré par interpolation d'ordre 5</p>
             </div> 
@@ -436,7 +436,7 @@ print(sa, sb)
             Et pour les différentes valeurs d'angles des articulations : 
         </p>
 
-        <img src="\Projet\delta_traj_q.jpg" alt="inverse Dynamics">
+        <img src="delta_traj_q.jpg" alt="inverse Dynamics">
             <div class="legend">
                     <p>Valeurs d'angles des articulations de la trajectoire précédente</p>
             </div> 
@@ -787,7 +787,7 @@ plt.show()
             Voici à quoi ressemble le robot après l'avoir monté :
         </p>
 
-        <img src="\Projet\delta_haut.jpg" alt="Delta"> 
+        <img src="delta_haut.jpg" alt="Delta"> 
             <div class="legend">
                     <p>Maquette de Robot Delta vu de haut</p>
             </div> 
@@ -798,7 +798,7 @@ plt.show()
             et les grands plan pour ne par tout re imprimer en cas d'erreur.
         </p>
 
-        <img src="\Projet\delta_bas.jpg" alt="Delta">
+        <img src="delta_bas.jpg" alt="Delta">
             <div class="legend">
                     <p>Maquette de Robot Delta vu de dessous</p>
             </div>  
@@ -807,7 +807,7 @@ plt.show()
             La principale contrainte pour ce type de robot est la robustesse.
         </p>
 
-        <img src="\Projet\delta.jpg" alt="Delta">
+        <img src="delta.jpg" alt="Delta">
             <div class="legend">
                     <p>Maquette de Robot Delta</p>
             </div> 
@@ -966,7 +966,7 @@ for i in range(int(nombre_pts)):
         </p>
 
         <video controls>
-          <source src="/Projet/delta_carre_3D.mp4" type="video/mp4">
+          <source src="delta_carre_3D.mp4" type="video/mp4">
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
         <div class="legend">
@@ -979,7 +979,7 @@ for i in range(int(nombre_pts)):
         </p>
      
         <video controls>
-          <source src="/Projet/delta_carre.mp4" type="video/mp4">
+          <source src="delta_carre.mp4" type="video/mp4">
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
         <div class="legend">
@@ -1001,7 +1001,7 @@ for i in range(int(nombre_pts)):
         </p>
 
         <video controls>
-          <source src="/Projet/delta_up_down.mp4" type="video/mp4">
+          <source src="delta_up_down.mp4" type="video/mp4">
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
         <div class="legend">
@@ -1021,4 +1021,5 @@ for i in range(int(nombre_pts)):
 </footer>
 
 </body>
+
 </html>
