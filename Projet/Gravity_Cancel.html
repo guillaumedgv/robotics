@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_projet.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -116,7 +116,7 @@
         </p>
 
 
-        <img src="\Projet\exo_anti_gravite.png" alt="bras zero gravite">
+        <img src="exo_anti_gravite.png" alt="bras zero gravite">
             <div class="legend">
                     <p>Exosquelette Hercule de RB3D pour le militaire</p>
             </div> 
@@ -301,7 +301,7 @@ Q = equilibrageStatique(np.pi/2,0,float(0.5),0.3,0.2)
             du robot en fonction des capacités des servomoteurs. 
         </p>
 
-        <img src="\Projet\detail_robot.png" alt="Dimensionnement">
+        <img src="detail_robot.png" alt="Dimensionnement">
             <div class="legend">
                     <p>Resultat du code Dimensionnement</p>
             </div> 
@@ -336,7 +336,7 @@ Q = equilibrageStatique(np.pi/2,0,float(0.5),0.3,0.2)
         </p>
 
         
-        <img src="\Projet\dimension.png" alt="Dimensionnement">
+        <img src="dimension.png" alt="Dimensionnement">
             <div class="legend">
                     <p>Resultat du code Dimensionnement</p>
             </div> 
@@ -584,7 +584,7 @@ print("theta: "+str(theta))   # angles moteurs
         Pour cela on dispose des graphs de performance des deux moteur utilisés :
       </p>
 
-      <img src="\Projet\graph_performance.png" alt="graph_performance">
+      <img src="graph_performance.png" alt="graph_performance">
             <div class="legend">
                     <p>Graphique de performance des deux moteurs utilisés</p>
             </div> 
@@ -630,7 +630,7 @@ print("theta: "+str(theta))   # angles moteurs
             <br>
         </p>
 
-        <img src="\Projet\couple_courant.png" alt="Couple_Courant">
+        <img src="couple_courant.png" alt="Couple_Courant">
             <div class="legend">
                     <p>Resultat du code approximation courbe Couple-Courant</p>
             </div> 
@@ -720,7 +720,7 @@ plt.show()
             Pour liés les moteurs aux liens on utilise les cadres/frames spéciales Dynamixel.
          </p>
 
-         <img src="\Projet\montage.png" alt="Montage">
+         <img src="montage.png" alt="Montage">
             <div class="legend">
                     <p>Exemple de cadre Dynamixel</p>
             </div> 
@@ -742,7 +742,7 @@ plt.show()
          </p>
 
          <video controls>
-          <source src="/Projet/a_vide.mp4" type="video/mp4">
+          <source src="a_vide.mp4" type="video/mp4">
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
         <div class="legend">
@@ -751,7 +751,7 @@ plt.show()
 
 
         <video controls>
-          <source src="/Projet/500g.mp4" type="video/mp4">
+          <source src="500g.mp4" type="video/mp4">
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
         <div class="legend">
@@ -1036,4 +1036,5 @@ finally:
 </footer>
 
 </body>
+
 </html>
