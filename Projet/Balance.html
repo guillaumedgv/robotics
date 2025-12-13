@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Robotique Théorique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <main class="content">
+
+        <h1>
+            Robot Auto Balancé
+        </h1>
+
+        <p>
+           Dans le cadre de mes travaux en robotique, j’ai souhaité concevoir un robot mobile 
+           présentant un réel intérêt pédagogique. En effet, un robot mobile à quatres roues 
+           sans fonctionnalité spécifique, offre un intérêt limité en matière d’apprentissage 
+           et d’expérimentation. J’ai donc orienté mon projet vers la réalisation d’un robot 
+           auto-balancé, permettant d’aborder des notions avancées telles que la régulation 
+           automatique, la stabilité dynamique et le contrôle en temps réel.
+        </p>
+
+        <p>
+            Disposant d’une caméra Raspberry Pi Module 3 inutilisée lors de projets précédents, 
+            j’ai également choisi d’intégrer un système de vision embarqué. Afin d’améliorer 
+            la qualité des images et d’exploiter davantage les capacités du dispositif, cette 
+            caméra devait être montée sur un stabilisateur conçu par mes soins lui aussi 
+            permettant de compenser les mouvements du robot
+        </p>  
+
+        <div class="highlight">
+        <p>
+          On trouve nombre de vidéo sur Youtube avec ce même projet, qui utilise pour la plupart tous le même 
+          software et hardware. Pour ma part j'ai décidé de faire toute la conception et la partie logiciel moi même, pour le meilleur et pour le pire.
+        </p>
+        </div>
+
+        <p>
+        <br>
+      </p>
+
+
+        <hr>
+
+        <h3> Hardware</h3>
+
+        <p>
+            Le gimbal est équipé de 2 servomoteurs
+            <a href=https://www.amazon.fr/dp/B088NB5Y27?ref=ppx_yo2ov_dt_b_fed_asin_title>  MG996R</a>
+            , pilotés par une carte driver 
+            <a href=https://www.amazon.fr/dp/B0BKZC1XWR?ref=ppx_yo2ov_dt_b_fed_asin_title>  PCA9685</a>
+            , et supporte une
+            <a href=https://www.amazon.fr/dp/B0BRY6MVXL?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1>  caméra Raspberry Pi Module 3</a>
+             Cette caméra filme en <em>1920×1080</em> sans possibilité de réduire
+            la résolution, ce qui nécessite une Raspberry Pi suffisamment puissante pour traiter la vidéo.
+        </p>
+
+        <p>
+            Le robot utilise une 
+            <a href=https://www.amazon.fr/dp/B0CK2FCG1K?ref=ppx_yo2ov_dt_b_fed_asin_title>  Raspberry Pi 5 avec 8 Go de RAM</a>.
+             Le système étant totalement autonome,
+            tous les composants sont alimentés par batteries. Une 
+            <a href=https://www.amazon.fr/dp/B09YCY1MX1?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1>  alimentation 6 V</a>
+            est dédiée aux servomoteurs,
+            tandis qu’une source 
+            <a href=https://www.amazon.fr/dp/B0DXPWDZWQ?ref=ppx_yo2ov_dt_b_fed_asin_title>  source 12V/5A</a>
+            alimente la Raspberry Pi via un
+            <a href=https://www.amazon.fr/dp/B099DK7WS9?ref=ppx_yo2ov_dt_b_fed_asin_title>  abaisseur de tension</a>.
+        </p>
+
+        <p>
+            La batterie 12V alimente aussi les 2 moteurs pas à pas 
+            <a href=https://www.amazon.fr/dp/B00PNEQKC0?ref=ppx_yo2ov_dt_b_fed_asin_title> NEMA 17</a>
+            , contrôlés par des drivers
+            <a href=https://www.amazon.fr/dp/B07C2V9GWC?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1> A4988</a>,
+            permettant une gestion précise du mouvement avec la possibilité de faire du microstepping.
+        </p>
+
+        <p>
+            Pour mesurer l’orientation du robot dans l’espace (inclinaison et mouvement), un capteur 
+            <a href=https://www.amazon.fr/dp/B0CLS2JY43?ref=ppx_yo2ov_dt_b_fed_asin_title> MPU6050</a>
+            (gyroscope et accéléromètre) est utilisé afin de fournir les données nécessaires à l’équilibrage.
+        </p>
+
+
+        <p>
+        <br>
+      </p>
+
+        <hr>
+
+        
+
+        <h3>
+            Partie Gimball & Tracking
+        </h3>
+
+        <p>
+        Le programme de gimball & de tracking contrôle une caméra montée sur un système 
+        Pan/Tilt motorisé par deux servomoteurs. Il permet deux modes de fonctionnement : 
+        un mode manuel avec boutons directionnels et un mode automatique où la caméra suit 
+        un objet circulaire détecté dans l’image grâce à la vision par ordinateur. 
+        </p>
+
+        <img src="\Projet\vu_front_self.jpg" alt="Vue Face">
+            <div class="legend">
+                    <p>Vu de face du robot avec en haut la partie Gimball</p>
+            </div> 
+
+        <p>
+        Le script commence par importer toutes les bibliothèques nécessaires : 
+        gestion des servos via <em><b>ServoKit</b></em>, interface graphique via 
+        <b><em>Tkinter</b></em>, capture vidéo avec <b><em>Picamera2</b></em>, 
+        traitement d’image avec <b><em>OpenCV</b></em>, et gestion de fichiers. On 
+        apelle le script "gyro.py" en parallèle pour fournir en continu les valeurs de 
+        roulis et tangage du gyroscope, écrites dans un fichier texte.
+        </p>
+
+        <details >    
+        <summary > <b style="color: red;">Programme gyroscope sur Python</b>
+            </summary >
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+
+             </code></pre>
+      </details>
+
+        <p>
+        Ensuite, le programme configure les servomoteurs Pan et Tilt, charge les derniers 
+        angles sauvegardés et réapplique ces valeurs afin de restaurer la position précédente 
+        de la caméra. 
+        </p>
+
+        <p>
+        On met en place l’interface graphique Tkinter ensuite; Elle affiche le flux vidéo en 
+        direct depuis la caméra et propose des boutons fléchés permettant de contrôler les 
+        mouvements de la caméra manuellement (lorsque l’utilisateur maintient un bouton enfoncé, 
+        la caméra se déplace continuellement dans la direction choisie). Durant ces mouvements 
+        manuels, on désactive la stabilisation gyroscopique est temporairement afin d’éviter 
+        des contre-mouvements indésirables.
+        </p>
+
+        VIDEO STABILISATION GIMBALL
+
+        <p>
+        La stabilisation gyroscopique fonctionne en mode manuel en lisant les valeurs du 
+        gyroscope, puis en corrigeant automatiquement l’angle des servos pour compenser les 
+        mouvements de la base. Cette compensation se fait en soustrayant le roulis au servo 
+        Pan et en ajoutant le tangage au servo Tilt.
+        </p>
+
+        <p>
+        En mode automatique, on analyse l’image et détecter un cercle grâce à l’algorithme de 
+        HoughCircles (ou recherche de cercle par transformé de hough en francais). Une fois 
+        détecté, le plus grand des cercles visible est choisi comme cible. Le contrôleur 
+        proportionnel calcule alors les écarts entre la position du cercle et le centre de 
+        l’image, puis ajuste automatiquement les servos Pan et Tilt pour recentrer la cible à l’écran. 
+        </p>
+
+        <video controls>
+          <source src="/Projet/soft_tracking.mp4" type="video/mp4">
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+        <div class="legend">
+                    <p>Fenetre Tkinter avec vu de la caméra et panneau de contrôle</p>
+            </div> 
+
+        <p>
+          Vue de l'exterieur : 
+        </p>
+
+        <video controls>
+          <source src="/Projet/tracking_cam.mp4" type="video/mp4">
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+        <div class="legend">
+                    <p>Tracking activé vue de l'exterieur </p>
+            </div> 
+
+
+        <details >    
+        <summary > <b style="color: red;">Programme pour Gimball et Tracking sur Python</b>
+            </summary >
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+
+             </code></pre>
+      </details>    
+      <p>
+        <br>
+      </p>
+        <hr>
+
+        <h3>Partie Balance</h3>
+
+         <p>
+          On apelle le script "gyro.py" en parallèle pour les mêmes raisons que précédement.
+         </p>
+
+          <p>
+          La première partie du script définit les paramètres du contrôleur PID ainsi que les
+          limites de sortie (un peu particulière car on utilise des moteurs pas à pas). Le PID utilise 
+          ces valeurs pour calculer l’intensité de correction qui devra être appliquée aux moteurs 
+          afin de compenser les écarts entre la posture réelle et la posture cible.
+          </p>
+
+          <p>
+          Dans la boucle principale, chaque itération commence par la lecture d’une ligne 
+          générée par le gyroscope,  si la ligne est valide, le programme extrait les valeurs 
+          de roulis et de tangage, puis calcule le temps écoulé depuis la dernière mesure.
+          </p>
+
+          <p>
+          Le sens de rotation des moteurs est déterminé par le signe de la sortie PID : un signe positif ou négatif dicte la direction que les moteurs doivent prendre pour revenir vers la position cible. Deux impulsions successives (montée puis descente) sont ensuite envoyées aux broches STEP afin de faire avancer les moteurs, répétées en continu tant que la stabilisation est nécessaire. Le délai entre ces impulsions est ajusté en fonction de la valeur du PID.
+          </p>
+
+          <video controls>
+          <source src="/Projet/.mp4" type="video/mp4">
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+        <div class="legend">
+                    <p>feur</p>
+            </div> 
+
+            <details >    
+        <summary > <b style="color: red;">Correcteur balancier sur Python</b>
+            </summary >
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+
+             </code></pre>
+      </details>
+
+
+          <div class="highlight">
+
+          <p>
+            Cependant, à ce que l'on peut voir, la correction ne fonctionne pas très bien. Ceci est 
+            dû à plusieurs facteurs qui s'entremêlent :
+            <ul>
+                <li>On utilise une carte Pi donc on ne génère pas des impulsions précises en dessous de 100 µs</li>
+                <li>On ne peut pas utiliser de microstepping à cause du fait précédent car sinon les 
+                  moteurs ne tournent pas assez vite</li>
+                <li>Sans microstepping les pas sont brusques et saccadés (en plus de ne pas être réguliers) 
+                  ce qui induit des vibrations</li>
+                <li>Les vibrations incessantes dérèglent le gyroscope avec du drift qu'il est compliqué de corriger car il dépend des 
+                  réponses du système en lui-même</li>
+            </ul>
+        </p>
+
+        <p>
+            Ainsi pour résoudre le problème il faudrait changer de carte pour une Arduino (gère le timing
+            des impulsions de manière beaucoup plus précise) ou changer les moteurs pas à pas pour des moteurs
+            classiques (pour ne pas avoir de vibrations)
+        </p>
+          </div>
+
+
+          <p>
+            Le projet s'achève sur un échec mais à été très formateur, il ma fait me rendre compte de l'importance
+            de nombreux aspect de ce genre de système que j'avais négligé. Je referais un projet de ce type
+            bientot en corrigeant ces défauts et en changent les roues pour des pattes ! 
+          </p>
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>
