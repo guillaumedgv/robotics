@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Robotique Théorique</title>
-  <link rel="stylesheet" href="/style.css">
+  <title>Robot Self Balancing</title>
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_projet.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -182,7 +182,7 @@
         un objet circulaire détecté dans l’image grâce à la vision par ordinateur. 
         </p>
 
-        <img src="\Projet\vu_front_self.jpg" alt="Vue Face">
+        <img src="vu_front_self.jpg" alt="Vue Face">
             <div class="legend">
                     <p>Vu de face du robot avec en haut la partie Gimball</p>
             </div> 
@@ -237,7 +237,7 @@
         </p>
 
         <video controls>
-          <source src="/Projet/soft_tracking.mp4" type="video/mp4">
+          <source src="soft_tracking.mp4" type="video/mp4">
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
         <div class="legend">
@@ -249,7 +249,7 @@
         </p>
 
         <video controls>
-          <source src="/Projet/tracking_cam.mp4" type="video/mp4">
+          <source src="tracking_cam.mp4" type="video/mp4">
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
         <div class="legend">
@@ -347,4 +347,5 @@
 </footer>
 
 </body>
+
 </html>
