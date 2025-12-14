@@ -200,6 +200,179 @@
         <summary > <b style="color: red;">Programme gyroscope sur Python</b>
             </summary >
         <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+import smbus2
+import time
+import math
+import sys
+
+# Active l'affichage immédiat dans le terminal (utile pour le debug)
+sys.stdout.reconfigure(line_buffering=True)
+
+# =========================================================
+# === CONSTANTES DU MPU6050 ===============================
+# =========================================================
+MPU_ADDR = 0x68          # Adresse I2C du MPU6050
+PWR_MGMT_1 = 0x6B        # Registre de gestion de l'alimentation
+
+# Registres de sortie de l'accéléromètre
+ACCEL_XOUT_H = 0x3B
+ACCEL_YOUT_H = 0x3D
+ACCEL_ZOUT_H = 0x3F
+
+# Registres de sortie du gyroscope
+GYRO_XOUT_H = 0x43
+GYRO_YOUT_H = 0x45
+GYRO_ZOUT_H = 0x47
+
+# =========================================================
+# === INITIALISATION DU BUS I2C ===========================
+# =========================================================
+bus = smbus2.SMBus(3)           # Bus I2C (à adapter selon le matériel)
+bus.write_byte_data(MPU_ADDR, PWR_MGMT_1, 0)  # Réveille le MPU6050
+time.sleep(0.1)
+
+# =========================================================
+# === VARIABLES GLOBALES POUR LES ANGLES ==================
+# =========================================================
+roll = 0.0    # Rotation autour de l’axe X
+pitch = 0.0   # Rotation autour de l’axe Y
+yaw = 0.0     # Rotation autour de l’axe Z (non utilisé ici)
+
+# =========================================================
+# === OFFSETS DU GYROSCOPE (CALIBRATION) ==================
+# =========================================================
+GyroErrorX = 0.0
+GyroErrorY = 0.0
+GyroErrorZ = 0.0
+
+# =========================================================
+# === LECTURE D’UNE VALEUR SIGNÉE 16 BITS =================
+# =========================================================
+def read_word(reg):
+    """
+    Lit une valeur 16 bits signée à partir d’un registre I2C
+    avec gestion des erreurs de communication.
+    """
+    for attempt in range(5):
+        try:
+            high = bus.read_byte_data(MPU_ADDR, reg)
+            low = bus.read_byte_data(MPU_ADDR, reg + 1)
+            val = (high << 8) | low
+
+            # Conversion en nombre signé
+            if val >= 0x8000:
+                val -= 65536
+            return val
+
+        except Exception as e:
+            print(f"⚠️ Erreur I²C {attempt+1}/5 : {e}", file=sys.stderr)
+            time.sleep(0.01 * (attempt + 1))
+
+    raise IOError("Échec de lecture MPU6050 après plusieurs tentatives")
+
+# =========================================================
+# === CALIBRATION DE L’IMU ================================
+# =========================================================
+def calibrate_imu():
+    """
+    Calcule les offsets du gyroscope lorsque le capteur
+    est parfaitement immobile.
+    """
+    global GyroErrorX, GyroErrorY, GyroErrorZ
+
+    print("Calibration IMU : ne pas bouger le capteur.", file=sys.stderr)
+
+    gyroX_sum = gyroY_sum = gyroZ_sum = 0.0
+
+    for _ in range(1000):
+        gx = read_word(GYRO_XOUT_H) / 131.0
+        gy = read_word(GYRO_YOUT_H) / 131.0
+        gz = read_word(GYRO_ZOUT_H) / 131.0
+
+        gyroX_sum += gx
+        gyroY_sum += gy
+        gyroZ_sum += gz
+
+        time.sleep(0.005)
+
+    # Moyenne des erreurs du gyroscope
+    GyroErrorX = gyroX_sum / 1000.0
+    GyroErrorY = gyroY_sum * 1.1 / 1000.0  # Correction empirique
+    GyroErrorZ = gyroZ_sum / 1000.0
+
+    print("Calibration terminée.\n", file=sys.stderr)
+
+# =========================================================
+# === LANCEMENT DE LA CALIBRATION =========================
+# =========================================================
+calibrate_imu()
+
+# =========================================================
+# === CALCUL DES OFFSETS D’ANGLE INITIAUX =================
+# =========================================================
+ax = read_word(ACCEL_XOUT_H)
+ay = read_word(ACCEL_YOUT_H)
+az = read_word(ACCEL_ZOUT_H)
+
+# Angles initiaux lorsque le capteur est à plat
+roll_offset  = math.atan2(ay, az) * 180 / math.pi
+pitch_offset = math.atan2(-ax, math.sqrt(ay*ay + az*az)) * 180 / math.pi
+
+print(f"Offset Roll = {roll_offset:.2f}°, Offset Pitch = {pitch_offset:.2f}°",
+      file=sys.stderr)
+
+# =========================================================
+# === BOUCLE PRINCIPALE ===================================
+# =========================================================
+previous_time = time.perf_counter()
+print("Lecture des données IMU... (Ctrl+C pour arrêter)\n", file=sys.stderr)
+
+alpha = 0.96  # (prévu pour filtre complémentaire, non utilisé ici)
+
+try:
+    while True:
+        # Calcul du temps écoulé
+        current_time = time.perf_counter()
+        dt = current_time - previous_time
+        previous_time = current_time
+
+        # =========================
+        # Lecture du gyroscope
+        # =========================
+        gx = read_word(GYRO_XOUT_H) / 131.0 - GyroErrorX
+        gy = read_word(GYRO_YOUT_H) / 131.0 - GyroErrorY
+        gz = read_word(GYRO_ZOUT_H) / 131.0 - GyroErrorZ
+
+        # =========================
+        # Lecture de l’accéléromètre
+        # =========================
+        ax = read_word(ACCEL_XOUT_H)
+        ay = read_word(ACCEL_YOUT_H)
+        az = read_word(ACCEL_ZOUT_H)
+
+        # =========================
+        # Calcul des angles via l’accéléromètre
+        # =========================
+        accel_roll  = math.atan2(ay, az) * 180 / math.pi
+        accel_pitch = math.atan2(-ax, math.sqrt(ay*ay + az*az)) * 180 / math.pi
+
+        # =========================
+        # Intégration du gyroscope
+        # =========================
+        roll  += gx * dt
+        pitch += gy * dt
+
+        # =========================
+        # Écriture des angles dans un fichier texte
+        # =========================
+        with open("/home/vcngfdhr/Documents/datagyro.txt", "w") as file:
+            file.write(f"{roll:.2f},{pitch:.2f}")
+
+        time.sleep(0.01)
+
+except KeyboardInterrupt:
+    print("\nArrêt du programme.", file=sys.stderr)
+    sys.exit(0)
 
              </code></pre>
       </details>
@@ -219,7 +392,13 @@
         des contre-mouvements indésirables.
         </p>
 
-        VIDEO STABILISATION GIMBALL
+        <video controls>
+          <source src="gimmball_vid.mp4" type="video/mp4">
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+        <div class="legend">
+                    <p>Gimball du robot en action</p>
+            </div> 
 
         <p>
         La stabilisation gyroscopique fonctionne en mode manuel en lisant les valeurs du 
@@ -261,6 +440,304 @@
         <summary > <b style="color: red;">Programme pour Gimball et Tracking sur Python</b>
             </summary >
         <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+# =====================================
+# Programme contrôle caméra + servos + gyro
+# Version commentée en français
+# =====================================
+
+import time
+import numpy as np
+from adafruit_servokit import ServoKit
+import tkinter as tk
+from PIL import Image, ImageTk
+from picamera2 import Picamera2
+import cv2
+import os
+import subprocess
+
+# =====================
+# Paramètres Matériels
+# =====================
+# Lancement du script gyroscope externe qui écrit les données dans un fichier
+p1 = subprocess.Popen(["sudo", "python3", "/home/vcngfdhr/Documents/gyro.py"])
+
+# Initialisation du module PCA9685 pour contrôler les servos
+kit = ServoKit(channels=16)
+servo_channels = [0, 1]  # Servo 0 = Pan (gauche/droite), Servo 1 = Tilt (haut/bas)
+
+# Limites physiques des servos et pas d'incrément
+ANGLE_MIN = 0
+ANGLE_MAX = 180
+STEP_DEG = 1
+
+# Fichiers de stockage des angles
+ANGLE_FILE = "/home/vcngfdhr/Documents/angle_cam.txt"
+REF_SERVO = "/home/vcngfdhr/Documents/gyro_ref.txt"
+GYRO_LIVE = "/home/vcngfdhr/Documents/datagyro.txt"
+
+gyro_active = True  # Active la stabilisation gyroscopique
+
+# =====================
+# Fonctions Utilitaires
+# =====================
+
+def read_angles_gyro():
+    """Lit roll et pitch depuis le fichier du gyroscope."""
+    try:
+        with open(GYRO_LIVE) as f:
+            line = f.read().strip()
+        if not line or "," not in line:
+            return None
+        roll, pitch = map(float, line.split(","))
+        return roll, pitch
+    except Exception as e:
+        print("Erreur lecture gyro:", e)
+        return None
+
+
+def read_angle_file(path):
+    """Lit les angles pan/tilt depuis un fichier, valeur par défaut = 90/90."""
+    try:
+        with open(path, "r") as f:
+            lines = [float(l.strip()) for l in f.readlines() if l.strip()]
+        if len(lines) < 2:
+            raise ValueError("Le fichier doit contenir deux valeurs")
+        return [np.clip(lines[0], ANGLE_MIN, ANGLE_MAX),
+                np.clip(lines[1], ANGLE_MIN, ANGLE_MAX)]
+    except Exception:
+        return [90.0, 90.0]
+
+
+def write_angle_file(path, angles):
+    """Écrit les angles pan/tilt dans un fichier texte."""
+    try:
+        dirname = os.path.dirname(path)
+        if dirname and not os.path.exists(dirname):
+            os.makedirs(dirname)
+        with open(path, "w") as f:
+            f.write(f"{angles[0]}\n{angles[1]}\n")
+    except Exception as e:
+        print("Erreur écriture fichier angles:", e)
+
+
+def apply_angles(angles):
+    """Applique les angles aux servos (pan et tilt)."""
+    for i, a in enumerate(angles):
+        try:
+            kit.servo[servo_channels[i]].angle = float(np.clip(a, ANGLE_MIN, ANGLE_MAX))
+        except Exception as e:
+            print(f"Impossible de régler le servo {servo_channels[i]}: {e}")
+
+# Initialisation position
+lines_next = read_angle_file(ANGLE_FILE)
+write_angle_file(ANGLE_FILE, lines_next)
+write_angle_file(REF_SERVO, lines_next)  # référence pour le gyro
+apply_angles(lines_next)
+
+# Configuration optionnelle des pulses des servos
+try:
+    for ch in servo_channels:
+        if hasattr(kit.servo[ch], "set_pulse_width_range"):
+            kit.servo[ch].set_pulse_width_range(600, 3400)
+except Exception as e:
+    print("Avertissement configuration pulse:", e)
+
+# =====================
+# États Globaux
+# =====================
+mode_auto = False  # False = manuel, True = suivi automatique
+move_job = None     # Gestion Tkinter du mouvement manuel
+track_job = None    # Gestion Tkinter du tracking
+
+# =====================
+# Caméra
+# =====================
+picam2 = Picamera2()
+config = picam2.create_preview_configuration(main={"size": (640, 480)})
+picam2.configure(config)
+picam2.start()
+
+# =====================
+# Interface Tkinter
+# =====================
+root = tk.Tk()
+root.title("Contrôle Caméra + Servos")
+root.geometry("720x880")
+
+frame = tk.Frame(root, padx=12, pady=12)
+frame.pack()
+
+status_label = tk.Label(root, text="Mode manuel actif — utilisez les flèches", anchor="w")
+status_label.pack(fill="x", padx=12, pady=(0, 8))
+
+video_label = tk.Label(root)
+video_label.pack(pady=10)
+
+# Boutons de contrôle manuel
+key_to_button = {}
+buttons_info = [
+    ("↑", "Up", 0, 1),
+    ("↓", "Down", 2, 1),
+    ("←", "Left", 1, 0),
+    ("→", "Right", 1, 2)
+]
+
+def set_buttons_state(state: str):
+    """Active/désactive tous les boutons de mouvement."""
+    for btn in key_to_button.values():
+        btn.config(state=state)
+
+# =====================
+# Mouvement Manuel
+# =====================
+def start_move(direction):
+    """Démarre un mouvement répété tant que le bouton est maintenu."""
+    global move_job, lines_next, gyro_active
+    gyro_active = False  # désactivation temporaire du gyro
+
+    def move():
+        global lines_next, move_job
+        pan, tilt = lines_next
+
+        # Ajustements selon direction
+        if direction == "Up":
+            tilt -= STEP_DEG
+        elif direction == "Down":
+            tilt += STEP_DEG
+        elif direction == "Left":
+            pan += STEP_DEG
+        elif direction == "Right":
+            pan -= STEP_DEG
+
+        # Limites sécurisées
+        pan = float(np.clip(pan, ANGLE_MIN + 5, ANGLE_MAX - 5))
+        tilt = float(np.clip(tilt, ANGLE_MIN + 5, ANGLE_MAX - 5))
+
+        lines_next = [pan, tilt]
+        apply_angles(lines_next)
+        write_angle_file(ANGLE_FILE, lines_next)
+        write_angle_file(REF_SERVO, lines_next)  # mise à jour pour gyro
+
+        move_job = root.after(50, move)  # répétition toutes les 50 ms
+
+    stop_move()
+    move()
+
+
+def stop_move(event=None):
+    """Arrête le mouvement manuel."""
+    global move_job, gyro_active
+    if move_job is not None:
+        root.after_cancel(move_job)
+        move_job = None
+    gyro_active = True
+
+# Création des boutons
+for symbol, name, row, col in buttons_info:
+    btn = tk.Button(frame, text=f"[{name.upper()}] {symbol}", width=10, height=2)
+    btn.grid(row=row, column=col, padx=6, pady=6)
+    key_to_button[name] = btn
+    btn.bind("<ButtonPress-1>", lambda e, d=name: start_move(d))
+    btn.bind("<ButtonRelease-1>", stop_move)
+
+# =====================
+# Suivi Automatique via détection de cercle
+# =====================
+TAILLE_IRL_MM = 122.5
+FOCALE_MM = 4.74
+PIXEL_SIZE_MM = 0.003828
+
+def start_tracking_loop():
+    """Boucle de suivi automatique : détecte un cercle et recentre la caméra."""
+    global track_job, lines_next
+
+    def track():
+        global track_job, lines_next
+        frame = picam2.capture_array()
+        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        h, w = frame_bgr.shape[:2]
+        Cx, Cy = w / 2, h / 2  # centre écran
+
+        # Pré-traitement pour HoughCircles
+        gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (9, 9), 2)
+
+        # Détection de cercles
+        circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, 1, h / 8,
+                                   param1=100, param2=50,
+                                   minRadius=1, maxRadius=200)
+        display = frame.copy()
+
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            best = sorted(circles[0, :], key=lambda c: c[2], reverse=True)[0]
+            cx, cy, radius = int(best[0]), int(best[1]), int(best[2])
+
+            # Dessin du cercle détecté
+            cv2.circle(display, (cx, cy), 1, (0, 100, 100), 3)
+            cv2.circle(display, (cx, cy), radius, (255, 0, 255), 3)
+            cv2.drawMarker(display, (int(Cx), int(Cy)), (0, 0, 255), cv2.MARKER_CROSS, 20, 2)
+
+            # Contrôleur proportionnel : corrige la position
+            Kp_pan, Kp_tilt = 0.02, 0.02
+            pan, tilt = lines_next
+            pan_delta = (cx - Cx) * Kp_pan
+            tilt_delta = (cy - Cy) * Kp_tilt
+
+            pan_new = float(np.clip(pan - pan_delta, ANGLE_MIN + 5, ANGLE_MAX - 5))
+            tilt_new = float(np.clip(tilt + tilt_delta, ANGLE_MIN + 5, ANGLE_MAX - 5))
+
+            lines_next = [pan_new, tilt_new]
+            apply_angles(lines_next)
+            write_angle_file(ANGLE_FILE, lines_next)
+
+        # Affichage vidéo
+        display_rgb = cv2.cvtColor(display, cv2.COLOR_BGR2RGB)
+        img = ImageTk.PhotoImage(Image.fromarray(display_rgb))
+        video_label.config(image=img)
+        video_label.image = img
+
+        track_job = root.after(60, track)
+
+    stop_tracking()
+    track()
+
+def stop_tracking():
+    """Arrête la boucle de suivi automatique."""
+    global track_job
+    if track_job is not None:
+        root.after_cancel(track_job)
+        track_job = None
+
+# =====================
+# Changement de Mode
+# =====================
+def switch_mode():
+    """Active/désactive le mode suivi automatique."""
+    global mode_auto
+    mode_auto = not mode_auto
+
+    if mode_auto:
+        set_buttons_state("disabled")
+        mode_button.config(text="Mode: SUIVI", bg="orange")
+        status_label.config(text="Mode suivi actif — contrôle manuel désactivé")
+        start_tracking_loop()
+    else:
+        set_buttons_state("normal")
+        mode_button.config(text="Mode: MANUEL", bg="lightblue")
+        status_label.config(text="Mode manuel actif — utilisez les flèches")
+        stop_tracking()
+
+# =====================
+# Gestion du Gyro + Preview
+# =====================
+def update_frame_preview():
+    """Affiche la vidéo en mode manuel + applique la stabilisation gyro."""
+    if not mode_auto:
+        frame = picam2.capture_array()
+        img = ImageTk.PhotoImage(Image.fromarray(frame))
+        video_label.config(image=img)\
+
 
              </code></pre>
       </details>    
@@ -289,21 +766,159 @@
           </p>
 
           <p>
-          Le sens de rotation des moteurs est déterminé par le signe de la sortie PID : un signe positif ou négatif dicte la direction que les moteurs doivent prendre pour revenir vers la position cible. Deux impulsions successives (montée puis descente) sont ensuite envoyées aux broches STEP afin de faire avancer les moteurs, répétées en continu tant que la stabilisation est nécessaire. Le délai entre ces impulsions est ajusté en fonction de la valeur du PID.
+          Le sens de rotation des moteurs est déterminé par le signe de la sortie PID : un signe positif ou 
+            négatif dicte la direction que les moteurs doivent prendre pour revenir vers la position cible. 
+            Deux impulsions successives (montée puis descente) sont ensuite envoyées aux broches STEP afin de 
+            faire avancer les moteurs, répétées en continu tant que la stabilisation est nécessaire. 
+            Le délai entre ces impulsions est ajusté en fonction de la valeur du PID.
           </p>
-
-          <video controls>
-          <source src="/Projet/.mp4" type="video/mp4">
-          Votre navigateur ne supporte pas la lecture vidéo.
-        </video>
-        <div class="legend">
-                    <p>feur</p>
-            </div> 
 
             <details >    
         <summary > <b style="color: red;">Correcteur balancier sur Python</b>
             </summary >
         <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+# ==============================================
+# Programme de contrôle PID pour moteurs pas-à-pas
+# Stabilisation via lecture du gyroscope (gyro.py)
+# ==============================================
+
+import lgpio
+import time
+import subprocess
+import smbus2
+import math
+import sys
+
+# Lancement du script gyro.py en parallèle.
+# Ce script écrit en continu les valeurs 'roll,pitch' sur la sortie standard.
+proc = subprocess.Popen(
+    ['python3', '/home/vcngfdhr/Documents/gyro.py'],
+    stdout=subprocess.PIPE,
+    text=True,
+    bufsize=1  # mode ligne par ligne
+)
+
+# --- Paramètres PID ---
+obj = 0              # valeur cible (pitch = 0°)
+Kp = 30              # gain proportionnel
+Kd = 10              # gain dérivé
+Ki = 100             # gain intégral
+
+u = 0                # sortie du PID
+u_max = 100          # saturation maximale
+vitesse = 0          # temps entre impulsions step
+integral = 0         # mémoire intégrale
+past_err = 0         # erreur précédente
+maxSpeed = 0.001     # vitesse maximale
+minSpeed = 0.005     # vitesse minimale
+
+# --- Définition des broches ---
+# Deux moteurs pas-à-pas, chacun avec STEP, DIR, ENABLE
+stepPin1 = 24
+dirPin1 = 23
+enPin1 = 25
+
+stepPin2 = 4
+dirPin2 = 27
+enPin2 = 22
+
+# --- Initialisation du contrôleur GPIO (lgpio) ---
+chip = lgpio.gpiochip_open(0)
+
+# Configuration des broches comme sorties
+for pin in [stepPin1, dirPin1, enPin1, stepPin2, dirPin2, enPin2]:
+    lgpio.gpio_claim_output(chip, pin)
+
+# Activation des moteurs 
+lgpio.gpio_write(chip, enPin1, 1)
+lgpio.gpio_write(chip, enPin2, 1)
+ time.sleep(0.1)
+lgpio.gpio_write(chip, enPin1, 0)
+lgpio.gpio_write(chip, enPin2, 0)
+
+# Pause avant la boucle principale
+time.sleep(10)
+previousTime = time.perf_counter()
+
+try:
+    while True:
+        # Lecture d'une ligne envoyée par gyro.py
+        line = proc.stdout.readline()
+        if not line:
+            continue  # pas encore de données
+
+        # Extraction des valeurs roll et pitch
+        try:
+            roll, pitch = map(float, line.strip().split(','))
+        except ValueError:
+            continue  # ligne invalide
+
+        # Mesure du temps écoulé pour le PID
+        currentTime = time.perf_counter()
+        dt = currentTime - previousTime
+        previousTime = currentTime
+
+        # ------ PID ------
+        # Erreur = consigne - mesure 
+        err = obj - pitch 
+
+        # Intégrale : somme cumulée des erreurs
+        integral += err * dt
+
+        # Dérivée : variation de l'erreur
+        derivative = (err - past_err) / dt
+        past_err = err
+
+        # Calcul de la commande PID
+        u = Kp * err + Ki * integral + Kd * derivative
+
+        # Saturation
+        if u > u_max:
+            u = u_max
+        elif u < -u_max:
+            u = -u_max
+
+        # Si l'erreur est faible, arrêter les moteurs (deadband)
+        if abs(err) < 0.2:
+            previousTime = currentTime
+            continue
+
+        # Conversion de u en vitesse d'impulsion des moteurs
+        vitesse = (1 - (abs(u) / u_max)) * (minSpeed - maxSpeed) + maxSpeed
+
+        # Choix du sens de rotation pour corriger le pitch
+        if u > 0:
+            lgpio.gpio_write(chip, dirPin1, 0)
+            lgpio.gpio_write(chip, dirPin2, 0)
+        else:
+            lgpio.gpio_write(chip, dirPin1, 1)
+            lgpio.gpio_write(chip, dirPin2, 1)
+
+        # Envoi des impulsions STEP (déplacement)
+        lgpio.gpio_write(chip, stepPin1, 1)
+        lgpio.gpio_write(chip, stepPin2, 1)
+        time.sleep(abs(vitesse))
+
+        lgpio.gpio_write(chip, stepPin1, 0)
+        lgpio.gpio_write(chip, stepPin2, 0)
+        time.sleep(abs(vitesse))
+
+except KeyboardInterrupt:
+    print("Arrêt demandé par l'utilisateur.")
+	
+finally:
+    # Désactivation sécurisée des moteurs
+    lgpio.gpio_write(chip, stepPin1, 0)
+    lgpio.gpio_write(chip, dirPin1, 0)
+    lgpio.gpio_write(chip, enPin1, 1)
+
+    lgpio.gpio_write(chip, stepPin2, 0)
+    lgpio.gpio_write(chip, dirPin2, 0)
+    lgpio.gpio_write(chip, enPin2, 1)
+
+    # Libération du bus GPIO
+    lgpio.gpiochip_close(chip)
+    print("GPIO libéré et moteurs désactivés.")
 
              </code></pre>
       </details>
@@ -312,7 +927,7 @@
           <div class="highlight">
 
           <p>
-            Cependant, à ce que l'on peut voir, la correction ne fonctionne pas très bien. Ceci est 
+            Le partie balancier du projet est en pause. En effet la correction ne fonctionne pas très bien. C'est 
             dû à plusieurs facteurs qui s'entremêlent :
             <ul>
                 <li>On utilise une carte Pi donc on ne génère pas des impulsions précises en dessous de 100 µs</li>
@@ -333,12 +948,6 @@
           </div>
 
 
-          <p>
-            Le projet s'achève sur un échec mais à été très formateur, il ma fait me rendre compte de l'importance
-            de nombreux aspect de ce genre de système que j'avais négligé. Je referais un projet de ce type
-            bientot en corrigeant ces défauts et en changent les roues pour des pattes ! 
-          </p>
-
     </main>
 </div>
 
@@ -349,3 +958,4 @@
 </body>
 
 </html>
+
