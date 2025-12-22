@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Affine & DFT</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_vision.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -89,15 +89,16 @@
       <h3>Vision par Ordinateur</h3>
       <ul>
         <ul>
-        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
-        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
-        <li><a href="/Vision/Derive.html">Dérivé</a></li>
-        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
-        <li><a href="/Vision/Extract_line.html">Extraction de lignes</a></li>
-        <li><a href="/Vision/Convex_hull.html">Enveloppe convexe</a></li>
-        <li><a href="/Vision/polygone.html">Distance aux contours & Moments</a></li>
-        <li><a href="/Vision/remappinge.html">Remapping</a></li>
-        <li><a href="/Vision/affine_dft.html" class="active">Transformation affine & DFT</a></li>
+        <li><a href="Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="Derive.html">Dérivé</a></li>
+        <li><a href="Hough.html">Transformé de Hough </a></li>
+        <li><a href="Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="polygone.html">Distance aux contours & Moments</a></li>
+        <li><a href="remappinge.html">Remapping</a></li>
+        <li><a href="affine_dft.html" >Transformation affine & DFT</a></li>
+        <li><a href="Watershed.html" class="active">Algorithme Watershed</a></li>
 
       </ul>
       </ul>
@@ -247,7 +248,7 @@
 
 
 
-        <img src="/Vision/affine.png">
+        <img src="affine.png">
         <div class="legend">
             <p>
                 Différentes transformation affine
@@ -401,7 +402,7 @@ renvoyée par <em>getOptimalDFTSize</em> (multiple de 2, 3 ou 5).
 
 <h3> Transformée de Fourier 2D</h3>
 
-<img src="/Vision/dft_angle.png">
+<img src="dft_angle.png">
         <div class="legend">
             <p>
                 Image de base, inclinaison 44°
@@ -455,14 +456,14 @@ Ainsi, le centre de l’image correspond aux basses fréquences, et les bords au
 </p>
 
 
-<img src="/Vision/dft_mag_norm.png">
+<img src="dft_mag_norm.png">
         <div class="legend">
             <p>
                 spectre de magnitude
             </p>
         </div>
 
-<img src="/Vision/dft_phase.png">
+<img src="dft_phase.png">
         <div class="legend">
             <p>
                 Spectre de phase
@@ -475,7 +476,7 @@ Le spectre est normalisé entre 0 et 255, puis seuillé pour ne garder que les p
 </p>
 
 
-<img src="/Vision/dft_mag_seuil.png">
+<img src="dft_mag_seuil.png">
         <div class="legend">
             <p>
                 Spectre de magnitude avec un seuillage
@@ -512,7 +513,7 @@ Ainsi, la grille est alignée verticalement et horizontalement.
 </p>
 
 
-<img src="/Vision/dft_result.png">
+<img src="dft_result.png">
         <div class="legend">
             <p>
                 image avec l'inclinaison corrigée
@@ -643,3 +644,4 @@ detect_grid_orientation("grille3.jpg")
 
 </body>
 </html>
+
