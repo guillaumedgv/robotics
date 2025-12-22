@@ -88,10 +88,19 @@
     <aside class="sidebar">
       <h3>Vision par Ordinateur</h3>
       <ul>
-        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
-        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
-        <li><a href="/Vision/Derive.html">Dérivé</a></li>
-        <li><a href="/Vision/Hough.html" class="active">Transformé de Hough </a></li>
+        <ul>
+        <li><a href="Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="Derive.html">Dérivé</a></li>
+        <li><a href="Hough.html">Transformé de Hough </a></li>
+        <li><a href="Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="polygone.html">Distance aux contours & Moments</a></li>
+        <li><a href="remappinge.html">Remapping</a></li>
+        <li><a href="affine_dft.html" >Transformation affine & DFT</a></li>
+        <li><a href="Watershed.html" class="active">Algorithme Watershed</a></li>
+
+      </ul>
       </ul>
     </aside> 
 
@@ -212,16 +221,16 @@
     Exemple en Manuel : 
 </h1>
 
-<img src="/Vision/10_sin_hough_line.png">
+<img src="10_sin_hough_line.png">
 
 
-<img src="/Vision/hough_line_accu.png">
+<img src="hough_line_accu.png">
 
 
-<img src="/Vision/hough_line_vote.png">
+<img src="hough_line_vote.png">
 
 
-<img src="/Vision/hough_line_manual.png">
+<img src="hough_line_manual.png">
         <div class="legend">
             <p>
                 Resultats 
@@ -309,7 +318,7 @@ plt.show()
         Exemple avec HoughLines & HoughLinesP (detection segments) : 
     </h1>
 
-    <img src="/Vision/hough_line_segment.png">
+    <img src="hough_line_segment.png">
 
     <details>    
             <summary> <b style="color: red;">Algorithme Transformé de Hough de base et probabiliste linéaire en Python</b>
@@ -485,7 +494,7 @@ plt.show()
     <h1>Exemple manuel :</h1>
 
 
-    <img src="/Vision/hough_circle_manual.png">
+    <img src="hough_circle_manual.png">
 
     <details>    
             <summary> <b style="color: red;">Algorithme manuel Transformé de Hough circulaire en Python</b>
@@ -551,7 +560,7 @@ plt.show()
     <h1>Exemple avec HoughCircles() :</h1>
 
 
-    <img src="/Vision/hough_circle.png">
+    <img src="hough_circle.png">
 
     <details>    
             <summary> <b style="color: red;">Algorithme Transformé de Hough circulaire en Python</b>
@@ -611,3 +620,4 @@ plt.axis('off')
 </body>
 
 </html>
+
