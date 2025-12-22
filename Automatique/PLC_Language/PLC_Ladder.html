@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Ladder</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_plc_language.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,9 +88,9 @@
     <aside class="sidebar">
       <h3>PLC - Language de Programmation</h3>
         <ul>
-        <li><a href="/Automatique/PLC_Language/PLC_ST.html">Structured Text (ST)</a></li>
-        <li><a href="/Automatique/PLC_Language/PLC_Ladder.html" class="active">Ladder (LD)</a></li>
-        <li><a href="/Automatique/PLC_Language/PLC_SFC.html">Graphcet (SFC)</a></li>
+        <li><a href="PLC_ST.html">Structured Text (ST)</a></li>
+        <li><a href="PLC_Ladder.html" class="active">Ladder (LD)</a></li>
+        <li><a href="PLC_SFC.html">Graphcet (SFC)</a></li>
       </ul>
     </aside> 
 
@@ -165,7 +165,7 @@
         </p>
 
 
-         <img src="/Automatique/PLC_Language/ladder_bobine.png"> 
+         <img src="ladder_bobine.png"> 
         <div class="legend">
             <p>
                 Contact respectivement NO, puis NF qui gère l'activation d'une bobine <em>moteur</em>
@@ -182,7 +182,7 @@
         Contacts montés en parallèle.
         </p>
 
-        <img src="/Automatique/PLC_Language/ladder and_or.png"> 
+        <img src="ladder and_or.png"> 
         <div class="legend">
             <p>
                 logique AND & OR
@@ -196,7 +196,7 @@
         La sortie est vraie uniquement lorsque toutes les entrées sont fausses.
         </p>
 
-        <img src="/Automatique/PLC_Language/ladder_not.png"> 
+        <img src="ladder_not.png"> 
         <div class="legend"> 
             <p>
                 logique NOR
@@ -210,7 +210,7 @@
         La sortie est fausse uniquement lorsque toutes les entrées sont vraies.
         </p>
 
-        <img src="/Automatique/PLC_Language/ladder_nand.jpg"> 
+        <img src="ladder_nand.jpg"> 
         <div class="legend"> 
             <p>
                 logique NAND
@@ -224,7 +224,7 @@
         </p>
 
 
-        <img src="/Automatique/PLC_Language/ladder_xor.png"> 
+        <img src="ladder_xor.png"> 
         <div class="legend"> 
             <p>
                 logique XOR
@@ -277,7 +277,7 @@
 
          <h1>Exemples :</h1>
 
-          <img src="/Automatique/PLC_Language/ladder_moteur.png"> 
+          <img src="ladder_moteur.png"> 
         <div class="legend"> 
             <p>
                 logique de controle d'un moteur en Ladder
@@ -293,4 +293,5 @@
   </footer>
 
 </body>
+
 </html>
