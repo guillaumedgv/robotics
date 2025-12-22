@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Structured Text</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>PLC - Language de Programmation</h3>
+      <ul>
+        <li><a href="/Automatique/PLC_Language/PLC_ST.html" class="active">Structured Text (ST)</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_Ladder.html">Ladder (LD)</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_SFC.html">Graphcet (SFC)</a></li>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+        <h1>Quand, Où, Pourquoi ?</h1>
+
+        <p>
+        Le <strong>Structured Text (ST)</strong> est utilisé lorsque l’automatisme nécessite
+        une logique difficile à représenter graphiquement.
+        Contrairement au Ladder ou au Graphcet, il permet d’écrire des instructions
+        sous forme de code structuré, proche des langages de programmation classiques
+        comme le Pascal ou le C.
+        </p>
+
+        <p>
+        On utilise le Structured Text principalement 
+        lorsque l’application implique des opérations mathématiques, des boucles,
+        des conditions imbriquées ou la gestion de recettes et de paramètres.
+        Il est très répandu dans les systèmes de régulation, les machines complexes
+        et les applications nécessitant une grande flexibilité logicielle.
+        </p>
+
+        <hr>
+
+        <h1>Donnees</h1>
+
+        <h3>Nombres</h3>
+        <p>
+        Types numériques pour variables et constantes : 
+        <ul>
+            <li><b>SINT</b> (8 bits : -128 à 127), <br></li>
+            <li><b>USINT</b> (8 bits : 0 à 255), <br></li>
+            <li><b>INT</b> (16 bits : -32 768 à 32 767), <br></li>
+            <li><b>UINT</b> (16 bits : 0 à \(2^{16}-1\)), <br></li>
+            <li><b>DINT</b> (32 bits : - \(2^{31}\) à \(2^{31}-1\)), <br></li>
+            <li><b>LINT</b> (64 bits : - \(2^{63}\) à \(2^{63}-1\)), <br></li>
+            <li><b>REAL</b> (32 bits flottant, - \(10^{38}\) à \(10^{38}\)), <br></li>
+        </ul>
+        </p>
+        <p>
+        Pour chaque type, on peut définir une <b>limite inférieure (MIN)</b> et une <b>limite supérieure (MAX)</b> :  
+        \[
+        \text{MIN} \leq \text{variable} \leq \text{MAX}
+        \]  
+        </p>
+        <p>
+        Le résultat d’une opération doit rester dans ces limites, sinon il y a un <b>overflow</b> ou <b>underflow</b>.
+        </p>
+
+        <h3>Temps</h3>
+        <p>
+        Types : <b>TIME</b>, <b>DATE</b>, <b>TOD (Time of Day)</b>, <b>DATE_AND_TIME (DT)</b>.  
+        Chaque type possède un intervalle valide et retourne différentes informations :
+        <ul>
+            <li>
+                <b>TIME</b> : durée exprimée en millisecondes.  
+                Exemples de littéraux ST :  
+                <em>t#50ms</em> (50 millisecondes), <em>t#5s</em> (5 secondes), <em>t#2m</em> (2 minutes)
+            </li>
+            <li>
+                <b>DATE</b> : jour/mois/année.  
+                On peut initialiser une variable avec un littéral :  
+                <em>d#2025-12-25</em> correspond au 25 décembre 2025
+            </li>
+            <li>
+                <b>TOD</b> (Time of Day) : heure du jour.  
+                Exemple ST : <em>tod#14:35:20</em> ou avec millisecondes <em>tod#14:35:20.500</em>
+            </li>
+            <li>
+                <b>DATE_AND_TIME</b> : combinaison date + heure + millisecondes.  
+                Exemple ST : <em>dt#2025-12-25-14:35:20.500</em>
+            </li>
+        </ul>
+        </ul>
+        </p>
+
+        <h3>Mots et chaînes</h3>
+        <p>
+        <b>STRING</b> : texte avec longueur maximale définie, ex. <em>STRING[80]</em> pour 80 caractères.  <br>
+        <b>BIT, BYTE, WORD, DWORD</b> : données binaires, largeur fixe (1, 8, 16, 32 bits).  
+        On peut définir des masques ou plages de bits.  
+
+        </p>
+
+        <h3>Type de table / structure</h3>
+        <p>
+        <b>Structured Data</b> : regroupement de plusieurs variables.  
+        Exemple : 
+        <pre>
+        STRUCT Point
+            x : REAL;
+            y : REAL;
+            z : REAL;
+        END_STRUCT
+        </pre>
+
+        <b>Enumerated Data</b> : ensemble fini de valeurs symboliques.  
+        Exemple : 
+        <pre>
+        TYPE Etat : (Marche, Arret, Pause);
+        END_TYPE
+        </pre>
+
+        <b>Subrange</b> : plage de valeurs pour une variable.  
+        Exemple :
+        <pre>
+        VAR vitesse : INT(0..100);
+        END_VAR
+        </pre>
+
+        <b>Array</b> : tableau de variables du même type avec index limité.  
+        Exemple :
+        <pre>
+        VAR tabTemperature : ARRAY[1..10] OF REAL;
+        END_VAR
+        </pre>
+        </p>
+
+        <h3>Type de variables</h3>
+        <p>
+        - <b>Global</b> : accessible par tous les blocs du programme  <br>
+        - <b>Input</b> : reliée à une entrée physique ou logique  <br>
+        - <b>Output</b> : reliée à une sortie physique ou logique  <br>
+        - <b>In_Out </b> : reliée à une variable passée en paramètre <br>
+        - <b>Retain</b> : mémorise sa valeur après coupure d’alimentation  <br>
+        - <b>Local</b> : limitée au bloc ou fonction dans lequel elle est déclarée<br>
+        </p>
+
+
+        <p>
+          Dans la pluspart des logiciels ces variable sont définie en texte comme 
+          plus haut, cependant ce n'est pas le cas partout. Par Exemple sur Tia Portal 
+          toute les variables sont définie dans un fenetre propre
+        </p>
+
+        <hr>
+
+        <h1>Organisation</h1>
+
+        <h3>Fonctions internes</h3>
+
+        <p>
+        Les fonctions internes du langage ST (Structured Text) permettent de réaliser des calculs mathématiques, logiques, temps, conversion de types, etc.  
+        Voici les principales :  
+        <ul>
+            <li>Mathématiques : <br><b>SIN(x), COS(x), TAN(x), ASIN(x), ACOS(x), ATAN(x), SQRT(x), EXP(x), LN(x), LOG(x), ABS(x), MOD(a,b), POWER(a,b),...</b></li>
+            <li>Conversion de types :<br> <b>TO_INT(x), TO_REAL(x), TO_STRING(x), TO_BOOL(x)</b></li>
+            <li>Logique : <br><b>AND, OR, NOT, XOR</b></li>
+            <li>Temps / date :<br> <b>TOD(), DATE(), DT(), TIME(), ADD_TIME(t1,t2), SUB_TIME(t1,t2)</b></li>
+            <li>Autres :<br> <b>LIMIT(x,MIN,MAX)</b>,...</li>
+        </ul>
+        </p>
+
+        <h3>Définir une fonction ou bloc de function</h3>
+        <p>
+        <b>Function Block (FB)</b> : bloc avec état interne (càd des variables locales, celles definit dans VAR, qui conservent leur valeur entre deux appels du FB) et interface d’entrées/sorties définie.  Un 
+        bloc de fonction peut appeler une fonction mais pas l'inverse.
+        Cela permet de réutiliser du code et de simplifier la logique interne du FB
+        </p>
+        <pre>
+        FUNCTION_BLOCK FB_Moteur
+        VAR_INPUT
+            start : BOOL;
+            stop  : BOOL;
+        END_VAR
+        VAR_OUTPUT
+            running : BOOL;
+        END_VAR
+        VAR
+            interne : BOOL;
+        END_VAR
+
+        running := start AND NOT stop;
+        interne := running;
+        END_FUNCTION_BLOCK
+        </pre>
+
+        <p>
+        <b>Function</b> : fonction de calcul pure sans état interne.  
+        </p>
+        <pre>
+        FUNCTION fSomme : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+        END_VAR
+
+        fSomme := a + b;
+        END_FUNCTION
+        </pre>
+
+        <h3>Boucles et structures de contrôle basique</h3>
+  
+        <pre>
+        IF vitesse > 100 THEN
+            vitesse := 100;
+        ELSIF vitesse < 0 THEN
+            vitesse := 0;
+        END_IF
+
+        CASE mode OF
+            0: status := 'Arret';
+            1: status := 'Marche';
+            2: status := 'Pause';
+        END_CASE
+
+        FOR i := 1 TO 10 DO
+            somme := somme + tab[i];
+        END_FOR
+
+        WHILE capteur = TRUE DO
+            compteur := compteur + 1;
+        END_WHILE
+
+        REPEAT
+            compteur := compteur + 1;
+        UNTIL compteur >= 10
+        END_REPEAT
+        </pre>
+
+        On utilise EXIT pour sortir d'une boucle ou RETURN si on est dans un fonction.
+
+        <h3>Organisation d'un programme</h3>
+        <p>
+        Ordre recommandé pour structurer un programme ST :  
+        <ul>
+            <li><b>Interface</b> : déclaration des variables globales et locales</li>
+            <li><b>Function / Function Block</b> : blocs logiques avec interface et état interne</li>
+            <li><b>Implementation</b> : corps principal du programme avec appels aux fonctions et FB</li>
+        </ul>
+        Exemple :
+        </p>
+        <pre>
+        PROGRAM MAIN
+        VAR
+            moteur1 : FB_Moteur;
+            vitesse : INT;
+            startBtn : BOOL;
+            stopBtn  : BOOL;
+        END_VAR
+
+        // Appel du function block
+        moteur1(start := startBtn, stop := stopBtn);
+
+        // Calcul de vitesse limitée
+        vitesse := LIMIT(vitesse, 0, 100);
+        END_PROGRAM
+        </pre>
+
+  
+
+
+    </main>
+</div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

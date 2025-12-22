@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>PLC Communcation industrielle</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <main class="content">
+
+        <h1>Communication industriels</h1>
+
+
+      <h3>Topologies de réseau industriel</h3>
+      <p>
+      La topologie de réseau définit la manière dont les équipements industriels
+      (automates, capteurs, actionneurs, E/S déportées, superviseurs) sont
+      interconnectés. Le choix de la topologie influe directement sur la
+      <b>disponibilité</b>, la <b>robustesse</b>, la <b>latence</b> et la
+      <b>facilité de maintenance</b> du système.
+      </p>
+
+      <p>
+      <b>Topologie en bus</b> : tous les équipements partagent un même support
+      de communication. Elle est typique des Fieldbus (Modbus RTU, Profibus,
+      CAN). Simple et économique, mais sensible aux coupures du câble principal.
+      </p>
+
+          <img src="/Automatique/PLC_COM/topo_profibus.png" style="width:450px; height:450px;"> 
+        <div class="legend">
+            <p>
+                Topologie en bus (Profibus) 
+            </p>
+        </div>
+
+      <p>
+      <b>Topologie en étoile</b> : chaque équipement est relié à un point central
+      (switch). Très utilisée en Ethernet industriel pour sa flexibilité et sa
+      facilité de diagnostic.
+      </p>
+
+          <img src="/Automatique/PLC_COM/topo_star.jpg"> 
+        <div class="legend">
+            <p>
+                Topologie en étoile
+            </p>
+        </div>
+
+      <p>
+      <b>Topologie en ligne (daisy chain)</b> : les équipements sont connectés
+      les uns à la suite des autres. Courante avec EtherCAT et Profinet,
+      elle réduit le câblage et permet des temps de cycle courts.
+      </p>
+
+          <img src="/Automatique/PLC_COM/topo_ethercar.jpg"> 
+        <div class="legend">
+            <p>
+                Topologie en ligne (Ethercat)
+            </p>
+        </div>
+
+      <p>
+      <b>Topologie en anneau</b> : utilisée lorsque la redondance est requise.
+      Une coupure de câble n’interrompt pas la communication grâce à un
+      chemin alternatif (MRP, RSTP).
+      </p>
+
+          <img src="/Automatique/PLC_COM/topo_mrp.png"> 
+        <div class="legend">
+            <p>
+               Topologie en anneau 
+            </p>
+        </div>
+
+
+      <hr>
+
+      <h3>Produits d’interconnexion industriels</h3>
+      <p>
+      Les produits d’interconnexion assurent la liaison physique et logique
+      entre les équipements du réseau industriel, tout en résistant aux
+      contraintes environnementales.
+      </p>
+
+      <p>
+      <b>Switchs industriels</b> : utilisés dans les réseaux Ethernet industriels.
+      Les modèles administrables permettent la gestion de la redondance,
+      des VLAN et du diagnostic réseau.
+      </p>
+
+          <img src="/Automatique/PLC_COM/switch.jpeg"> 
+
+      <p>
+      <b>Routeurs industriels</b> : assurent l’interconnexion entre réseaux
+      industriels et IT et permettent l’accès distant sécurisé.
+      </p>
+
+       <img src="/Automatique/PLC_COM/router.jpg"> 
+
+      <p>
+      <b>Passerelles (gateways)</b> : permettent la conversion entre différents
+      protocoles de communication dans les architectures hétérogènes.
+      </p>
+
+       <img src="/Automatique/PLC_COM/gateway.jpg " style="width:250px; height:250px;"> 
+
+      <hr>
+
+        <h1>Protocole de Communcation</h1>
+
+        <p>
+        En automatique industrielle, les protocoles de communication sont généralement
+        classés en trois grandes familles : <b>Fieldbus</b>, <b>Ethernet industriel</b>
+        et <b>Supervision</b>. Chaque famille répond à des besoins spécifiques en termes
+        de temps réel, de robustesse, de volume de données et d’interopérabilité.
+        </p>
+
+        <h3>Fieldbus (bus de terrain)</h3>
+
+        <p>
+        Les protocoles Fieldbus sont utilisés au plus près du procédé, pour relier
+        capteurs, actionneurs et modules d’entrées/sorties. Ils privilégient la
+        <b>robustesse</b>, la <b>simplicité</b> et le <b>déterminisme temporel</b>.
+        En effet chaque message arrive et part à un timing fixe connu.
+        Les communications de type maitre/esclave génère peu de traffic inutile permettant de controler
+        totalement la bande passante (~500kbit/s).
+        </p>
+
+          <p>
+        Des protocoles comme Modbus RTU, Profibus ou CANopen sont largement utilisés
+        car ils sont fiables et adaptés aux environnements industriels sévères.
+        </p>
+
+        <p>
+        Leur principal inconvénient réside dans leurs <b>débits limités</b> et leur
+        faible évolutivité, ce qui les rend moins adaptés aux architectures complexes
+        ou aux grandes quantités de données.
+        </p>
+
+        
+         <img src="/Automatique/PLC_COM/fieldbus.jpg"> 
+
+        <p>
+        <b>Modbus RTU</b> est l’un des Fieldbus les plus simples et les plus répandus.
+        Il fonctionne sur une liaison série <b>RS-485</b> et repose sur une
+        architecture maître/esclave par interrogation cyclique. Le hardware requis
+        est minimal (interface série standard), ce qui en fait une solution
+        économique. La programmation se fait via des blocs de communication dans
+        l’automate (langages <b>IEC 61131-3</b>), la gestion du protocole étant
+        assurée par une stack bas niveau intégrée au système.
+        </p>
+
+        <p>
+        <b>Profibus DP</b> est un bus de terrain déterministe destiné aux échanges
+        rapides avec des E/S déportées. Il nécessite un <b>hardware spécifique</b>
+        (cartes Profibus, transceivers et câbles dédiés) afin de garantir les
+        performances temps réel. La configuration du réseau s’effectue à l’aide de
+        fichiers <b>GSD</b>, et la communication est ensuite exploitée par
+        l’utilisateur via des blocs fonctionnels dans l’environnement automate.
+        </p>
+
+        <p>
+        <b>CANopen</b>, basé sur le bus <b>CAN</b>, est particulièrement reconnu pour
+        sa robustesse face aux perturbations électromagnétiques. Il est très utilisé
+        dans les machines et les systèmes embarqués. Son fonctionnement repose sur
+        un contrôleur CAN matériel et une stack logicielle généralement écrite en
+        <b>C</b>. La communication est structurée autour d’un dictionnaire d’objets
+        standardisé, facilitant la configuration et l’interopérabilité.
+        </p>
+
+            <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+      <thead>
+        <tr>
+          <th>Protocole</th>
+          <th>Avantages</th>
+          <th>Inconvénients</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Modbus RTU</b></td>
+          <td>
+            <ul>
+              <li>Très simple et très répandu</li>
+              <li>Matériel minimal et peu coûteux</li>
+              <li>Facile à implémenter</li>
+            </ul>
+          </td>
+          <td>
+            <ul>
+              <li>Débit faible</li>
+              <li>Architecture maître / esclave</li>
+              <li>Peu adapté aux systèmes rapides</li>
+            </ul>
+          </td>
+        </tr>
+
+        <tr>
+          <td><b>Profibus DP</b></td>
+          <td>
+            <ul>
+              <li>Communication déterministe</li>
+              <li>Échanges rapides avec E/S déportées</li>
+              <li>Très utilisé en industrie</li>
+            </ul>
+          </td>
+          <td>
+            <ul>
+              <li>Hardware spécifique requis</li>
+              <li>Câblage et configuration plus complexes</li>
+              <li>Moins flexible qu’Ethernet</li>
+            </ul>
+          </td>
+        </tr>
+
+        <tr>
+          <td><b>CANopen</b></td>
+          <td>
+            <ul>
+              <li>Très robuste aux perturbations</li>
+              <li>Bonne fiabilité temps réel</li>
+              <li>Standardisation via dictionnaire d’objets</li>
+            </ul>
+          </td>
+          <td>
+            <ul>
+              <li>Débit limité</li>
+              <li>Configuration parfois complexe</li>
+              <li>Peu adapté aux grandes quantités de données</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+
+        <h3>Ethernet industriel</h3>
+
+        <p>
+        Les protocoles Ethernet industriels comme PROFINET, EtherCAT ou EtherNet/IP 
+        sont utilisés au niveau des machines et des lignes de production pour 
+        assurer la communication entre les différentes parties des PLC : les variateurs, les E/S 
+        déportées et les systèmes de supervision.
+        </p>
+
+        <p>
+          Contrairement à l’Ethernet standard, ces protocoles intègrent des 
+          mécanismes de communication en temps réel, plus ou moins stricts selon 
+          le protocole. Cela garantit que les données critiques de commande et de 
+          contrôle sont transmises dans des délais maîtrisés, indispensables au 
+          bon fonctionnement des systèmes automatisés.
+        </p>
+
+        <p>
+          Les differents protocoles ethernet industriel sont utile quand il est nécéssaire de transmettre
+          des grandes quantitées de données (debit ~100Mbit/s) et est donc très interessant dans un context de vision,
+          motion controle, variateur et autre aspect de robotique.
+        </p>
+
+        
+
+             <img src="/Automatique/PLC_COM/ethernet.png"> 
+
+        <p>
+        <b>Profinet</b> est l’un des plus répandus. Il fonctionne sur Ethernet
+        standard et propose plusieurs niveaux de performance (RT et IRT).
+        Le hardware peut être standard, mais les applications temps réel
+        exigent souvent des cartes réseau ou switchs compatibles. La
+        programmation se fait dans l’environnement automate (IEC 61131-3),
+        la stack Profinet étant intégrée au système.
+        </p>
+
+        <p>
+        <b>EtherCAT</b> est particulièrement adapté aux applications de motion
+        control. Il nécessite un <b>hardware spécifique</b> côté esclave
+        (ASIC ou FPGA) pour traiter les trames “on-the-fly”.
+        La stack est majoritairement implémentée en C, et la configuration
+        s’effectue via des fichiers ESI. Il offre des performances très élevées
+        mais une interopérabilité IT plus limitée.
+        </p>
+
+        <p>
+        <b>EtherNet/IP</b>, basé sur le protocole CIP, est très utilisé dans
+        l’écosystème Rockwell. Il repose sur Ethernet standard, mais son
+        temps réel est moins strict que celui d’EtherCAT. La stack est
+        implémentée en C/C++ et exposée à l’utilisateur via des objets et
+        services configurables dans l’automate.
+        </p>
+
+        <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+        <tr>
+          <th>Protocole</th>
+          <th>Avantages</th>
+          <th>Inconvénients</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Profinet</b></td>
+          <td>
+            <ul>
+              <li>Très répandu</li>
+              <li>Ethernet standard</li>
+              <li>Bonne intégration IT</li>
+            </ul>
+          </td>
+          <td>
+            <ul>
+              <li>Temps réel strict nécessite matériel spécifique</li>
+              <li>Configuration parfois complexe</li>
+            </ul>
+          </td>
+        </tr>
+
+        <tr>
+          <td><b>EtherCAT</b></td>
+          <td>
+            <ul>
+              <li>Très hautes performances</li>
+              <li>Idéal pour motion control</li>
+            </ul>
+          </td>
+          <td>
+            <ul>
+              <li>Hardware esclave spécifique</li>
+              <li>Interopérabilité IT limitée</li>
+            </ul>
+          </td>
+        </tr>
+
+        <tr>
+          <td><b>EtherNet/IP</b></td>
+          <td>
+            <ul>
+              <li>Ethernet standard</li>
+              <li>Très utilisé chez Rockwell</li>
+            </ul>
+          </td>
+          <td>
+            <ul>
+              <li>Temps réel moins strict</li>
+              <li>Moins adapté au motion rapide</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+
+        <h3>Supervision</h3>
+
+        <p>
+        Les protocoles de supervision assurent la communication entre systèmes SCADA et MES,
+        interfaces homme-machine ou entre plusieurs machines. Des solutions comme
+        Modbus TCP, OPC UA ou MQTT sont privilégiées pour leur
+        <b>interopérabilité</b> et leur capacité à échanger des données de plus haut niveau.
+        </p>
+
+        <p>
+        Ces protocoles ne sont généralement pas conçus pour le temps réel dur, mais
+        ils offrent en contrepartie une meilleure <b>ouverture</b>, des mécanismes de
+        <b>sécurité</b> et une intégration facilitée avec les systèmes informatiques
+        modernes.
+        </p>
+
+  
+        <p>
+        <b>Modbus TCP</b> est très utilisé pour sa simplicité. Il fonctionne sur
+        Ethernet standard sans hardware spécifique. La programmation est
+        simple, via des bibliothèques disponibles dans la plupart des langages
+        (C, C++, Python, Java) et des blocs de communication côté automate.
+        En revanche, il ne propose ni sécurité native ni modélisation avancée.
+        </p>
+
+        <p>
+        <b>OPC UA</b> est aujourd’hui le standard de référence pour la supervision
+        moderne. Il repose sur une stack logicielle complète intégrant sécurité,
+        modélisation orientée objet et indépendance vis-à-vis du système
+        d’exploitation. Il est implémenté dans de nombreux langages
+        (C/C++, C#, Java, Python) et ne nécessite pas de hardware spécifique.
+        </p>
+
+        <p>
+        <b>MQTT</b> est principalement utilisé pour la remontée de données vers des
+        systèmes IIoT ou le cloud. Il fonctionne selon un modèle
+        publish/subscribe avec un broker. Très léger et multi-langage, il n’est
+        pas adapté aux échanges temps réel mais excelle pour la collecte et la
+        diffusion de données à grande échelle.
+        </p>
+
+        <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+  <thead>
+    <tr>
+      <th>Protocole</th>
+      <th>Avantages</th>
+      <th>Inconvénients</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Modbus TCP</b></td>
+      <td>
+        <ul>
+          <li>Simple et très répandu</li>
+          <li>Basé sur Ethernet standard</li>
+          <li>Facile à programmer (multi-langage)</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Pas de sécurité native</li>
+          <li>Pas de modélisation avancée</li>
+          <li>Temps réel limité</li>
+        </ul>
+      </td>
+    </tr>
+
+    <tr>
+      <td><b>OPC UA</b></td>
+      <td>
+        <ul>
+          <li>Standard de référence pour la supervision</li>
+          <li>Sécurité intégrée</li>
+          <li>Modélisation orientée objet</li>
+          <li>Indépendant du système et du hardware</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Stack logicielle complexe</li>
+          <li>Moins adapté au temps réel strict</li>
+        </ul>
+      </td>
+    </tr>
+
+    <tr>
+      <td><b>MQTT</b></td>
+      <td>
+        <ul>
+          <li>Très léger</li>
+          <li>Idéal pour IIoT et cloud</li>
+          <li>Modèle publish / subscribe</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Pas adapté au temps réel</li>
+          <li>Nécessite un broker</li>
+          <li>Pas conçu pour le contrôle terrain</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+        <h1>Hiérarchie d’automatisation (ou pyramide CIM / ISA-95)</h1>
+    <p>
+    La hiérarchie d’automatisation décrit l’organisation fonctionnelle des
+    systèmes industriels, depuis le procédé physique jusqu’aux systèmes
+    informatiques de gestion. Elle permet de structurer les échanges de
+    données et de définir <b>où s’inscrivent les différents protocoles de
+    communication</b>.
+    </p>
+
+    <p>
+    Cette organisation est souvent représentée par la <b>pyramide
+    d’automatisation</b>, également appelée modèle <b>CIM</b> ou norme
+    <b>ISA-95</b>.
+    </p>
+
+    <p>
+    <b>Niveau 0 – Terrain</b> :  
+    Il correspond au procédé physique. On y trouve les <b>capteurs</b>
+    (température, pression, position) et les <b>actionneurs</b>
+    (moteurs, vérins, vannes).  
+    La communication est majoritairement <b>analogique</b> (4–20 mA,
+    0–10 V) ou <b>TOR</b>, parfois intégrée à des bus de terrain simples.
+    </p>
+
+    <p>
+    <b>Niveau 1 – Commande</b> :  
+    Ce niveau regroupe les <b>automates programmables industriels (API/PLC)</b>
+    et les régulateurs. Ils assurent le contrôle temps réel du procédé.
+    Les communications utilisent principalement des <b>Fieldbus</b>
+    (Modbus RTU, Profibus DP, CANopen) ou de l’<b>Ethernet industriel</b>
+    (Profinet, EtherCAT).
+    </p>
+
+    <p>
+    <b>Niveau 2 – Supervision</b> :  
+    Il correspond aux <b>IHM</b> et systèmes <b>SCADA</b>.
+    Ce niveau permet la visualisation, l’archivage et la commande opérateur.
+    Les protocoles utilisés sont typiquement <b>Modbus TCP</b>,
+    <b>OPC UA</b> ou des protocoles propriétaires.
+    </p>
+
+    <p>
+    <b>Niveau 3 – Gestion de production (MES)</b> :  
+    Ce niveau assure le suivi de la production, la traçabilité,
+    la qualité et l’optimisation des ressources.
+    Les échanges avec le niveau supervision utilisent des protocoles
+    ouverts et orientés données comme <b>OPC UA</b>, des bases de données
+    ou des API industrielles.
+    </p>
+
+    <p>
+    <b>Niveau 4 – Gestion d’entreprise (ERP)</b> :  
+    Il correspond aux systèmes de gestion (planification, logistique,
+    maintenance, finance). La communication repose sur des
+    <b>protocoles IT standards</b> (HTTP, SQL, services web),
+    avec une séparation claire des réseaux industriels.
+    </p>
+
+    <img src="/Automatique/PLC_COM/hierarchie.jpg"> 
+        <div class="legend">
+            <p>
+                Exemple de hierarchie
+            </p>
+        </div>
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

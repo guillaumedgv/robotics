@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>PLC_Language</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>PLC - Language de Programmation</h3>
+      <ul>
+        <ul>
+        <li><a href="/Automatique/PLC_Language/PLC_ST.html">Structured Texte</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_Ladder.html">Ladder</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_SFC.html">Graphcet (ou SFC)</a></li>
+      </ul>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+
+
+    <h1>Langages de programmation PLC</h1>
+
+    <p>
+        Les <strong>PLC (Programmable Logic Controller)</strong>, ou automates programmables industriels
+        (API), sont utilisés pour automatiser des machines et des procédés industriels.<br>
+        Pour cela, plusieurs <strong>langages de programmation normalisés</strong> sont utilisés,
+        définis par la norme <strong>IEC 61131-3</strong>.
+    </p>
+
+    <p>
+        Chaque langage a ses avantages et est adapté à un type de problème particulier
+        (logique câblée, séquences, calculs, automatisme avancé).
+    </p>
+
+    <h3>Ladder (LD – Ladder Diagram)</h3>
+    <p>
+        Le <strong>Ladder</strong> est un langage graphique inspiré des schémas électriques à relais.
+        Il est très utilisé en industrie car il est intuitif pour les électriciens et techniciens.
+    </p>
+
+    <h3>Structured Text (ST)</h3>
+    <p>
+        Le <strong>Structured Text</strong> est un langage textuel proche du Pascal ou du langage C.
+        Il est plus adapté aux calculs complexes et aux algorithmes.
+    </p>
+
+    <h3>Graphcet / SFC (Sequential Function Chart)</h3>
+    <p>
+        Le <strong>Graphcet</strong> (appelé <strong>SFC</strong> en IEC 61131-3) est un langage graphique
+        destiné à décrire des <strong>séquences d’actions</strong>.
+    </p>
+
+
+    <hr>
+
+    <h2>Complémentarité des langages</h2>
+    <p>
+        En pratique, ces langages sont souvent <strong>utilisés ensemble</strong> :
+    </p>
+    <ul>
+        <li>Graphcet pour décrire la séquence</li>
+        <li>Ladder pour piloter les entrées/sorties</li>
+        <li>Structured Text pour les calculs spécifiques</li>
+    </ul>
+
+    <p>
+        Cette approche permet de créer des programmes PLC clairs, robustes et faciles à maintenir.
+    </p>
+    
+    </main>
+</div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

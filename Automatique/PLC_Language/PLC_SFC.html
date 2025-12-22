@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>SFC</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>PLC - Language de Programmation</h3>
+       <ul>
+        <li><a href="/Automatique/PLC_Language/PLC_ST.html">Structured Text (ST)</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_Ladder.html">Ladder (LD)</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_SFC.html" class="active">Graphcet (SFC)</a></li>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+        <h1>Quand, Où, Pourquoi ?</h1>
+
+        <p>
+        Le <strong>Graphcet</strong>, également appelé <strong>SFC (Sequential Function Chart)</strong>,
+        est utilisé lorsque le fonctionnement d’un automatisme doit être décrit
+        sous forme de <strong>séquence d’étapes et de transitions</strong>.
+        Il permet de représenter clairement l’enchaînement des actions dans le temps.
+        </p>
+
+        <p>
+        On utilise le Graphcet dans la <strong>conception et l’analyse</strong> des automatismes
+        industriels, notamment pour les machines fonctionnant par cycles.
+        Il est très répandu pour décrire le comportement des systèmes tels que
+        les portes automatiques, les machines d’usinage, les lignes de production
+        ou les processus séquentiels.
+        </p>
+
+        <hr>
+
+        <h3>Règles de GRAFCET</h3>
+
+        <p>
+        Un pas est dit <b>actif</b> lorsqu’il est <b>validé</b>, c’est-à-dire lorsque le jeton logique est présent sur ce pas
+        ( representé en général par un point •).  
+        Lorsqu’un pas est actif, les actions qui lui sont associées peuvent s’exécuter.
+        Dans une séquence simple, un seul pas est actif à la fois (sauf en parallèle).
+        </p>
+
+        <p>
+        Les <b>transitions</b> sont franchissables uniquement si leurs conditions sont validé
+        </p>
+
+        <p>
+        Lorsque la transition est franchie, le pas précédent devient inactif et le pas suivant devient actif.
+        </p>
+
+        <hr>
+
+        <h3>Type de Pas</h3>
+
+        <b>Pas initial</b>
+        <p>
+        Point de départ du GRAFCET.  
+        Il est actif dès la mise sous tension et est représenté par un double encadrement.
+        </p>
+
+        <img src="/Automatique/PLC_Language/Graphcet_Start.png">
+        <div class="legend">
+            <p>
+                Pas initial sur Tia Portal
+            </p>
+        </div>
+
+        <b>Pas classique</b>
+        <p>
+        Pas standard du GRAFCET.  
+        Il devient actif après le franchissement de la transition précédente.
+        </p>
+
+         <img src="/Automatique/PLC_Language/graphcet_step.png">
+        <div class="legend">
+            <p>
+                Pas classique sur Tia Portal
+            </p>
+        </div>
+
+        <b>Pas macro</b>
+        <p>
+        Représente un sous-GRAFCET.  
+        Il permet de simplifier un diagramme complexe en regroupant plusieurs pas.
+        </p>
+
+         <img src="/Automatique/PLC_Language/graphcet_macro.png">
+        <div class="legend">
+            <p>
+                Pas macro (pas de pas macro direct sur Tia Portal)
+            </p>
+        </div>
+
+        <b>Pas action</b>
+        <p>
+        Pas auquel sont associées une ou plusieurs actions exécutées selon leur type.
+        </p>
+
+        <img src="/Automatique/PLC_Language/graphcet_pas_action.png">
+        <div class="legend">
+            <p>
+                Pas Action sur Tia Portal
+            </p>
+        </div>
+
+        <hr>
+
+        <h3>Séquence de branches</h3>
+
+        <b>Passage d’une action à l’autre</b>
+        <p>
+        Succession de pas reliés par des transitions permettant l’enchaînement des actions.
+        </p>
+
+        <img src="/Automatique/PLC_Language/graphcet_passage.png">
+        <div class="legend">
+            <p>
+                Passage d'un step a un autre sur Tia Portal
+            </p>
+        </div>
+
+        <b>Convergence</b>
+        <p>
+        Plusieurs branches se rejoignent en une seule.  
+        La transition est validée (si elle n'a pas d'autres conditions) seulement si tous les pas précédents sont actifs :
+        </p>
+
+        
+
+        <b>Divergence</b>
+        <p>
+        Une branche se sépare en plusieurs branches :
+        </p>
+        <ul>
+            <li>Divergence exclusive : une seule branche active</li>
+            <li>Divergence parallèle : plusieurs branches actives simultanément</li>
+        </ul>
+
+        <img src="/Automatique/PLC_Language/grahcet_convdif.png"> 
+        <div class="legend">
+            <p>
+                Divergence parallele suivis d'une Convergence sur Tia Portal
+            </p> 
+        </div>
+
+        <b>Jump (saut)</b>
+        <p>
+        Permet de passer directement d’un pas à un autre non consécutif.  
+        Utilisé pour les boucles ou les retours.
+        </p>
+
+        <hr>
+
+        <h1>Actions</h1>
+
+         <p>
+        Une action est définie par :
+        </p>
+
+        <ul>
+            <li>Un nom (ex : moteur, vérin, lampe)</li>
+            <li>Un type </li>
+            <li>Une durée ou une condition éventuelle</li>
+        </ul>
+
+        <p>Pour définir les actions autre que des expressions booléennes simples
+             ou des programmes plus complexe. On utilise très souvent pour les définir ST ou le LD</p>
+
+        <h3>Type d’action</h3>
+        <b>N (Normale)</b>
+        <p>
+        Action normale : l’action est active <strong>tant que le pas est actif</strong>.
+        Exemple : MOTOR := TRUE pendant toute la durée du pas.
+        </p>
+
+        <b>S (Set)</b>
+        <p>
+        Set : met la variable ou le bit à <strong>1</strong> et la conserve même si le pas n’est plus actif, 
+        jusqu’à ce qu’un Reset soit exécuté.
+        </p>
+
+        <b>R (Reset)</b>
+        <p>
+        Reset : met la variable ou le bit à <strong>0</strong>. Utilisé pour désactiver une action de type Set.
+        </p>
+
+        <b>D (Delay / Temporisé)</b>
+        <p>
+        Delay : l’action est activée <strong>après un délai spécifié</strong> (ex. T#5s).
+        Utile pour temporiser des signaux.
+        </p>
+
+        <b>L (Limitée / Limité)</b>
+        <p>
+        Limitée : l’action est active <strong>pendant une durée limitée</strong>, même si le pas reste actif.
+        </p>
+        <p>
+          Il en existe de nombreux autres mais ils dépendent du constructeur logiciel.
+        </p>
+
+        <h3>Transition</h3>
+
+        <p>
+        Une transition est associée à une réceptivité exprimée par une condition logique.
+        On est obligé d'en mettre entre deux pas, de la même manière que les actions on peut les exprimer et
+        LD ou en ST.
+      </p>
+
+
+        <h3>Plusieurs actions</h3>
+
+        <p>
+        Un même pas peut contenir plusieurs actions.  
+        Toutes les actions associées s’exécutent selon leur type tant que le pas est actif.
+        </p>
+
+        
+
+          <img src="/Automatique/PLC_Language/graphcet_exemple.png"> 
+        <div class="legend">
+            <p>
+                Graphcet avec un saut de T6 à S1 et des exemples visuels de transition et action sur Tia Portal
+            </p> 
+        </div>
+
+
+      <p>
+        On voit ici que la transition est en LD et est un contact normalement ouvert
+        qui depend d'une variable <em>capteur</em>. De même l'action liée à Step1 à 
+        pour identificateur N, la variable booléenne <em>exmple</em> passe donc à 1 tant 
+        que le step est active.
+      </p>
+
+        <img src="/Automatique/PLC_Language/graphcet_action.png"> 
+        <div class="legend">
+            <p>
+                Exemple d'action multiple sur Tia Portal
+            </p> 
+        </div>
+
+        <p>
+          On aurait aussi pu appeler le programme <em>Main</em> et en plus mettre à 0
+          indéfiniment <em>exemple</em>
+        </p>
+
+    </main>
+</div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

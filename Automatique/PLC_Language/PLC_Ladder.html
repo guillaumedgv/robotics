@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ladder</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>PLC - Language de Programmation</h3>
+        <ul>
+        <li><a href="/Automatique/PLC_Language/PLC_ST.html">Structured Text (ST)</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_Ladder.html" class="active">Ladder (LD)</a></li>
+        <li><a href="/Automatique/PLC_Language/PLC_SFC.html">Graphcet (SFC)</a></li>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+         <h1>Quand, Où, Pourquoi ?</h1>
+
+        <p>
+        Le <strong>Ladder Diagramme (LD)</strong> est utilisé lorsque l’automatisme repose principalement sur
+        des <strong>logiques tout ou rien (ON/OFF)</strong> et des enchaînements simples de conditions.
+        Inspiré des schémas électriques à relais, il permet de représenter
+        le fonctionnement d’une machine de manière graphique et intuitive.
+        </p>
+
+        <p>
+        On utilise le Ladder 
+        pour la commande des entrées et des sorties, comme les moteurs, pompes,
+        vérins, voyants ou capteurs.
+        Il est particulièrement adapté aux systèmes de commande classiques,
+        largement répandus dans l’industrie.
+        </p>
+
+
+        <hr>
+
+        <h1>Logique</h1>
+
+        <p>
+        Le Ladder repose sur une logique booléenne représentée graphiquement,
+        inspirée des schémas électriques à relais.
+        </p>
+
+        <p>
+          Le programme se lis de gauche à droite et de haut en bas. Il convient donc de mettre
+          les sécurités au début de la boucle ladder.
+        </p>
+
+        <b>Contact normalement ouvert (NO) |  |</b>
+        <p>
+        Le contact est passant lorsque la variable associée est vraie.
+        </p>
+
+        <b>Contact normalement fermé (NF) |  /  |</b>
+        <p>
+        Le contact est passant lorsque la variable associée est fausse.
+        </p>
+
+        <b>Contact front montant |P|</b>
+        <p>
+        Le contact s’active au front montant de l’entrée (passage de 0 à 1).
+        </p>
+
+        <b>Contact front descendant |N| </b>
+        <p>
+        Le contact s’active au front descendant de l’entrée (passage de 1 à 0).
+        </p>
+
+        <b>Bobine ( )</b>
+        <p>
+        La bobine représente l’action ou la sortie commandée.
+        Elle est activée lorsque le réseau logique est vrai.
+        </p>
+
+        <b>Bobine Set (S)</b>
+        <p>
+        Active une sortie et la maintient à « 1 » (ON) même si les conditions redeviennent fausses.
+        </p>
+
+        <b>Bobine Reset (R)</b>
+        <p>
+        Désactive une sortie et la maintient à « 0 » (OFF) même si les conditions redeviennent vraies.
+        </p>
+
+
+         <img src="/Automatique/PLC_Language/ladder_bobine.png"> 
+        <div class="legend">
+            <p>
+                Contact respectivement NO, puis NF qui gère l'activation d'une bobine <em>moteur</em>
+            </p> 
+        </div>
+
+        <b>Logique AND</b>
+        <p>
+        Contacts montés en série.
+        </p>
+
+        <b>Logique OR</b>
+        <p>
+        Contacts montés en parallèle.
+        </p>
+
+        <img src="/Automatique/PLC_Language/ladder and_or.png"> 
+        <div class="legend">
+            <p>
+                logique AND & OR
+            </p> 
+        </div>
+
+        <b>Logique NOR</b>
+        <p>
+        La logique NOR correspond à la négation de la logique OR.  
+        Elle est réalisée en Ladder par des <b>contacts normalement fermés (NF) montés en série</b>.  
+        La sortie est vraie uniquement lorsque toutes les entrées sont fausses.
+        </p>
+
+        <img src="/Automatique/PLC_Language/ladder_not.png"> 
+        <div class="legend"> 
+            <p>
+                logique NOR
+            </p> 
+        </div>
+
+        <b>Logique NAND</b>
+        <p>
+        La logique NAND correspond à la négation de la logique ET.
+        Elle est réalisée par des <b>contacts normalement fermés montés en parallèle</b>.
+        La sortie est fausse uniquement lorsque toutes les entrées sont vraies.
+        </p>
+
+        <img src="/Automatique/PLC_Language/ladder_nand.jpg"> 
+        <div class="legend"> 
+            <p>
+                logique NAND
+            </p>   
+        </div>
+
+        <b>Logique XOR</b>
+        <p>
+        La logique XOR (OU exclusif) est vraie lorsque <b>une seule entrée est vraie</b>.
+        En Ladder, elle est réalisée par une combinaison de :
+        </p>
+
+
+        <img src="/Automatique/PLC_Language/ladder_xor.png"> 
+        <div class="legend"> 
+            <p>
+                logique XOR
+            </p> 
+        </div>
+
+        <hr>
+
+
+        <h1>Fonction interne</h1>
+
+        <p>
+        Les fonctions internes sont des blocs intégrés à l’automate permettant de traiter le temps,
+        le comptage et la logique avancée.
+        </p>
+
+        <b>Temporisateur (Timer)</b>
+        <ul>
+            <li>TON : temporisation à l’enclenchement</li>
+            <li>TOF : temporisation au déclenchement</li>
+            <li>TP : impulsion temporisée</li>
+        </ul>
+
+        <b>Compteur (Counter)</b>
+        <ul>
+            <li>CTU : compteur incrémental</li>
+            <li>CTD : compteur décrémental</li>
+            <li>CTUD : compteur incrémental/décrémental</li>
+        </ul>
+
+        <b>Bascule (mémoire)</b>
+        <ul>
+            <li>SET : mise à 1 mémorisée</li>
+            <li>RESET : remise à 0 mémorisée</li>
+        </ul>
+
+        <b>Comparateurs</b>
+        <p>
+        Permettent de comparer des valeurs numériques :
+        </p>
+        <ul>
+            <li>= égal</li>
+            <li>&lt; inférieur</li>
+            <li>&gt; supérieur</li>
+        </ul>
+
+        <hr>
+
+        
+
+         <h1>Exemples :</h1>
+
+          <img src="/Automatique/PLC_Language/ladder_moteur.png"> 
+        <div class="legend"> 
+            <p>
+                logique de controle d'un moteur en Ladder
+            </p> 
+        </div>
+
+
+    </main>
+</div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>
