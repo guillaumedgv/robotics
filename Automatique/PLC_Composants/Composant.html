@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>PLC Composant</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_plc_composant.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -95,7 +95,7 @@
             tandis que les blocs de contrôle traitent les informations issues des capteurs et exécutent les programmes de commande afin de piloter le système automatique.
         </p>
 
-        <img src="/Automatique/PLC_Composants/plc_panel.jpg"> 
+        <img src="plc_panel.jpg"> 
         <div class="legend">
             <p>
                 Exemple de Panneau PLC 
@@ -107,73 +107,73 @@
         <h1>Blocs de Puissance</h1>
 
         <h3>Alimentation</h3>
-        <img src="/Automatique/PLC_Composants/power_supply.jpg" style="width:250px; height:250px;"> 
+        <img src="power_supply.jpg" style="width:250px; height:250px;"> 
         <p>
         L’alimentation fournit l’énergie électrique nécessaire au fonctionnement du PLC et de ses composants. Elle transforme généralement la tension du réseau (230 V ou 400 V AC) en une tension continue stable, le plus souvent 24 V DC, utilisée par les modules de commande, les capteurs et certains actionneurs.
         </p>
 
         <h3>Transformateur de sécurité</h3>
-        <img src="/Automatique/PLC_Composants/transformateur_securite.jpg" style="width:250px; height:250px;"> 
+        <img src="transformateur_securite.jpg" style="width:250px; height:250px;"> 
         <p>
         Le transformateur de sécurité permet d’abaisser la tension du réseau à un niveau sécurisé pour protéger les personnes et les équipements. Il assure une isolation électrique entre le circuit de puissance et le circuit de commande, réduisant ainsi les risques d’électrocution et de dommages matériels.
         </p>
 
         <h3>Disjoncteur de branche (Circuit Branch Breaker)</h3>
-        <img src="/Automatique/PLC_Composants/branch_circuit_breaker.jpg" style="width:250px; height:auto;"> 
+        <img src="branch_circuit_breaker.jpg" style="width:250px; height:auto;"> 
         <p>
         Le disjoncteur de branche protège les circuits électriques contre les surcharges et les courts-circuits. En cas de défaut, il coupe automatiquement l’alimentation afin d’éviter la détérioration des équipements et d’assurer la sécurité du panneau PLC.
         </p>
 
         <h3>Fusible électronique</h3>
-        <img src="/Automatique/PLC_Composants/fusible_electronique.jpeg" style="width:250px; height:250px;"> 
+        <img src="fusible_electronique.jpeg" style="width:250px; height:250px;"> 
         <p>
         Le fusible électronique protège les circuits sensibles contre les surintensités. Contrairement aux fusibles classiques, il réagit plus rapidement et peut être réarmé, ce qui améliore la fiabilité et réduit les temps d’arrêt du système automatisé.
         </p>
 
         <h3>Parafoudre</h3>
-        <img src="/Automatique/PLC_Composants/parafoudre.jpg" style="width:250px; height:250px;"> 
+        <img src="parafoudre.jpg" style="width:250px; height:250px;"> 
         <p>
         Le parafoudre protège les équipements du panneau PLC contre les surtensions transitoires causées par la foudre ou des perturbations du réseau électrique. Il limite les pics de tension et évacue l’énergie excessive vers la terre.
         </p>
 
         <h3>Contacteur</h3>
-        <img src="/Automatique/PLC_Composants/contacteur.jpg" style="width:250px; height:250px;"> 
+        <img src="contacteur.jpg" style="width:250px; height:250px;"> 
         <p>
         Le contacteur est un dispositif électromécanique utilisé pour commander des charges de puissance telles que les moteurs. Il permet au PLC de contrôler l’alimentation des équipements en toute sécurité à l’aide de signaux de faible puissance.
         </p>
 
         <h3>Bloc de distribution</h3>
-        <img src="/Automatique/PLC_Composants/bloc_distri.jpg" style="width:250px; height:250px;"> 
+        <img src="bloc_distri.jpg" style="width:250px; height:250px;"> 
         <p>
         Le bloc de distribution permet de répartir l’alimentation électrique vers différents circuits du panneau PLC. Il assure une distribution organisée et sécurisée de l’énergie, facilitant le câblage et la maintenance.
         </p>
 
         <h3>Relais</h3>
-        <img src="/Automatique/PLC_Composants/relais.jpg" style="width:250px; height:250px;"> 
+        <img src="relais.jpg" style="width:250px; height:250px;"> 
         <p>
         Le relais permet d’isoler électriquement le PLC des circuits de puissance. Il est utilisé pour commander des charges ou transmettre des signaux tout en protégeant les sorties du PLC contre les tensions élevées.
         </p>
 
         <h3>Bloc de terminaux</h3>
-        <img src="/Automatique/PLC_Composants/terminal_bloc.jpg" style="width:250px; height:auto;"> 
+        <img src="terminal_bloc.jpg" style="width:250px; height:auto;"> 
         <p>
         Le bloc de terminaux sert à connecter proprement les câbles provenant du terrain (capteurs, actionneurs, alimentation). Il facilite l’organisation du câblage, le dépannage et les modifications du panneau PLC.
         </p>
 
         <h3>Démarreur moteur</h3>
-        <img src="/Automatique/PLC_Composants/motor_starter.jpg" style="width:250px; height:auto;"> 
+        <img src="motor_starter.jpg" style="width:250px; height:auto;"> 
         <p>
         Le démarreur moteur permet de mettre en marche et d’arrêter un moteur électrique en toute sécurité. Il assure également la protection du moteur contre les surcharges et les défauts électriques.
         </p>
 
         <h3>Démarreur moteur doux</h3>
-        <img src="/Automatique/PLC_Composants/motor_soft_starter.png" style="width:250px; height:350px;"> 
+        <img src="motor_soft_starter.png" style="width:250px; height:350px;"> 
         <p>
         Le démarreur moteur doux limite le courant et le couple au démarrage du moteur. Il réduit les contraintes mécaniques et électriques, prolongeant ainsi la durée de vie du moteur et des équipements associés.
         </p>
 
         <h3>Variateur de fréquence</h3>
-        <img src="/Automatique/PLC_Composants/variateur_frequence.jpg" style="width:250px; height:auto;"> 
+        <img src="variateur_frequence.jpg" style="width:250px; height:auto;"> 
         <p>
         Le variateur de fréquence permet de contrôler la vitesse et le couple d’un moteur électrique en faisant varier la fréquence et la tension d’alimentation. Il offre une grande flexibilité de commande et améliore l’efficacité énergétique du système.
         </p>
@@ -185,32 +185,32 @@
         <h1>Blocs de Contrôle</h1>
 
         <h3>CPU (Central Processing Unit)</h3>
-        <img src="/Automatique/PLC_Composants/CPU.jpg" style="width:250px; height:auto;"> 
+        <img src="CPU.jpg" style="width:250px; height:auto;"> 
         <p>
         Le CPU est l’unité centrale du PLC et constitue le cerveau du système automatisé. Il exécute le programme de commande, traite les données provenant des modules d’entrées/sorties et gère les communications avec les autres équipements du panneau. Le CPU assure la logique de contrôle, le traitement des temporisations, des compteurs et des fonctions de sécurité, garantissant ainsi le fonctionnement fiable et coordonné de l’installation.
         </p>
 
 
         <h3>IHM (Interface Homme-Machine)</h3>
-        <img src="/Automatique/PLC_Composants/IHM.jpg" style="width:250px; height:auto;"> 
+        <img src="IHM.jpg" style="width:250px; height:auto;"> 
         <p>
         L’IHM (Interface Homme-Machine) permet à l’opérateur d’interagir avec le système automatisé. Elle affiche les informations de fonctionnement telles que les états, les alarmes et les valeurs de process, et permet la saisie de commandes (démarrage, arrêt, réglages). L’IHM améliore la supervision, le contrôle et la sécurité du panneau PLC.
         </p>
 
         <h3>Switch Ethernet</h3>
-        <img src="/Automatique/PLC_Composants/switch_ethernet.jpg" style="width:250px; height:auto;"> 
+        <img src="switch_ethernet.jpg" style="width:250px; height:auto;"> 
         <p>
         Le switch Ethernet permet la communication entre le PLC, les modules d’entrées/sorties, les interfaces homme-machine (HMI) et les autres équipements réseau. Il assure un échange rapide et fiable des données dans le système de contrôle industriel.
         </p>
 
         <h3>Module I/O (analogique ou numérique)</h3>
-        <img src="/Automatique/PLC_Composants/io_module.jpg" style="width:250px; height:auto;"> 
+        <img src="io_module.jpg" style="width:250px; height:auto;"> 
         <p>
         Les modules d’entrées/sorties (I/O) servent d’interface entre le PLC et le terrain. Les entrées reçoivent les informations des capteurs, tandis que les sorties commandent les actionneurs. Les modules analogiques traitent des signaux variables (0–10 V, 4–20 mA), alors que les modules numériques gèrent des signaux tout ou rien.
         </p>
 
         <h3>Master Control Relay</h3>
-        <img src="/Automatique/PLC_Composants/Master_control_relay.jpg" style="width:250px; height:auto;"> 
+        <img src="Master_control_relay.jpg" style="width:250px; height:auto;"> 
         <p>
         Le relais de contrôle principal (Master Control Relay) permet de couper ou d’autoriser globalement les sorties du système. Il est souvent utilisé pour des fonctions de sécurité ou d’arrêt d’urgence, garantissant que l’ensemble des actionneurs peut être désactivé rapidement en cas de défaut.
         </p>
@@ -223,4 +223,5 @@
 </footer>
 
 </body>
+
 </html>
