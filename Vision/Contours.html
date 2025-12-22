@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Contours</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_vision.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,10 +88,10 @@
     <aside class="sidebar">
       <h3>Vision par Ordinateur</h3>
       <ul>
-        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
-        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
-        <li><a href="/Vision/Derive.html">Dérivé</a></li>
-        <li><a href="/Vision/Contours.html" class="active">Contours</a></li>
+        <li><a href="Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="Derive.html">Dérivé</a></li>
+        <li><a href="Contours.html" class="active">Contours</a></li>
       </ul>
     </aside> 
 
@@ -119,7 +119,7 @@
 
         <h1> Exemple :</h1>
 
-        <img src="/Vision/contours_forme.png">  
+        <img src="contours_forme.png">  
         <div class="legend">
             <p>
                 Contours de forme avec <em>findContours</em> 
@@ -225,14 +225,14 @@ plt.show()
         autour de tout les contours ou seulement certain... 
       </p>
 
-       <img src="/Vision/bbox_before.png">    
+       <img src="bbox_before.png">    
         <div class="legend">
             <p>
                 Pré traitement Contours Canny
             </p>
         </div>
 
-        <img src="/Vision/bbox.png">    
+        <img src="bbox.png">    
         <div class="legend">
             <p>
                 Dessin des Contours de forme avec <em>fitEllipse, drawContours, approxPolyDP & boundingRect</em>
@@ -330,4 +330,5 @@ plt.imshow(copy)
 </footer>
 
 </body>
+
 </html>
