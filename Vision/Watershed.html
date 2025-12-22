@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Watershed</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_vision.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -89,16 +89,16 @@
       <h3>Vision par Ordinateur</h3>
       <ul>
         <ul>
-        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
-        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
-        <li><a href="/Vision/Derive.html">Dérivé</a></li>
-        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
-        <li><a href="/Vision/Extract_line.html">Extraction de lignes</a></li>
-        <li><a href="/Vision/Convex_hull.html">Enveloppe convexe</a></li>
-        <li><a href="/Vision/polygone.html">Distance aux contours & Moments</a></li>
-        <li><a href="/Vision/remappinge.html">Remapping</a></li>
-        <li><a href="/Vision/affine_dft.html" >Transformation affine & DFT</a></li>
-         <li><a href="/Vision/Watershed.html" class="active">Algorithme Watershed</a></li>
+        <li><a href="Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="Derive.html">Dérivé</a></li>
+        <li><a href="Hough.html">Transformé de Hough </a></li>
+        <li><a href="Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="polygone.html">Distance aux contours & Moments</a></li>
+        <li><a href="remappinge.html">Remapping</a></li>
+        <li><a href="affine_dft.html" >Transformation affine & DFT</a></li>
+        <li><a href="Watershed.html" class="active">Algorithme Watershed</a></li>
 
       </ul>
       </ul>
@@ -134,7 +134,7 @@
         où \(G_{\sigma}\) est un noyau gaussien de variance \(\sigma\).
         </p>
 
-        <img src="/Vision/watershed_extract_item.png">
+        <img src="watershed_extract_item.png">
         <div class="legend">
             <p>
                 Prétraitement de l'image
@@ -146,7 +146,7 @@
             On utilise souvent une dérivé seconde pour les renforcer
         </p>
 
-        <img src="/Vision/watershed_derive_seconde.png">
+        <img src="watershed_derive_seconde.png">
         <div class="legend">
             <p>
                 Amélioration des bords de l'image
@@ -163,7 +163,7 @@
 
         </p>
 
-        <img src="/Vision/watershed_binaire.png">
+        <img src="watershed_binaire.png">
         <div class="legend">
             <p>
                 Binarisation de l'image
@@ -188,7 +188,7 @@
         des objets.
         </p>
 
-        <img src="/Vision/watershed_dist_transform.png">
+        <img src="watershed_dist_transform.png">
         <div class="legend">
             <p>
                 Evaluation de la distance des pixels aux bords
@@ -215,7 +215,7 @@
             le pré-traitement en fonction de l'image.
         </p>
 
-        <img src="/Vision/watershed_dist_peak.png">
+        <img src="watershed_dist_peak.png">
         <div class="legend">
             <p>
                 Seuillage pour définir les marqueurs premier plan
@@ -268,7 +268,7 @@
 
 
 
-        <img src="/Vision/watershed_result.png">
+        <img src="watershed_result.png">
         <div class="legend">
             <p>
                 Resultat de l'algorithme watershed
@@ -446,4 +446,5 @@ plt.show()
 </footer>
 
 </body>
+
 </html>
