@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>PLC Communcation industrielle</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_plc_com.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -104,7 +104,7 @@
       CAN). Simple et économique, mais sensible aux coupures du câble principal.
       </p>
 
-          <img src="/Automatique/PLC_COM/topo_profibus.png" style="width:450px; height:450px;"> 
+          <img src="topo_profibus.png" style="width:450px; height:450px;"> 
         <div class="legend">
             <p>
                 Topologie en bus (Profibus) 
@@ -117,7 +117,7 @@
       facilité de diagnostic.
       </p>
 
-          <img src="/Automatique/PLC_COM/topo_star.jpg"> 
+          <img src="topo_star.jpg"> 
         <div class="legend">
             <p>
                 Topologie en étoile
@@ -130,7 +130,7 @@
       elle réduit le câblage et permet des temps de cycle courts.
       </p>
 
-          <img src="/Automatique/PLC_COM/topo_ethercar.jpg"> 
+          <img src="topo_ethercar.jpg"> 
         <div class="legend">
             <p>
                 Topologie en ligne (Ethercat)
@@ -143,7 +143,7 @@
       chemin alternatif (MRP, RSTP).
       </p>
 
-          <img src="/Automatique/PLC_COM/topo_mrp.png"> 
+          <img src="topo_mrp.png"> 
         <div class="legend">
             <p>
                Topologie en anneau 
@@ -166,21 +166,21 @@
       des VLAN et du diagnostic réseau.
       </p>
 
-          <img src="/Automatique/PLC_COM/switch.jpeg"> 
+          <img src="switch.jpeg"> 
 
       <p>
       <b>Routeurs industriels</b> : assurent l’interconnexion entre réseaux
       industriels et IT et permettent l’accès distant sécurisé.
       </p>
 
-       <img src="/Automatique/PLC_COM/router.jpg"> 
+       <img src="router.jpg"> 
 
       <p>
       <b>Passerelles (gateways)</b> : permettent la conversion entre différents
       protocoles de communication dans les architectures hétérogènes.
       </p>
 
-       <img src="/Automatique/PLC_COM/gateway.jpg " style="width:250px; height:250px;"> 
+       <img src="gateway.jpg " style="width:250px; height:250px;"> 
 
       <hr>
 
@@ -216,7 +216,7 @@
         </p>
 
         
-         <img src="/Automatique/PLC_COM/fieldbus.jpg"> 
+         <img src="fieldbus.jpg"> 
 
         <p>
         <b>Modbus RTU</b> est l’un des Fieldbus les plus simples et les plus répandus.
@@ -337,7 +337,7 @@
 
         
 
-             <img src="/Automatique/PLC_COM/ethernet.png"> 
+             <img src="ethernet.png"> 
 
         <p>
         <b>Profinet</b> est l’un des plus répandus. Il fonctionne sur Ethernet
@@ -591,7 +591,7 @@
     avec une séparation claire des réseaux industriels.
     </p>
 
-    <img src="/Automatique/PLC_COM/hierarchie.jpg"> 
+    <img src="hierarchie.jpg"> 
         <div class="legend">
             <p>
                 Exemple de hierarchie
@@ -606,4 +606,5 @@
 </footer>
 
 </body>
+
 </html>
