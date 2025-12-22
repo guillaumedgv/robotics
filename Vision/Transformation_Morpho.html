@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Transformation Morphologique</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_vision.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,8 +88,19 @@
     <aside class="sidebar">
       <h3>Vision par Ordinateur</h3>
       <ul>
-        <li><a href="/Vision/Transformation_Morpho.html" class="active">Transformation Morphologique</a></li>
-        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+        <ul>
+        <li><a href="Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="Derive.html">Dérivé</a></li>
+        <li><a href="Hough.html">Transformé de Hough </a></li>
+        <li><a href="Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="polygone.html">Distance aux contours & Moments</a></li>
+        <li><a href="remappinge.html">Remapping</a></li>
+        <li><a href="affine_dft.html" >Transformation affine & DFT</a></li>
+        <li><a href="Watershed.html" class="active">Algorithme Watershed</a></li>
+
+      </ul>
       </ul>
     </aside>
     <main class="content">
@@ -261,7 +272,7 @@
       Exemples
     </h1>
 
-     <img src="\Vision\morpho.png" alt="Vue Face">
+     <img src="morpho.png" alt="Vue Face">
 
        <details >    
         <summary > <b style="color: red;">Programme Dilatatio/Erosion Python</b>
@@ -307,7 +318,7 @@ plt.show()
              </code></pre>
       </details>
 
-     <img src="\Vision\top_black_hat.png" alt="Vue Face">
+     <img src="top_black_hat.png" alt="Vue Face">
              
        <details >    
         <summary > <b style="color: red;">Programme gyroscope sur Python</b>
@@ -347,4 +358,5 @@ plt.title('BlackHat cross vert'), plt.xticks([]), plt.yticks([])
 </footer>
 
 </body>
+
 </html>
