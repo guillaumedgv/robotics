@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>SFC</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_plc_language.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,9 +88,9 @@
     <aside class="sidebar">
       <h3>PLC - Language de Programmation</h3>
        <ul>
-        <li><a href="/Automatique/PLC_Language/PLC_ST.html">Structured Text (ST)</a></li>
-        <li><a href="/Automatique/PLC_Language/PLC_Ladder.html">Ladder (LD)</a></li>
-        <li><a href="/Automatique/PLC_Language/PLC_SFC.html" class="active">Graphcet (SFC)</a></li>
+        <li><a href="PLC_ST.html">Structured Text (ST)</a></li>
+        <li><a href="PLC_Ladder.html">Ladder (LD)</a></li>
+        <li><a href="PLC_SFC.html" class="active">Graphcet (SFC)</a></li>
       </ul>
     </aside> 
 
@@ -142,7 +142,7 @@
         Il est actif dès la mise sous tension et est représenté par un double encadrement.
         </p>
 
-        <img src="/Automatique/PLC_Language/Graphcet_Start.png">
+        <img src="Graphcet_Start.png">
         <div class="legend">
             <p>
                 Pas initial sur Tia Portal
@@ -155,7 +155,7 @@
         Il devient actif après le franchissement de la transition précédente.
         </p>
 
-         <img src="/Automatique/PLC_Language/graphcet_step.png">
+         <img src="graphcet_step.png">
         <div class="legend">
             <p>
                 Pas classique sur Tia Portal
@@ -168,7 +168,7 @@
         Il permet de simplifier un diagramme complexe en regroupant plusieurs pas.
         </p>
 
-         <img src="/Automatique/PLC_Language/graphcet_macro.png">
+         <img src="graphcet_macro.png">
         <div class="legend">
             <p>
                 Pas macro (pas de pas macro direct sur Tia Portal)
@@ -180,7 +180,7 @@
         Pas auquel sont associées une ou plusieurs actions exécutées selon leur type.
         </p>
 
-        <img src="/Automatique/PLC_Language/graphcet_pas_action.png">
+        <img src="graphcet_pas_action.png">
         <div class="legend">
             <p>
                 Pas Action sur Tia Portal
@@ -196,7 +196,7 @@
         Succession de pas reliés par des transitions permettant l’enchaînement des actions.
         </p>
 
-        <img src="/Automatique/PLC_Language/graphcet_passage.png">
+        <img src="graphcet_passage.png">
         <div class="legend">
             <p>
                 Passage d'un step a un autre sur Tia Portal
@@ -220,7 +220,7 @@
             <li>Divergence parallèle : plusieurs branches actives simultanément</li>
         </ul>
 
-        <img src="/Automatique/PLC_Language/grahcet_convdif.png"> 
+        <img src="grahcet_convdif.png"> 
         <div class="legend">
             <p>
                 Divergence parallele suivis d'une Convergence sur Tia Portal
@@ -300,7 +300,7 @@
 
         
 
-          <img src="/Automatique/PLC_Language/graphcet_exemple.png"> 
+          <img src="graphcet_exemple.png"> 
         <div class="legend">
             <p>
                 Graphcet avec un saut de T6 à S1 et des exemples visuels de transition et action sur Tia Portal
@@ -315,7 +315,7 @@
         que le step est active.
       </p>
 
-        <img src="/Automatique/PLC_Language/graphcet_action.png"> 
+        <img src="graphcet_action.png"> 
         <div class="legend">
             <p>
                 Exemple d'action multiple sur Tia Portal
@@ -335,4 +335,5 @@
   </footer>
 
 </body>
+
 </html>
