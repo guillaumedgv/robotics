@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Remapping</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_vision.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -89,14 +89,16 @@
       <h3>Vision par Ordinateur</h3>
       <ul>
         <ul>
-        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
-        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
-        <li><a href="/Vision/Derive.html">Dérivé</a></li>
-        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
-        <li><a href="/Vision/Extract_line.html">Extraction de lignes</a></li>
-        <li><a href="/Vision/Convex_hull.html">Enveloppe convexe</a></li>
-        <li><a href="/Vision/polygone.html">Distance aux contours & Moments</a></li>
-         <li><a href="/Vision/remappinge.html" class="active">Remapping </a></li>
+        <li><a href="Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="Derive.html">Dérivé</a></li>
+        <li><a href="Hough.html">Transformé de Hough </a></li>
+        <li><a href="Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="polygone.html">Distance aux contours & Moments</a></li>
+        <li><a href="remappinge.html">Remapping</a></li>
+        <li><a href="affine_dft.html" >Transformation affine & DFT</a></li>
+        <li><a href="Watershed.html" class="active">Algorithme Watershed</a></li>
 
       </ul>
       </ul>
@@ -144,7 +146,7 @@
         sans relancer le programme.
         </p>
 
-         <img src="/Vision/remap.png">
+         <img src="remap.png">
         <div class="legend">
             <p>
                 Fenetre interactive
@@ -275,7 +277,7 @@ plt.show()
         Un bouton ou une touche clavier permet de réinitialiser l’image.
         </p>
 
-        <img src="/Vision/logi_contrast_gamma.png">
+        <img src="logi_contrast_gamma.png">
         <div class="legend">
             <p>
                 Fenetre interactive
@@ -413,4 +415,5 @@ plt.show()
 </footer>
 
 </body>
+
 </html>
