@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Enveloppe convexe</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
+        <li><a href="/Vision/Extract_line.html">Extraction de lignes</a></li>
+         <li><a href="/Vision/Convex_hull.html" class="active">Enveloppe convexe</a></li>
+
+      </ul>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+        <h1> Enveloppe Convexe</h1>
+
+
+        <p>
+        Le <strong>convex hull</strong> (ou <em>enveloppe convexe</em>) est un concept géométrique qui permet de déterminer la plus petite forme convexe englobant un ensemble de points. Une forme est dite convexe lorsque, pour deux points quelconques situés à l’intérieur, le segment qui les relie reste entièrement à l’intérieur de la forme.
+        </p>
+
+        <p>
+        De manière intuitive, on peut comparer le convex hull à un élastique tendu autour d’un objet. Si l’on place un élastique autour de tous les points d’un contour et qu’on le relâche, l’élastique épouse uniquement les points les plus extérieurs et ignore les creux internes. La forme obtenue correspond alors à l’enveloppe convexe.
+        </p>
+
+        <p>
+        Dans le traitement d’image et la vision par ordinateur, le convex hull est utilisé pour simplifier et régulariser la forme des objets détectés. À partir d’un contour parfois irrégulier ou bruité, l’enveloppe convexe fournit une approximation plus lisse et plus robuste de la forme globale de l’objet.
+        </p>
+
+        <p>
+        Avec OpenCV, le convex hull est calculé à partir des points d’un contour détecté. Il permet notamment de comparer la forme réelle d’un objet à sa version convexe, de mesurer des défauts de concavité, ou encore d’améliorer la détection et l’analyse d’objets dans une image.
+        </p>
+
+        <img src="/Vision/convex.png">
+        <div class="legend">
+            <p>
+                Avant après la création d'une enveloppe convexe avec <em>convexHull()</em>
+            </p>
+        </div>
+
+
+    <details>    
+        <summary> <b style="color: red;">Algorithme Manuel Transformé de Hough linéaire en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+import cv2 as cv
+import numpy as np
+import argparse
+import random as rng
+import matplotlib.pyplot as plt
+
+src = cv.imread('blob.png', cv.IMREAD_GRAYSCALE)
+
+if src is None:
+    print("Erreur : Image non chargée. Vérifie le chemin du fichier.")
+    exit()
+
+hist = cv.calcHist([src], [0], None, [256], [0, 256]) #calcul l'histo
+
+#si on veut égaliser l'intensité de la photo 
+dst = cv.equalizeHist(src) 
+hist_equalized = cv.calcHist([dst], [0], None, [256], [0, 256])
+
+_, thresh = cv.threshold(src, 70, 255, cv.THRESH_BINARY + cv.THRESH_OTSU) # on binarise l'image
+
+plt.imshow(thresh, cmap = 'gray')
+plt.axis('off')  # Hide axes
+plt.show()
+
+
+gray = cv.GaussianBlur(thresh, (9, 9), 0)
+# Detect edges 
+canny_output = cv.Canny(gray, 40, 90)
+
+kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
+closed = cv.morphologyEx(canny_output, cv.MORPH_CLOSE, kernel) 
+# pour enlever les défaut un avoir des contours smooth
+
+
+copy = closed.copy() 
+
+plt.imshow(closed, cmap = 'gray')
+plt.axis('off')  # Hide axes
+plt.show()
+
+
+# Find contours
+contours, _ = cv.findContours(copy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE) # trouve les contours
+
+
+# Find the convex hull object for each contour
+hull_list = []
+for i in range(len(contours)):
+    hull = cv.convexHull(contours[i]) # juste cette ligne suffit
+    hull_list.append(hull)
+    
+# Draw contours + hull results
+drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
+for i in range(len(contours)):
+    color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
+    cv.drawContours(drawing, contours, i, color)
+    cv.drawContours(drawing, hull_list, i, color)
+
+
+plt.imshow(drawing)
+plt.axis('off')  # Hide axes
+plt.show()
+
+
+        </code></pre>
+    </details>
+
+
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

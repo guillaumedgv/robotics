@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Distance aux contours & Moments</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
+        <li><a href="/Vision/Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="/Vision/Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="/Vision/polygone.html" class="active">Distance aux contours & Moments</a></li>
+
+      </ul>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+        <h1>Distance à un contours</h1>
+
+        <p>
+            Dans un premier temps on cree un polygone quelconque que l'on dessine dans une image (peut déja utile pour créer des ROI ou hitbox) : 
+        </p>
+
+
+        <img src="/Vision/poly_random.png">
+        <div class="legend">
+            <p>
+                Polygone quelconque
+            </p>
+        </div>
+
+
+        <p>
+            Esnuite on utilise <em>pointPolygonTest</em> pour connaitre, soit la distance entre chaque pixel et un contour 
+            du polygone, soit si l'on est dans le polygone
+        </p>
+
+        <p>
+            De là grâce à <em>minMaxLoc</em> on peut déduire les minimums et maximums locaux et enfin les 
+            interpreter comme des gradient et utiliser ces information pour d'autres calculs.
+        </p>
+
+         <img src="/Vision/poly.png">
+        <div class="legend">
+            <p>
+                Gradient de distanhce au polygone (avec plus grand cercle inscrit calculé à partir de <em>minMaxLoc</em>)
+            </p>
+        </div>
+
+        <details>    
+        <summary> <b style="color: red;">Algorithme calcul de distance à un contour en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import cv2 as cv
+import numpy as np
+import argparse
+import random as rng
+import matplotlib.pyplot as plt
+
+
+# Create an image
+r = 100
+src = np.zeros((4*r, 4*r), dtype=np.uint8)
+
+drawing = np.zeros((src.shape[0], src.shape[1], 3), dtype=np.uint8) # pour l'imager
+
+# Create a sequence of points to make a contour
+vert = [None]*6
+vert[0] = (3*r//2, int(1.34*r))
+vert[1] = (1*r, 2*r)
+vert[2] = (2*r//2, int(2.866*r))
+vert[3] = (4*r//2, int(2.866*r))
+vert[4] = (3*r, 2*r)
+vert[5] = (3*r//2, int(1.34*r))
+# Draw it in src
+for i in range(6):
+    cv.line(src, vert[i],  vert[(i+1)%6], ( 255 ), 3) 
+# trace une ligne entre  i et i+1 >> le modulo est une astuce pour fermé la forme pour avoir i à 0
+
+    # Get the contours
+contours, _ = cv.findContours(src, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE) 
+# EXTERNAL car sinon contours donne deux contours ext et interieur avec cv.line
+
+raw_dist = np.empty(src.shape, dtype=np.float32)
+
+# Calculate the distances to the contour
+for i in range(src.shape[0]):
+    for j in range(src.shape[1]):
+        raw_dist[i,j] = cv.pointPolygonTest(contours[0], (j,i), True) 
+# contour 0 est la forme dessiné, 
+# retourne une matrice de la mm taille que src de la distance au contour 
+#(True à la fin) ou si on est dedans (False à la fin)
+# distance positive à l'interieur, negative à l'exterieur et 0 sur le contour
+
+minVal, maxVal, minDistPt, maxDistPt = cv.minMaxLoc(raw_dist) 
+minVal = abs(minVal)
+maxVal = abs(maxVal)
+#minVal → distance négative la plus éloignée (extérieur)
+#maxVal → distance positive la plus éloignée (centre)
+#maxDistPt → point le plus loin du contour à l’intérieur
+#minDistPt → point le plus loin du contour à l’exterieur
+
+
+for i in range(src.shape[0]): # pour les gradient 
+    for j in range(src.shape[1]):
+        if raw_dist[i,j] < 0:
+            drawing[i,j,0] = 255 - abs(raw_dist[i,j]) * 255 / minVal
+        elif raw_dist[i,j] > 0:
+            drawing[i,j,2] = 255 - raw_dist[i,j] * 255 / maxVal
+        else:
+            drawing[i,j,0] = 255
+            drawing[i,j,1] = 255
+            drawing[i,j,2] = 255
+
+cv.circle(drawing,maxDistPt, int(maxVal),(255,255,255), 1, cv.LINE_8, 0)
+plt.imshow(src)
+plt.show()
+
+plt.imshow(drawing)
+plt.show()
+       </code></pre>
+    </details>
+
+
+    <hr>
+    <h1>Moment d'une forme</h1>
+
+    <p>
+    En traitement d’images, les <strong>moments géométriques</strong> décrivent la répartition spatiale
+    des intensités d’une image <span>\(I(x,y)\)</span>.  
+    </p>
+    <p>
+    Le moment d’ordre zéro 
+    <span>\(m_{00} = \sum_x \sum_y I(x,y)\)</span> correspond à l’aire (ou à la masse totale)
+    de l’objet pour une image binaire, ou à la somme des intensités pour une image en niveaux de gris.
+      </p>
+    <p>
+    Les moments du premier ordre : <br>
+    <span>\(m_{10} = \sum_x \sum_y x\,I(x,y)\)</span> et 
+    <span>\(m_{01} = \sum_x \sum_y y\,I(x,y)\)</span> décrivent respectivement la distribution
+    horizontale et verticale de la masse ; ils sont utilisés pour calculer le centre de gravité
+    de la forme.
+    </p>
+
+    <p>
+    Les moments du second ordre apportent des informations sur la <strong>dispersion</strong>
+    et l’<strong>orientation</strong> de l’objet.  <br>
+    Le moment croisé 
+    <span>\(m_{11} = \sum_x \sum_y x\,y\,I(x,y)\)</span> mesure la corrélation entre les axes
+    <span>\(x\)</span> et <span>\(y\)</span> et renseigne sur l’obliquité ou l’orientation diagonale de la forme.
+    Les moments 
+    <span>\(m_{20} = \sum_x \sum_y x^2\,I(x,y)\)</span> et 
+    <span>\(m_{02} = \sum_x \sum_y y^2\,I(x,y)\)</span> représentent quant à eux les variances
+    horizontale et verticale : ils indiquent à quel point la forme est étalée
+    le long des axes <span>\(X\)</span> et <span>\(Y\)</span>.  
+    </p>
+    <p>
+    Ensemble, ces moments constituent une description compacte de la taille,
+    de la position et de l’orientation d’un objet dans l’image.
+    </p>
+
+    <h3>Calcul du centroïde (centre de masse)</h3> 
+
+    <p>
+    Le <strong>centroïde</strong> d’un objet correspond à son <em>centre de masse géométrique</em>.
+    Il est calculé à partir des moments géométriques du premier ordre.
+    </p>
+
+    <p>
+    Le centroïde <span>\((x_c, y_c)\)</span> est alors donné par :
+    </p>
+
+    <p>
+    \[
+    x_c = \frac{m_{10}}{m_{00}},
+    \qquad
+    y_c = \frac{m_{01}}{m_{00}}
+    \]
+    </p>
+
+    <p>
+    Intuitivement, <span>\(m_{10}\)</span> et <span>\(m_{01}\)</span> mesurent la répartition
+    de la masse selon les axes horizontal et vertical, tandis que <span>\(m_{00}\)</span>
+    représente la masse totale. Le centroïde correspond donc au point d’équilibre de la forme.
+    </p>
+
+    <h3>Calcul de l’orientation de la forme</h3> 
+
+    <p>
+    L’<strong>orientation</strong> d’un objet est définie comme l’angle entre l’axe horizontal
+    et l’axe principal de la forme, c’est-à-dire la direction selon laquelle l’objet est
+    le plus étendu. Cette orientation est calculée à partir des
+    <strong>moments centraux d’ordre 2</strong>.
+    </p>
+
+   
+    <p>
+    En particulier :
+    </p>
+
+    <p>
+    \[
+    m_{20}, \quad m_{02} \quad \text{(variances horizontale et verticale)}
+    \]
+    \[
+    m_{11} \quad \text{(corrélation entre } x \text{ et } y\text{)}
+    \]
+    </p>
+
+    <p>
+    L’angle d’orientation <span>\(\theta\)</span> de la forme est alors donné par :
+    </p>
+
+    <p>
+    \[
+    \theta = \frac{1}{2}
+    \arctan\!\left(
+    \frac{2\,m_{11}}{m_{20} - m_{02}}
+    \right)
+    \]
+    </p>
+
+    <p>
+    Cette formule provient de l’analyse des axes principaux d’inertie de la forme.
+    Le terme <span>\(m_{11}\)</span> traduit l’inclinaison diagonale, tandis que
+    la différence <span>\(m_{20} - m_{02}\)</span> compare les dispersions horizontale
+    et verticale. Le facteur <span>\(\frac{1}{2}\)</span> est dû à la symétrie de l’ellipse
+    équivalente à la forme.
+    </p>
+
+    <p>
+    L’angle <span>\(\theta\)</span> est exprimé en radians et peut être converti en degrés par :
+    </p>
+
+    <p>
+    \[
+    \theta_{\text{deg}} = \theta \times \frac{180}{\pi}
+    \]
+    </p>
+
+    <p>
+    Ainsi, l’orientation correspond à la rotation nécessaire pour aligner la forme
+    sur son axe principal, ce qui est particulièrement utile pour l’analyse de formes
+    et la vision par ordinateur.
+    </p>
+
+
+      <img src="/Vision/moment.png">
+        <div class="legend">
+            <p>
+                Centre de masse du polygone
+            </p>
+        </div>
+
+        <p>
+            Ici on trouve une orientation de ce polygone de -14°
+        </p>
+
+        <details>    
+        <summary> <b style="color: red;">Algorithme calcul centroide et orientation en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import cv2 as cv
+import numpy as np
+import argparse
+import random as rng
+import matplotlib.pyplot as plt
+import math
+
+# Create an image
+r = 100
+src = np.zeros((4*r, 4*r), dtype=np.uint8)
+
+drawing = np.zeros((src.shape[0], src.shape[1], 3), dtype=np.uint8) # pour l'imager
+
+# Create a sequence of points to make a contour
+vert = [None]*6
+vert[0] = (3*r//2, int(1.34*r))
+vert[1] = (1*r, 2*r)
+vert[2] = (2*r//2, int(2.866*r))
+vert[3] = (4*r//2, int(2.866*r))
+vert[4] = (3*r, 2*r)
+vert[5] = (3*r//2, int(1.34*r))
+# Draw it in src
+for i in range(6):
+    cv.line(src, vert[i],  vert[(i+1)%6], ( 255 ), 3) 
+# trace une ligne entre  i et i+1 >> le modulo est une astuce pour fermé la forme pour avoir i à 0
+
+    # Get the contours
+contours, _ = cv.findContours(src, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE) #
+ EXTERNAL car sinon contours donne deux contours ext et interieur avec cv.line
+
+
+# Calcul des moments 
+mu = [None]*len(contours)
+
+for i in range(len(contours)):
+    # m00  : moment d’ordre 0  → aire
+    # m10, m01 : moments d’ordre 1 → centre de masse
+    # m20, m11, m02 : moments d’ordre 2 → dispersion et orientation
+    mu[i] = cv.moments(contours[i]) 
+
+
+# Calcul des centres de masse
+
+mc = [None]*len(contours)
+
+for i in range(len(contours)):
+    # Calcul du centroïde (centre de masse)
+    # x_c = m10 / m00
+    # y_c = m01 / m00
+    # Le terme 1e-5 évite une division par zéro si l’aire est nulle
+    mc[i] = (mu[i]['m10'] / (mu[i]['m00'] + 1e-5),
+             mu[i]['m01'] / (mu[i]['m00'] + 1e-5))
+    
+    # Dessine le centre de masse sur l’image (point violet)
+    cv.circle(drawing,
+              (int(mc[i][0]), int(mc[i][1])),
+              4,
+              [255, 0, 255],
+              -1)
+
+
+# Comparaison des aires et calcul du périmètre
+for i in range(len(contours)):
+    print(
+        ' * Contour[%d] - Area (M_00) = %.2f - Area OpenCV: %.2f - Length: %.2f'
+        % (
+            i,
+            mu[i]['m00'],                       # Aire via le moment m00
+            cv.contourArea(contours[i]),        # Aire via OpenCV
+            cv.arcLength(contours[i], True)     # Périmètre du contour (True = fermé)
+        )
+    )
+
+
+# Calcul de l’orientation principale de la forme
+
+# Calcul de l’angle de l’axe principal de la forme
+# L’angle correspond à la direction selon laquelle la forme est la plus étendue
+# Formule issue des moments centraux d’ordre 2
+angle = 0.5 * math.atan2(
+    2 * mu[0]['mu11'],                 # Corrélation X-Y
+    mu[0]['mu20'] - mu[0]['mu02']      # Différence des dispersions horizontale/verticale
+)
+
+# Conversion de l’angle de radians vers degrés
+angle_degrees = math.degrees(angle)
+
+# Affichage de l’orientation de la forme
+print('Orientation = %d degrés' % angle_degrees)
+
+
+plt.imshow(drawing)
+plt.axis('off')
+plt.show()
+
+
+        </code></pre>
+    </details>
+
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Vision par Ordinateur</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+  <div class="container">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+      </ul>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content">
+
+      <h1>
+        Vision par Ordinateur (Computer Vision en anglais)
+      </h1>
+
+      <p>
+       La vision par ordinateur est un domaine scientifique et technologique qui vise à permettre aux systèmes informatiques d’analyser, 
+       d’interpréter et de comprendre le contenu des images et des vidéos. Elle s’appuie sur des méthodes mathématiques et informatiques 
+       pour extraire des informations visuelles utiles, comme les formes, les couleurs, les mouvements ou les textures.
+      </p>
+
+     
+      <p>
+       Cela permet de facilement automatiser des processus, améliorer la précision des analyses 
+       et à faciliter la prise de décision à partir de données visuelles.
+
+      </p>
+
+       <div class="highlight">
+       <p>
+       On l'utilise dans de nombreux secteurs comme :
+       <ul>
+        <li>
+          L'industrie 
+        </li>
+        <li>
+          La robotique
+        </li>
+        <li>
+          La médecine 
+        </li>
+        <li>
+          L'IA 
+        </li>
+       </ul>
+      </p>
+      </div>
+
+
+      <h3>
+        Méthodes
+      </h3>
+
+      <p>
+        Dans les prochaines pages, je vais présenter certains des principaux algorithmes de la vision par ordinateur, 
+        en me concentrant uniquement sur leur mise en œuvre avec la bibliothèque <a href="https://docs.opencv.org/3.4/index.htm"><b>OpenCV</b></a>. L’objectif est de donner une vue 
+        d’ensemble claire et accessible des méthodes couramment utilisées pour le traitement et l’analyse d’images, 
+        à travers des exemples simples et concrets.
+      </p>
+
+
+    </main>l
+  </div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

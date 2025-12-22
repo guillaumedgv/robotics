@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Extraction de lignes</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
+        <li><a href="/Vision/Extract_line.html" class="active">Extraction de lignes</a></li>
+
+      </ul>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+        <h1> Extraction de lignes </h1>
+
+       <p>
+        Le kernel définit la <strong>forme</strong> que l’on souhaite conserver dans l’image. Lors de l’érosion,
+        un pixel blanc est conservé uniquement si l’ensemble du kernel peut « tenir » sur une zone blanche.
+        Autrement dit, seules les structures de l’image ayant une forme compatible avec le kernel survivent.
+        </p>
+
+        <p>
+        Lorsque l’on choisit un <strong>kernel en forme de ligne</strong>, l’opération devient directionnelle.
+        Un kernel <strong>vertical</strong> (largeur 1, grande hauteur) permet de conserver les structures
+        verticales, tandis que les lignes horizontales, trop fines dans cette direction, sont supprimées.
+        </p>
+
+        <p>
+            Plus un kernel est grand en taille moins l'extraction est précise
+        </p>
+
+        <p>
+        Après l’érosion, la dilatation est appliquée avec le même kernel. Elle permet de
+        <strong>restaurer l’épaisseur</strong> des structures qui ont survécu à l’érosion, sans faire réapparaître
+        celles qui ont été éliminées. Pour l’enchaînement érosion + dilatation on parle aussi d'ouverture
+        (voir <a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a>).
+        </p>
+
+        <p>
+        Ainsi, pour <strong>supprimer les lignes verticales</strong>, on utilise un <strong>kernel horizontal</strong>,
+        car seules les structures horizontales correspondent à sa forme et survivent.
+        Inversement, pour extraire ou conserver les lignes verticales, on utilise un
+        <strong>kernel vertical</strong>.
+        </p>
+
+        <img src="/Vision/ligne.jpg"> 
+        <div class="legend">
+            <p>
+                Avant et après l'extraction de ligne <b>Vertical</b> 
+            </p>
+        </div>
+
+
+        <details>    
+        <summary> <b style="color: red;">Extraction de ligne vertical en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+
+import numpy as np
+import sys
+import cv2 as cv
+import matplotlib.pyplot as plt
+
+
+# load the image
+src = cv.imread('note.png', cv.IMREAD_GRAYSCALE)
+
+# Transform source image to gray if it is not already
+if len(src.shape) != 2:
+    gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+else:
+    gray = src
+
+plt.imshow(gray, cmap = 'gray')
+plt.axis('off')  # Hide axes
+plt.show()
+
+
+# binarise l'image
+_,thresh = cv.threshold(gray,210,255,cv.THRESH_BINARY)
+thresh = ~thresh # inverse l'intensité --> objet toujour blanc
+
+res = np.copy(thresh)
+
+plt.imshow(thresh, cmap = 'gray')
+plt.axis('off')  # Hide axes
+plt.show()
+
+vertical = np.copy(thresh) 
+# Specify size on vertical axis
+rows = vertical.shape[0]
+vertical_size =  rows//50
+print(vertical_size)
+    # Create structure element for extracting vertical lines through morphology operations
+verticalStructure = cv.getStructuringElement(cv.MORPH_RECT, (1, vertical_size))
+    # Apply morphology operations
+vertical = cv.erode(vertical, verticalStructure)
+vertical = cv.erode(vertical, verticalStructure)
+vertical = cv.erode(vertical, verticalStructure)
+vertical = cv.dilate(vertical, verticalStructure)
+    # Show extracted vertical lines
+plt.imshow(vertical, cmap = 'gray')
+plt.axis('off')  # Hide axes
+plt.show()
+            </code></pre>
+        </details>
+
+
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

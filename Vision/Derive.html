@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Derive</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="/Vision/Derive.html" class="active">Dérivé</a></li>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+  <h1>Dérivées d'image : Sobel et Scharr</h1>
+
+  <p>
+    Pour détecter les bords d'une image, on calcule les dérivées horizontales et verticales de l'image.  
+    Deux fonctions classiques sont disponibles :
+  </p>
+  <ul>
+    <li><b>Sobel()</b> : calcule les dérivées avec un kernel simple.</li>
+    <li><b>Scharr()</b> : calcule des dérivées plus précises avec un kernel de taille 3x3.</li>
+  </ul>
+
+  <h3>Principe général</h3>
+  <p>
+    On effectue une <b>convolution</b> d'un kernel \(K\) (de taille impaire \(n \times n\)) avec l'image \(I\) :
+  \[
+  G = K * I
+  \]
+  </p>
+  <p>
+    La convolution consiste à glisser un petit tableau de poids (le kernel) sur l’image, et pour chaque pixel, on fait une somme pondérée des pixels voisins :
+ 
+
+  \[
+  G_{x} = K_x * I \quad\text{(horizontal)}, \quad 
+  G_{y} = K_y * I \quad\text{(vertical)}
+  \]
+     </p>
+  <p>
+    Puis, pour chaque pixel, on calcule la norme du gradient :
+  
+  \[
+  G = \sqrt{G_x^2 + G_y^2}
+  \]
+
+  </p>
+
+  <h3>Kernels classiques</h3>
+
+  <p><b>Sobel 3x3 :</b>
+  \[
+  K_x =
+  \begin{bmatrix}
+  -1 & 0 & 1\\
+  -2 & 0 & 2\\
+  -1 & 0 & 1
+  \end{bmatrix}, \quad
+  K_y =
+  \begin{bmatrix}
+  -1 & -2 & -1\\
+  0 & 0 & 0\\
+  1 & 2 & 1
+  \end{bmatrix}
+  \]
+ </p>
+  <p><b>Scharr 3x3 :</b>
+  \[
+  K_x =
+  \begin{bmatrix}
+  -3 & 0 & 3\\
+  -10 & 0 & 10\\
+  -3 & 0 & 3
+  \end{bmatrix}, \quad
+  K_y =
+  \begin{bmatrix}
+  -3 & -10 & -3\\
+  0 & 0 & 0\\
+  3 & 10 & 3
+  \end{bmatrix}
+  \]
+ </p>
+ 
+
+  <h3>Exemple de calcul de bord</h3>
+
+  <p>
+  Si deux pixels voisins ont des intensités très différentes, par exemple \(I_1 = 255\) et \(I_2 = 10\), alors la différence absolue :
+  
+  \[
+  |I_1 - I_2| = 245
+  \]
+  indique la présence d'un bord.
+  </p>
+
+  <p>
+  La matrice \([-1\ 0\ 1]\) est la matrice de dérivation de base ; on augmente sa taille ou on utilise un kernel plus large pour réduire le bruit en faisant une moyenne pondérée des pixels voisins.
+  </p>
+
+  <h3>Exemple de dérivé</h3>
+
+  <img src="/Vision/scharr.png">
+        <div class="legend">
+            <p>
+                Dérivé avec Scharr
+            </p>
+        </div>
+
+       <details>    
+        <summary> <b style="color: red;">Partie opérateur Sobel & Scharr Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import cv2 as cv
+import matplotlib.pyplot as plt
+import numpy as np
+
+scale = 1 #facteur multiplicatif appliqué au gradient calculé.
+delta = 0 #valeur ajoutée au résultat final.
+ddepth = cv.CV_16S # profoneur de l'image, ici signed 16-bit >> On utilise une profondeur plus grande pour éviter la perte d'information lors des calculs de gradient.
+
+src = cv.imread('stare.jpg', cv.IMREAD_COLOR) # load l'image
+
+src = cv.GaussianBlur(src, (3, 3), 0) # pour réduire le bruit et éviter les erreurs lors de la détection de bords --> 0 = écart-type (sigma) en X et Y
+
+gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY) # on met en teinte de gris
+
+
+#grad_x = cv.Sobel(gray, ddepth, 1, 0, ksize=3, scale=scale, delta=delta, borderType=cv.BORDER_DEFAULT)
+#grad_y = cv.Sobel(gray, ddepth, 0, 1, ksize=3, scale=scale, delta=delta, borderType=cv.BORDER_DEFAULT) 
+
+grad_x = cv.Scharr(gray,ddepth,1,0) #This is as fast but more accurate than the standard Sobel function.
+grad_y = cv.Scharr(gray,ddepth,0,1)
+    
+abs_grad_x = cv.convertScaleAbs(grad_x) #convertit les gradients signés en valeurs absolues non signées 8-bit pour pouvoir afficher (valeurs positives entre 0 et 255).
+abs_grad_y = cv.convertScaleAbs(grad_y) # Mega important il prend la abs de la variation des bords
+    
+    
+grad = cv.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)#Combine les gradients avec un poids de 0.5 chacun pour obtenir une image finale des bords dans toutes les directions.
+                                                            # le 0 est une valeur a add a la fin ( + grand + claire)
+plt.imshow(grad, cmap = 'gray')
+plt.axis('off')  # Hide axes
+plt.show()
+           </code></pre>
+      </details>
+
+
+
+  <hr>
+  <h1> Dérive seconde (de Laplace)</h1>
+
+<p>
+  Le Laplacien est un opérateur différentiel qui mesure la variation d’intensité dans toutes les directions.  
+  Il est basé sur la **dérivée seconde** et est très sensible aux changements rapides d’intensité, donc aux bords.
+</p>
+
+<h3>Convolution avec un kernel</h3>
+<p>
+  On calcule la convolution de l’image \(I\) avec un kernel \(K\) pour obtenir le Laplacien :
+
+\[
+L = K * I
+\]
+</p>
+<h3>Kernel du Laplacien (exemple 3x3)</h3>
+
+<p><b>Kx :</b>
+\[
+K_x =
+\begin{bmatrix}
+0 & 1 & 0 \\
+1 & -4 & 1 \\
+0 & 1 & 0
+\end{bmatrix}
+\]
+</p>
+<p><b>Ky :</b> (optionnel pour direction verticale ou diagonales) 
+\[
+K_y =
+\begin{bmatrix}
+1 & 0 & 1 \\
+0 & -4 & 0 \\
+1 & 0 & 1
+\end{bmatrix}
+\]
+</p>
+<p>
+  Chaque pixel de la nouvelle image \(L\) est obtenu en faisant la somme pondérée des pixels voisins selon le kernel.  
+  Les valeurs négatives indiquent des transitions vers des intensités plus faibles et les valeurs positives vers des intensités plus élevées.  
+  Les bords apparaissent donc comme des zones avec des valeurs extrêmes.
+</p>
+
+<p>
+  Contrairement à Sobel ou Scharr, le Laplacien ne fournit pas de direction du gradient ; il met en évidence les zones de variation rapide d’intensité.
+</p>
+
+<h3>Exemple</h3>
+
+  <img src="/Vision/laplace.png"> 
+        <div class="legend">
+            <p>
+                Dérivé seconde respectivement avec Laplacian() et 2 x Sobel() 
+            </p>
+        </div>
+
+       <details>    
+        <summary> <b style="color: red;">Partie Laplace Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+grad_xx = cv.Sobel(gray, cv.CV_64F, 2, 0, ksize=5)  # ∂²/∂x²
+grad_yy = cv.Sobel(gray, cv.CV_64F, 0, 2, ksize=5)  # ∂²/∂y²
+
+laplacian_manual = grad_xx*0.5 + grad_yy*0.5
+
+abs_dst_manu = cv.convertScaleAbs(laplacian_manual)
+
+laplacian = cv.Laplacian(gray, cv.CV_64F, ksize=3)
+
+# converting back to uint8 
+abs_dst = cv.convertScaleAbs(laplacian)
+
+plt.subplot(121)
+plt.imshow(abs_dst*5, cmap='gray')
+plt.subplot(122)
+plt.imshow(abs_dst_manu, cmap='gray')
+plt.axis('off')
+plt.show()
+ </code></pre>
+      </details>
+
+<hr>
+  <h1>Détecteur de bords Canny</h1>
+
+<p>
+  Le détecteur de Canny est considéré comme un détecteur de bords optimal. Il combine plusieurs étapes pour extraire les contours d'une image de manière précise et robuste au bruit.
+</p>
+
+<h3> Calcul du gradient</h3>
+<p>
+  Comme pour Sobel, on calcule les dérivées horizontales \(G_x\) et verticales \(G_y\) via une convolution :
+
+
+\[
+G_x = K_x * I, \quad G_y = K_y * I
+\]
+</p>
+<p>
+  Puis on calcule la magnitude du gradient et la direction du bord :
+
+\[
+G = \sqrt{G_x^2 + G_y^2}, \quad
+\Theta = \arctan\left(\frac{G_y}{G_x}\right)
+\]
+</p>
+<p>
+  La direction \(\Theta\) est ensuite arrondie à 0°, 45°, 90° ou 135° pour simplifier l'analyse des bords.
+</p>
+
+<h3>Non-maximum suppression</h3>
+<p>
+  Chaque pixel est comparé à ses voisins le long de la direction du gradient.  
+  Si le pixel n’est pas un maximum local, il est supprimé (mis à zéro).  
+  Cela permet d’obtenir des bords fins d’une seule pixel de largeur.
+</p>
+
+<h3>Double seuillage (Hysteresis)</h3>
+<p>
+  On définit deux seuils : <em>low</em> et<em> high</em> (typiquement ratio entre 2:1 et 3:1).  
+</p>
+<ul>
+  <li>Si la magnitude du gradient du pixel est > high → pixel considéré comme bord.</li>
+  <li>Si < low → pixel rejeté.</li>
+  <li>Si entre low et high → pixel conservé seulement s’il est connecté à un pixel déjà considéré comme bord.</li>
+</ul>
+
+<p>
+  Cette technique de double seuil permet d’éliminer le bruit tout en conservant la continuité des bords.
+</p>
+
+<h3>Exemple</h3>
+
+  <img src="/Vision/canny.png"> 
+        <div class="legend">
+            <p>
+                Dérivé Canny() 
+            </p>
+        </div>
+
+       <details>    
+        <summary> <b style="color: red;">Partie Canny Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+detected_edges = cv.Canny(gray, 50,50*3, 3) #cv.Canny(img_blur, thresh_bas, thresh_haut,ksize)
+
+mask = detected_edges != 0 # On crée un masque booléen : True là où un bord a été détecté (!= 0), et False ailleurs. --> deja "fini" 
+
+dst = src * (mask[:,:,None].astype(src.dtype)) # prend image de base et on la passe devant le mask (mis en dimension 3 pour pouvoir faire multiplication) >> pour avoir couleurs image de base
+print(src.shape)
+
+plt.subplot(121)
+plt.imshow(src)
+plt.subplot(122)
+plt.imshow(mask, cmap='gray')
+plt.axis('off')
+plt.show()
+ </code></pre>
+      </details>
+
+      <h3>Manuellement</h3>
+
+    <img src="/Vision/canny_manual.png"> 
+        <div class="legend">
+            <p>
+                Dérivé Canny() 
+            </p>
+        </div>
+
+       <details>    
+        <summary> <b style="color: red;">Partie Canny Manuel Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+magnitude = grad
+
+theta = np.arctan2(grad_y, grad_x) * 180 / np.pi # en degres
+theta[theta < 0] += 180  # On garde les angles entre 0° et 180°
+
+nms = np.zeros_like(magnitude) # tableau de 0 de mm forme que magnitude
+
+for i in range(1, magnitude.shape[0] - 1):
+    for j in range(1, magnitude.shape[1] - 1):
+        angle = theta[i, j]
+
+        q = 255
+        r = 255
+
+        # Approximer l'angle pour comparer les bons voisins
+        if (0 <= angle < 45) :
+            q = magnitude[i, j + 1]
+            r = magnitude[i, j - 1]
+        elif 45 <= angle < 90:
+            q = magnitude[i + 1, j - 1]
+            r = magnitude[i - 1, j + 1]
+        elif 90 <= angle < 135:
+            q = magnitude[i + 1, j]
+            r = magnitude[i - 1, j]
+        elif 135 <= angle < 180:
+            q = magnitude[i - 1, j - 1]
+            r = magnitude[i + 1, j + 1]
+
+        if magnitude[i, j] >= q and magnitude[i, j] >= r:
+            nms[i, j] = magnitude[i, j]
+        else:
+            nms[i, j] = 0
+
+low_thresh = 100
+high_thresh = 200
+
+
+#double seuillage
+res = np.zeros_like(nms)
+strong = 255
+weak = 50
+
+strong_i, strong_j = np.where(nms >= high_thresh)
+weak_i, weak_j = np.where((nms >= low_thresh) & (nms < high_thresh))
+
+res[strong_i, strong_j] = strong
+res[weak_i, weak_j] = weak
+
+# connexion bords faibles
+for i in range(1, res.shape[0] - 1):
+    for j in range(1, res.shape[1] - 1):
+        if res[i, j] == weak:
+            if np.any(res[i-1:i+2, j-1:j+2] == strong):
+                res[i, j] = strong
+            else:
+                res[i, j] = 0
+
+
+plt.imshow(res, cmap = 'gray')
+plt.axis('off')  # Hide axes
+plt.show()
+ </code></pre>
+      </details>
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

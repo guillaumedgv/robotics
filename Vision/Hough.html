@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Hough</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+        <li><a href="/Vision/Hough.html" class="active">Transformé de Hough </a></li>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+        <h1>Transformée de Hough pour la détection de lignes droites</h1>
+
+    <p>
+    La <b>transformée de Hough</b> est une méthode robuste permettant de détecter des
+    <b>lignes droites</b> dans une image, même en présence de bruit ou de discontinuités.
+    Elle est généralement appliquée après un <b>pré-traitement</b> de détection de contours,
+    par exemple à l’aide de l’algorithme de <b>Canny</b>.
+    </p>
+
+    <h3>Principe</h3>
+
+    <p>
+    Une droite dans le plan image peut être exprimée en <b>coordonnées polaires</b> par :
+    </p>
+
+    <p>
+    \[
+    r = x \cos\theta + y \sin\theta
+    \]
+    </p>
+
+    <p>
+    où :
+    </p>
+    <ul>
+    <li>\(r\) est la distance de la droite à l’origine,</li>
+    <li>\(\theta\) est l’angle entre l’axe \(x\) et la perpendiculaire à la droite,</li>
+    <li>\((x,y)\) sont les coordonnées d’un pixel appartenant à un contour.</li>
+    </ul>
+
+    <p>
+    Pour chaque pixel de contour \((x,y)\), on balaie toutes les valeurs de
+    \(\theta \in [0,180^\circ]\) et on calcule la valeur correspondante de \(r\).
+    Chaque point image engendre alors une <b>courbe sinusoïdale</b> dans l’espace
+    des paramètres \((r,\theta)\).
+    </p>
+
+    <h3>Espace d’accumulation</h3>
+
+    <p>
+    On définit une matrice 2D appelée <b>matrice d’accumulation</b> \(M(r,\theta)\).
+    Chaque cellule correspond à une paire possible \((r,\theta)\).
+    </p>
+
+    <p>
+    Pour chaque pixel de contour :
+    </p>
+    <ul>
+    <li>on balaie les valeurs de \(\theta\),</li>
+    <li>on calcule \(r = x\cos\theta + y\sin\theta\),</li>
+    <li>on convertit \(r\) en indice dans la matrice,</li>
+    <li>on incrémente la case correspondante : \(M(r_i,\theta_i) = M(r_i,\theta_i) + 1\).</li>
+    </ul>
+
+    <h3>Discrétisation de \(r\)</h3>
+
+    <p>
+    La valeur maximale de \(r\) est donnée par :
+    </p>
+
+    <p>
+    \[
+    r_{\max} = \sqrt{h^2 + w^2}
+    \]
+    </p>
+
+    <p>
+    où \(h\) et \(w\) sont la hauteur et la largeur de l’image.
+    Le nombre de valeurs possibles pour \(r\) est alors :
+    </p>
+
+    <p>
+    \[
+    n_r = 2 \left\lfloor \frac{r_{\max}}{\text{res}} \right\rfloor + 1
+    \]
+    </p>
+
+    <p>
+    avec <b>res</b> la résolution de discrétisation (plus elle est grande,
+    plus l’approximation des lignes est grossière).
+    L’indice de \(r\) dans la matrice est calculé par :
+    </p>
+
+    <p>
+    \[
+    r_{\text{indice}} = \left\lfloor \frac{r + r_{\max}}{\text{res}} \right\rfloor
+    \]
+    </p>
+
+    <h3>Détection des lignes</h3>
+
+    <p>
+    Les <b>maxima locaux</b> de la matrice d’accumulation \(M(r,\theta)\),
+    au-dessus d’un certain seuil, correspondent aux lignes les plus probables
+    présentes dans l’image.
+    </p>
+
+    <p>
+    Une fois les paramètres \((r,\theta)\) détectés, on peut retracer chaque ligne
+    dans l’image en utilisant l’équation :
+    </p>
+
+    <p>
+    \[
+    r = x \cos\theta + y \sin\theta
+    \]
+    </p>
+
+
+<hr>
+
+<h1>
+    Exemple en Manuel : 
+</h1>
+
+<img src="/Vision/10_sin_hough_line.png">
+
+
+<img src="/Vision/hough_line_accu.png">
+
+
+<img src="/Vision/hough_line_vote.png">
+
+
+<img src="/Vision/hough_line_manual.png">
+        <div class="legend">
+            <p>
+                Resultats 
+            </p>
+        </div>
+
+<details>    
+        <summary> <b style="color: red;">Algorithme Manuel Transformé de Hough linéaire en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import math
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Lecture de l'image
+src = cv.imread('test.jpg', cv.IMREAD_COLOR)
+if src is None:
+    print("Erreur : Image non chargée. Vérifie le chemin du fichier.")
+    exit()
+
+# Détection des bords avec Canny
+edges = cv.Canny(src, 100, 300, None, 3)
+
+coords = []
+ys, xs = np.nonzero(edges) # les points non null de Canny
+
+
+height, width = edges.shape
+diag_len = int(np.hypot(width, height)) # hypot = distance euclidienne entre l'origine (0, 0) et le point (x, y)
+#diag_len = distance diagonal image >> rmax 
+
+resolution = 1
+
+accumulator = np.zeros((2 * diag_len, 180), dtype=np.uint64) # on couvre -rmax , ramx
+
+for i in range(0,np.count_nonzero(edges)): 
+    for theta in range(0, 180): 
+
+        r = int(xs[i]*np.cos(math.radians(theta)) + ys[i]*np.sin(math.radians(theta))) # angle doivent être en rad 
+
+        # on le passe en indice pour l'accumulator
+        r_idx = int(np.floor((r + diag_len)/resolution))  # décaler pour que rho soit ≥ 0 >> mettre en indice 
+        accumulator[r_idx, theta] += 1
+
+        if i<11 :
+        
+            coords.append((math.radians(theta), r)) # pour le scatter
+        
+
+
+# Transformer en tableau numpy pour scatter 
+coords = np.array(coords)
+plt.figure(figsize=(10, 6))
+plt.scatter(coords[:, 0], coords[:, 1], s=1, c='black')
+plt.xlabel("θ (degrés)")
+plt.ylabel("ρ (r)")
+plt.title(" exemple 10 sinsoid Espace de Hough simulé")
+plt.grid(True)
+plt.show()
+
+
+plt.imshow(accumulator, cmap='hot', aspect='auto')
+plt.title("Accumulateur de Hough")
+plt.xlabel("θ (en degrés)")
+plt.ylabel("ρ (décalé)")
+plt.colorbar(label="Votes")
+plt.show()
+
+flat = accumulator.flatten() # suite en une dimension
+plt.hist(flat[flat > 0], bins=100) # bins >> divise plage donnee en 100 intervalles
+plt.title("Distribution des votes dans l'accumulateur")
+plt.xlabel("Votes")
+plt.ylabel("Nombre de (ρ, θ)")
+plt.grid(True)
+plt.show()
+
+            </code></pre>
+      </details>
+
+
+    <hr>
+
+    <h1>
+        Exemple avec HoughLines & HoughLinesP (detection segments) : 
+    </h1>
+
+    <img src="/Vision/hough_line_segment.png">
+
+    <details>    
+            <summary> <b style="color: red;">Algorithme Transformé de Hough de base et probabiliste linéaire en Python</b>
+                </summary>
+            <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import math
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Lecture de l'image
+src = cv.imread('test.jpg', cv.IMREAD_COLOR)
+if src is None:
+    print("Erreur : Image non chargée. Vérifie le chemin du fichier.")
+    exit()
+
+# Détection des bords avec Canny
+edges = cv.Canny(src, 100, 300, None, 3)
+
+# Copie pour dessiner les lignes détectées
+lines_img = cv.cvtColor(edges.copy(), cv.COLOR_GRAY2BGR)  # Pour HoughLines
+linesP_img = cv.cvtColor(edges.copy(), cv.COLOR_GRAY2BGR)  # Pour HoughLinesP
+
+# Hough transform (version standard)
+lines = cv.HoughLines(edges, 1, np.pi / 180, 175)
+
+if lines is not None:
+    for i in range(len(lines)):
+        rho = lines[i][0][0]
+        theta = lines[i][0][1]
+        a = math.cos(theta)
+        b = math.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
+        pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
+        cv.line(lines_img, pt1, pt2, (0, 0, 255), 2, cv.LINE_AA)
+
+# Hough transform (version probabiliste)
+linesP = cv.HoughLinesP(edges, 1, np.pi / 180, 50, minLineLength=50, maxLineGap=10)
+
+if linesP is not None:
+    for i in range(len(linesP)):
+        l = linesP[i][0]
+        pt1 = (l[0], l[1])
+        pt2 = (l[2], l[3])
+        cv.line(linesP_img, pt1, pt2, (0, 255, 0), 2, cv.LINE_AA)
+
+# Affichage des résultats
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.title("HoughLines")
+plt.imshow(cv.cvtColor(lines_img, cv.COLOR_BGR2RGB))
+plt.axis('off')
+
+plt.subplot(1, 2, 2)
+plt.title("HoughLinesP")
+plt.imshow(cv.cvtColor(linesP_img, cv.COLOR_BGR2RGB))
+plt.axis('off')
+
+plt.tight_layout()
+plt.show()
+
+
+                </code></pre>
+        </details>
+
+    <p>
+        <br>
+    </p>
+
+
+    <hr>
+
+    <h1>Transformée de Hough pour la détection de cercles</h1>
+
+    <p>
+    La <b>transformée de Hough pour les cercles</b> est une extension de la transformée
+    de Hough pour les lignes. Elle permet de détecter des <b>cercles</b> dans une image,
+    généralement après un pré-traitement de détection de contours (par exemple avec
+    <b>Canny</b>).
+    </p>
+
+    <h3>Principe général</h3>
+
+    <p>
+    Contrairement aux lignes, la détection de cercles nécessite une étape supplémentaire :
+    la recherche des <b>centres potentiels</b> et du <b>rayon</b>.
+    L’espace des paramètres devient donc tridimensionnel.
+    </p>
+
+    <p>
+    L’équation d’un cercle est donnée par :
+    </p>
+
+    <p>
+    \[
+    (x - a)^2 + (y - b)^2 = r^2
+    \]
+    </p>
+
+    <p>
+    où :
+    </p>
+    <ul>
+    <li>\((x,y)\) sont les coordonnées d’un pixel de contour,</li>
+    <li>\((a,b)\) sont les coordonnées du centre du cercle,</li>
+    <li>\(r\) est le rayon.</li>
+    </ul>
+
+    <h3>Vote pour les centres de cercles</h3>
+
+    <p>
+    Pour un pixel de contour \((x,y)\) et pour un rayon \(r\) donné,
+    on peut exprimer les coordonnées possibles du centre \((a,b)\)
+    en fonction de l’orientation \(\theta\) :
+    </p>
+
+    <p>
+    \[
+    a = x - r \cos\theta
+    \qquad
+    b = y - r \sin\theta
+    \]
+    </p>
+
+    <p>
+    En balayant les valeurs de \(\theta \in [0, 360^\circ]\) (ou \([0,180^\circ]\)
+    selon la symétrie) et une plage de rayons possibles, chaque pixel de contour
+    <b>vote</b> pour un ensemble de centres candidats.
+    </p>
+
+    <h3>Espace d’accumulation</h3>
+
+    <p>
+    On définit une <b>matrice d’accumulation 3D</b> :
+    </p>
+
+    <p>
+    \[
+    M(a,b,r)
+    \]
+    </p>
+
+    <p>
+    Chaque cellule correspond à un cercle potentiel caractérisé par
+    un centre \((a,b)\) et un rayon \(r\).
+    À chaque vote, la case correspondante est incrémentée :
+    </p>
+
+    <p>
+    \[
+    M(a_i,b_i,r_i) = M(a_i,b_i,r_i) + 1
+    \]
+    </p>
+
+    <h3>Sélection des cercles</h3>
+
+    <p>
+    Les <b>maxima locaux</b> de la matrice \(M(a,b,r)\), au-dessus d’un seuil donné,
+    correspondent aux cercles les plus probables dans l’image.
+    Un ajustement de type <i>best fit</i> sur le rayon peut être effectué afin
+    d’améliorer la précision du cercle détecté.
+    </p>
+
+    <p>
+    Une fois les paramètres \((a,b,r)\) déterminés, le cercle peut être retracé
+    directement dans l’image à partir de son équation géométrique.
+    </p>
+
+    <hr>
+
+    <h1>Exemple manuel :</h1>
+
+
+    <img src="/Vision/hough_circle_manual.png">
+
+    <details>    
+            <summary> <b style="color: red;">Algorithme manuel Transformé de Hough circulaire en Python</b>
+                </summary>
+            <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import math
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+src = cv.imread('ball.jpg', cv.IMREAD_COLOR)
+if src is None:
+    print("Erreur : Image non chargée. Vérifie le chemin du fichier.")
+    exit()
+
+src_manu = src.copy()
+
+gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+
+blur = cv.GaussianBlur(gray, (9, 9), 2)
+canny = cv.Canny(blur, 200, 100)
+
+
+plt.figure(figsize=(12, 6))
+plt.imshow(cv.cvtColor(canny, cv.IMREAD_GRAYSCALE))
+plt.axis('off')
+
+# initialise l'accumulateur
+rows, cols = canny.shape
+minR, maxR = 50, 100
+acc = np.zeros((rows, cols, maxR - minR), dtype=np.uint64) #trois parametre x , y et rayon
+
+ys, xs = np.nonzero(canny)
+
+for x, y in zip(xs, ys):
+    for r in range(minR, maxR):
+        for theta in range(0, 360, 5):  # plus rapide que chaque degré
+            a = int(x - r * np.cos(np.radians(theta)))
+            b = int(y - r * np.sin(np.radians(theta)))
+
+            if 0 <= a < cols and 0 <= b < rows:
+                acc[b, a, r - minR] += 1
+
+max_vote = np.max(acc) 
+
+threshold = 0.95 * max_vote
+
+centers = np.where(acc > threshold)
+
+for b, a, r in zip(*centers):
+    cv.circle(src_manu, (a, b), r + minR, (0, 255, 0), 2)
+
+plt.imshow(cv.cvtColor(src_manu, cv.COLOR_BGR2RGB))
+plt.axis('off')
+plt.title("cercle détectées")
+plt.show()
+                </code></pre>
+        </details>
+
+        <hr>
+
+    <h1>Exemple avec HoughCircles() :</h1>
+
+
+    <img src="/Vision/hough_circle.png">
+
+    <details>    
+            <summary> <b style="color: red;">Algorithme Transformé de Hough circulaire en Python</b>
+                </summary>
+            <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import math
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+src = cv.imread('ball.jpg', cv.IMREAD_COLOR)
+if src is None:
+    print("Erreur : Image non chargée. Vérifie le chemin du fichier.")
+    exit()
+
+src_manu = src.copy()
+
+gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+
+src_blur = cv.GaussianBlur(gray, (9, 9),2) #le 2 est le sigmaX -> + grand + blur -> 2 commun pour débruiter
+
+rows = src_blur.shape[0]
+circles = cv.HoughCircles(src_blur, cv.HOUGH_GRADIENT, 1, rows / 8,    # dp = 1 --> resolution de l'accumulateur, minDist = rows / 8 distance mini deux centre
+                               param1=100, param2=50, #  param1 = seuil sup > seuil inf = param1/2, param2 = seuil accu + bas  + de détections, mais aussi + de faux positifs
+                               minRadius=1, maxRadius=100)
+    
+    
+if circles is not None:
+    circles = np.uint16(np.around(circles)) # around arrondis les valeurs
+    for i in circles[0, :]: # circle retourn x,y,r
+        center = (i[0], i[1])
+        # circle center
+        cv.circle(src, center, 1, (0, 100, 100), 3)
+        # circle outline
+        radius = i[2]
+        cv.circle(src, center, radius, (255, 0, 255), 3)
+
+
+plt.figure(figsize=(12, 6))
+plt.title("HoughCircle")
+plt.imshow(cv.cvtColor(src, cv.COLOR_BGR2RGB))
+plt.axis('off')
+
+                </code></pre>
+        </details>
+
+
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

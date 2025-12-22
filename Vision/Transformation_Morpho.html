@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Transformation Morphologique</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <li><a href="/Vision/Transformation_Morpho.html" class="active">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+      </ul>
+    </aside>
+    <main class="content">
+
+    <h1>Transformations morphologiques de base</h1>
+
+
+    <p>
+        Les transformations morphologiques sont des opérations fondamentales en traitement d’images.
+        elles permettent de modifier la structure des objets dans une image à l’aide d’un élément structurant (appelé aussi noyau ou kernel).
+    </p>
+
+    <p>
+    Pour chaque pixel de l’image, l’élément structurant est centré sur ce pixel,
+    et les valeurs des pixels voisins sont examinées.
+    Contrairement à une convolution classique, les opérations morphologiques
+    utilisent des fonctions <em>non linéaires</em>.
+    </p>
+
+    <h3>Érosion</h3>
+    <p>
+    L’érosion réduit les zones claires d’une image. Elle est souvent utilisée pour éliminer le bruit
+    ou séparer des objets proches.
+    </p>
+
+    <p>
+    \[
+    (I \ominus B)(x, y) =
+    \min_{(x', y') \in B} \; I(x + x',\, y + y')
+    \]
+    </p>
+    <h3>Dilatation</h3>
+    <p>
+    La dilatation agrandit les zones claires d’une image. Elle permet de combler des trous
+    ou de renforcer la présence des objets.
+    </p>
+    <p>
+    \[
+    (I \oplus B)(x, y) =
+    \max_{(x', y') \in B} \; I(x + x',\, y + y')
+    \]
+    </p>
+    <h3>Ouverture</h3>
+    <p>
+    L’ouverture est une érosion suivie d’une dilatation. Elle est utilisée pour supprimer
+    les petits objets ou le bruit tout en conservant la forme générale des objets principaux.
+    </p>
+
+
+
+    <h3>Fermeture</h3>
+    <p>
+    La fermeture est une dilatation suivie d’une érosion. Elle permet de combler de petits trous
+    et de relier des zones proches.
+    </p>
+
+    <h3>Top Hat</h3>
+    <p>
+    La transformation <strong>Top Hat</strong> correspond à la différence entre l’image originale
+    et son ouverture. Elle permet de mettre en évidence les petits objets clairs sur un fond sombre.
+    Cette opération est souvent utilisée pour améliorer le contraste ou détecter des détails fins.
+    </p>
+
+    <h3>Black Hat</h3>
+    <p>
+    La transformation <strong>Black Hat</strong> correspond à la différence entre la fermeture
+    de l’image et l’image originale. Elle met en évidence les petits objets sombres sur un fond clair,
+    et est utile pour détecter des zones sombres ou des imperfections.
+    </p>
+
+    <h3>Gradient</h3>
+    <p>
+    La transformation <strong>Gradient</strong> correspond à la succession d'une dilatation et d'une érosion.
+    La soustraction met ainsi en évidence les variations locales, qui correspondent aux frontières des objets.
+    </p>
+
+
+    <h3>Hit or Miss</h3>
+    <p>
+    La transformation <strong>Hit-or-Miss</strong> est utilisée pour détecter
+    des <strong>configurations spécifiques</strong> de pixels dans une image binaire.
+    Elle permet de trouver les occurrences d’un motif donné,
+    défini par un élément structurant.
+    </p>
+
+    <p>
+    Mathématiquement, le Hit-or-Miss s’exprime à l’aide de deux éléments structurants
+    \( B_1 \) et \( B_2 \), appliqués respectivement à l’objet et au fond :
+    </p>
+
+    \[
+    I \otimes (B_1, B_2) =
+    (I \ominus B_1) \cap (I^c \ominus B_2)
+    \]
+
+    <p>
+    où \( I^c \) désigne le complément de l’image.
+    </p>
+
+    <p>
+    Cette opération retourne une image où les pixels sont activés
+    uniquement aux positions où la forme du noyau correspond exactement
+    à la configuration locale de l’image.
+    </p>
+
+    <hr>
+
+    <h1>Élément structurant</h1>
+
+    <p>
+    Un élément structurant est une matrice binaire qui définit la forme utilisée
+    lors des transformations morphologiques. Son choix influence directement
+    le résultat des opérations comme l’érosion ou la dilatation.
+    </p>
+
+    <h3>Élément structurant carré</h3>
+    <p>Utilisé pour des opérations isotropes (toutes les directions).</p>
+
+    \[
+    B =
+    \begin{bmatrix}
+    1 & 1 & 1 \\
+    1 & 1 & 1 \\
+    1 & 1 & 1
+    \end{bmatrix}
+    \]
+
+
+    <h3>Élément structurant en croix</h3>
+    <p>Préserve davantage les structures fines horizontales et verticales.</p>
+    \[
+    B =
+    \begin{bmatrix}
+    0 & 1 & 0 \\
+    1 & 1 & 1 \\
+    0 & 1 & 0
+    \end{bmatrix}
+    \]
+
+
+    <h3>Élément structurant horizontal</h3>
+    <p>Adapté à la détection ou au renforcement de lignes horizontales.</p>
+
+   \[
+    B =
+    \begin{bmatrix}
+    1 & 1 & 1 & 1 & 1
+    \end{bmatrix}
+    \]
+
+
+    <h3>Élément structurant vertical</h3>
+    <p>Utile pour l’analyse de lignes ou de structures verticales.</p>
+
+   \[
+    B =
+    \begin{bmatrix}
+    1 \\
+    1 \\
+    1 \\
+    1 \\
+    1
+    \end{bmatrix}
+    \]
+
+    <hr>
+
+    <h1>
+      Exemples
+    </h1>
+
+     <img src="\Vision\morpho.png" alt="Vue Face">
+
+       <details >    
+        <summary > <b style="color: red;">Programme Dilatatio/Erosion Python</b>
+            </summary >
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+import cv2 as cv # OPENCV
+import matplotlib.pyplot as plt
+import numpy as np
+
+im = cv.imread('chien.jpg') # de base les images sont load en BGR
+
+
+# cv.MORPH_CROSS  = [[0 0 1 0 0]     cv.MORPH_ELLIPSE = [[0 0 1 0 0]
+#                   [0 0 1 0 0]                          [0 1 1 1 0] 
+#                   [1 1 1 1 1]                          [1 1 1 1 1]
+#                   [0 0 1 0 0]                          [0 1 1 1 0]
+#                   [0 0 1 0 0]]                         [0 0 1 0 0]]
+# pour un kernel 5x5 -> taille influence effet comme la taille d'un pinceau un peu 
+
+
+kernel_cross = cv.getStructuringElement(cv.MORPH_CROSS, (12,12))  
+dilatation = cv.dilate(im, kernel_cross,iterations=3) # iteration por augmenter les effets
+
+kernel_elli = np.array([
+    [0, 0, 1, 0, 0],
+    [0, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 0],
+    [0, 0, 1, 0, 0]
+], dtype=np.uint8)
+erosion = cv.erode(im, kernel_elli, iterations=2)
+
+# On peu aussi utilisé des BorderType pour dire comment reagit quand kernel depasse le bord
+
+plt.subplot(131),plt.imshow(im,cmap = None)
+plt.title('Image de base'), plt.xticks([]), plt.yticks([])
+plt.subplot(132),plt.imshow(dilatation,cmap = None)
+plt.title('Dilatation avec cross'), plt.xticks([]), plt.yticks([])
+plt.subplot(133),plt.imshow(erosion,cmap = None)
+plt.title('Erosion avec ellipse'), plt.xticks([]), plt.yticks([])
+ 
+plt.show()
+             </code></pre>
+      </details>
+
+     <img src="\Vision\top_black_hat.png" alt="Vue Face">
+             
+       <details >    
+        <summary > <b style="color: red;">Programme gyroscope sur Python</b>
+            </summary >
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">    
+b, g, r = cv.split(im) # on peut separer les couleurs -> fct morpho les traites separement dans tous les cas
+
+tophat_b = cv.morphologyEx(b, cv.MORPH_TOPHAT, kernel_elli,iterations=10)
+tophat_g = cv.morphologyEx(g, cv.MORPH_TOPHAT, kernel_elli,iterations=10)
+tophat_r = cv.morphologyEx(r, cv.MORPH_TOPHAT, kernel_elli,iterations=10)
+
+tophat_color = cv.merge([tophat_b, tophat_g, tophat_r])
+
+blackhat_b = cv.morphologyEx(b, cv.MORPH_BLACKHAT, kernel_cross,iterations=10)
+blackhat_g = cv.morphologyEx(g, cv.MORPH_BLACKHAT, kernel_cross,iterations=10)
+blackhat_r = cv.morphologyEx(r, cv.MORPH_BLACKHAT, kernel_cross,iterations=10)
+
+blackhat_color = cv.merge([blackhat_b, blackhat_g, blackhat_r])
+
+
+plt.subplot(131),plt.imshow(im)
+plt.title('Image de base'), plt.xticks([]), plt.yticks([])
+plt.subplot(132),plt.imshow(cv.cvtColor(tophat_color, cv.COLOR_BGR2RGB)) # on remet en rgb
+plt.title('Tophat ellipse'), plt.xticks([]), plt.yticks([])
+plt.subplot(133),plt.imshow(cv.cvtColor(blackhat_color, cv.COLOR_BGR2RGB))
+plt.title('BlackHat cross vert'), plt.xticks([]), plt.yticks([]) 
+ 
+             </code></pre>
+      </details>
+
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

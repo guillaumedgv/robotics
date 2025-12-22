@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Affine & DFT</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
+        <li><a href="/Vision/Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="/Vision/Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="/Vision/polygone.html">Distance aux contours & Moments</a></li>
+        <li><a href="/Vision/remappinge.html">Remapping</a></li>
+        <li><a href="/Vision/affine_dft.html" class="active">Transformation affine & DFT</a></li>
+
+      </ul>
+      </ul>
+    </aside> 
+
+    <main class="content">
+ 
+        <h1>Transformation affine</h1>
+
+        <p>
+        Une transformation affine permet de combiner plusieurs opérations
+        géométriques : translation, rotation, mise à l’échelle et cisaillement.
+        Elle conserve le parallélisme des droites mais pas nécessairement
+        les distances ni les angles.
+        </p>
+
+            <p>
+            Mathématiquement, une transformation affine s’écrit :
+            </p>
+
+            <p>
+            \[
+            \begin{bmatrix}
+            x' \\
+            y'
+            \end{bmatrix}
+            =
+            \begin{bmatrix}
+            a & b & t_x \\
+            c & d & t_y
+            \end{bmatrix}
+            \begin{bmatrix}
+            x \\
+            y \\
+            1
+            \end{bmatrix}
+            \]
+            </p>
+
+            <p>
+            où \((x,y)\) sont les coordonnées d’un point dans l’image originale,
+             \((x',y')\) ses coordonnées après transformation et les termes \( t_x ,t_y \) représentent la translation..
+            </p>
+
+
+            <p>
+            Pour calculer une transformation affine, il suffit de définir
+            <strong>trois points non alignés</strong>.
+            On définit en général un triangle d'origine pour l'image.
+            </p>
+
+            <p>
+            Un triangle de destination est ensuite défini dans l’image finale.
+            Ces trois points indiquent où doivent être déplacés les points
+            du triangle source.
+            </p>
+
+            <p>
+            La fonction <em>getAffineTransform</em> calcule automatiquement
+            la matrice affine qui permet de passer du triangle source au triangle
+            destination.
+            </p>
+
+            <p>
+            La fonction <em>warpAffine</em> applique la matrice affine
+            à chaque pixel de l’image.
+            Chaque point est déplacé selon l’équation affine précédente,
+            ce qui produit une image déformée, translatée et cisaillée.
+            </p>
+
+            
+            <p>
+            La rotation est définie autour d’un point central, généralement
+            le centre de l’image. Elle peut être combinée à une mise à l’échelle.
+            </p>
+
+            <p>
+            La matrice de rotation utilisée par OpenCV est :
+            </p>
+
+            <p>
+            \[
+            \begin{bmatrix}
+            \alpha & \beta & (1-\alpha)x_c - \beta y_c \\
+            -\beta & \alpha & \beta x_c + (1-\alpha)y_c
+            \end{bmatrix}
+            \]
+            </p>
+
+            <p>
+            avec :
+            </p>
+
+            <ul>
+                <li>\(\alpha = s \cos \theta\)</li>
+                <li>\(\beta = s \sin \theta\)</li>
+            </ul>
+
+            <p>
+            où \(\theta\) est l’angle de rotation et \(s\) le facteur d’échelle.
+            </p>
+
+
+            <p>
+                Cette matrice est une matrice de rotation classique mais pour que l'on puisse choisir le 
+                centre de rotation. Pour cela on déplace le centre vers l’origine :
+            </p>
+
+            <p>
+            Une rotation est définie autour de l’origine \((0,0)\).
+            Pour effectuer une rotation autour d’un point arbitraire
+            \(\left(x_c, y_c\right)\), on utilise la composition suivante :
+            </p>
+
+            <p>
+            \[
+            \mathbf{T}(x_c, y_c)\;
+            \mathbf{R}(\theta)\;
+            \mathbf{T}(-x_c, -y_c)
+            \]
+            </p>
+
+            <p> avec:
+            \[
+            x_c = \frac{Width}{2}, \quad y_c = \frac{Height}{2}
+            \]
+            </p>
+
+
+            <p>
+            Cette composition permet de réaliser une rotation autour de
+            \(\left(x_c, y_c\right)\) tout en utilisant une rotation centrée
+            à l’origine.
+            </p>
+
+
+            <h3>Ordre des transformations</h3>
+
+
+            <p>
+            L’ordre d’application des transformations est essentiel.
+            Si la rotation est appliquée à l’image originale,
+            indépendamment de la transformation affine les deux effets ne se cumule pas.
+            Pour combiner les deux effets, il faudrait appliquer la rotation
+            au résultat de la transformation affine.
+            </p>
+
+
+
+        <img src="/Vision/affine.png">
+        <div class="legend">
+            <p>
+                Différentes transformation affine
+            </p>
+        </div>
+
+
+        <details>    
+        <summary> <b style="color: red;">Algorithme Transformation affine en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button, CheckButtons
+
+            # LE 0,0 EST EN HAUT A GAUCHE
+
+# === Load Image ===
+src = cv2.imread('grille.jpg')  # Replace with your image path
+if src is None:
+    raise ValueError("Could not open or find the image.")
+src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)  # Convert for Matplotlib
+
+# === Define Triangles for Affine Transform ===
+srcTri = np.array([[0, 0],
+                   [src.shape[1] - 1, 0],
+                   [0, src.shape[0] - 1]], dtype=np.float32) # triangle de base, a l'origine, en haut à gauche et en bas a droite
+
+dstTri = np.array([[src.shape[1]*0.25, src.shape[1]*0.33],
+                   [src.shape[1]*0.25, src.shape[0]*0.85],
+                   [src.shape[1]*0.65, src.shape[0]*0.17]], dtype=np.float32) # triangle de destination
+
+# === Affine Warp ===
+warp_mat = cv2.getAffineTransform(srcTri, dstTri) # calcule la matrice de transfo
+warp_dst = cv2.warpAffine(src, warp_mat, (src.shape[1], src.shape[0])) # l'applique a l'image
+
+# === Rotation ===     
+center = (warp_dst.shape[1] // 2, warp_dst.shape[0] // 2)
+angle = -45
+scale = 0.6
+rot_mat = cv2.getRotationMatrix2D(center, angle, scale)
+warp_rotate_dst = cv2.warpAffine(src, rot_mat, (warp_dst.shape[1], warp_dst.shape[0]))
+warp_rotate_final = cv2.warpAffine(warp_dst, rot_mat, (warp_dst.shape[1], warp_dst.shape[0]))
+
+# === Display using Matplotlib ===
+fig, axs = plt.subplots(1, 4, figsize=(15, 5))
+axs[0].imshow(src)
+axs[0].set_title("Original")
+axs[1].imshow(warp_dst)
+axs[1].set_title("Affine Warp")
+axs[2].imshow(warp_rotate_dst)
+axs[2].set_title("Warp + Rotate")
+axs[3].imshow(warp_rotate_final)
+axs[3].set_title("Warp + Rotate + affine")
+
+for ax in axs:
+    ax.axis('off')
+
+plt.tight_layout()
+plt.show()
+        </code></pre>
+    </details>
+
+
+    <hr>
+
+    <h1>Transformée de Fourier</h1>
+
+<p>
+La Transformée de Fourier permet de convertir un signal du domaine spatial ou temporel
+vers le domaine fréquentiel. Pour une image (signal 2D), cela revient à décomposer
+l’image en une somme de motifs périodiques (ondes sinusoïdales) de différentes fréquences.
+</p>
+
+<p>
+Elle peut être utilisée pour :
+<ul>
+    <li>Filtrage fréquentiel : éliminer le bruit, accentuer les bords</li>
+    <li>Détection de motifs périodiques</li>
+    <li>Reconnaissance d’objets</li>
+</ul>
+</p>
+
+<p>
+Dans l’image de Fourier :
+<ul>
+    <li>Le centre correspond aux <strong>bassses fréquences</strong> : variations globales de contraste</li>
+    <li>Les extrémités correspondent aux <strong>hautes fréquences</strong> : bords, coins, détails fins</li>
+</ul>
+</p>
+
+<p>
+- Supprimer les basses fréquences → ne garder que les arêtes<br>
+- Supprimer les hautes fréquences → image floue
+</p>
+
+
+
+<h3>Formule 2D-DFT discrète</h3>
+
+<p>
+Pour une image \(f[x,y]\) de taille \(M \times N\) : 
+</p>
+
+<p>
+\[
+F[u,v] = \sum_{x=0}^{M-1} \sum_{y=0}^{N-1} f[x,y] \cdot e^{-j 2 \pi \left( \frac{u x}{M} + \frac{v y}{N} \right)}
+\]
+</p>
+
+<p>
+Équivalent en parties réelles et imaginaires : 
+</p>
+
+<p>
+\[
+\begin{aligned}
+\text{sommeRe} &= \sum_{x=0}^{M-1} \sum_{y=0}^{N-1} f[x,y] \cdot \cos\Big(2 \pi (\frac{u x}{M} + \frac{v y}{N})\Big) \\
+\text{sommeIm} &= - \sum_{x=0}^{M-1} \sum_{y=0}^{N-1} f[x,y] \cdot \sin\Big(2 \pi (\frac{u x}{M} + \frac{v y}{N})\Big) \\
+F[u,v] &= \text{sommeRe} + j \cdot \text{sommeIm}
+\end{aligned}
+\]
+</p>
+
+<p>
+Il existe de nombreuses variantes : <strong>FFT</strong> (Fast Fourier Transform), <strong>DFT</strong>, etc.
+Pour une image, on utilise généralement la <strong>2D-DFT</strong>.
+</p>
+
+<h3>Limitation : inclinaison 3D</h3>
+
+<p>
+La Transformée de Fourier fonctionne sur des signaux **planaires**.
+Si l’image subit une inclinaison ou une perspective 3D, la DFT **ne permet pas de corriger cette déformation**.
+Dans ce cas, on utilise une <strong>homographie</strong>, qui est une transformation projective 2D permettant de passer d’un plan à un autre dans l’espace 3D.
+</p>
+
+<hr>
+
+<h1> Exemple</h1>
+
+<p>
+L’image est chargée en niveaux de gris :
+
+On applique un <strong>padding optimal</strong> pour accélérer la DFT : les dimensions sont étendues à la valeur
+renvoyée par <em>getOptimalDFTSize</em> (multiple de 2, 3 ou 5).
+</p>
+
+
+
+<h3> Transformée de Fourier 2D</h3>
+
+<img src="/Vision/dft_angle.png">
+        <div class="legend">
+            <p>
+                Image de base, inclinaison 44°
+            </p>
+        </div>
+
+<p>
+On crée une image complexe : la partie réelle est l’image, la partie imaginaire initialisée à zéro.
+La DFT est appliquée avec :
+<em>cv.dft(complexI, complexI)</em>
+</p>
+
+<p>
+Le spectre de magnitude est calculé par :
+</p>
+
+<p>
+\[
+\text{mag}(u,v) = \sqrt{\text{Re}(u,v)^2 + \text{Im}(u,v)^2}
+\]
+</p>
+
+<p>
+Pour faciliter la visualisation, on applique une <strong>transformation logarithmique</strong> :
+</p>
+
+<p>
+\[
+\text{mag} \leftarrow \log(1 + \text{mag})
+\]
+</p>
+
+<p>
+Le spectre de phase est également extrait :
+</p>
+<p>
+\[
+\text{phase}(u,v) = \arctan\frac{\text{Im}(u,v)}{\text{Re}(u,v)}
+\]
+</p>
+
+
+<h3> Recentrage du spectre</h3>
+<p>
+La DFT produit un spectre où la basse fréquence est en haut à gauche. Pour interpréter plus facilement :
+- on divise l’image en 4 quadrants
+- on échange les quadrants diagonaux
+</p>
+<p>
+Ainsi, le centre de l’image correspond aux basses fréquences, et les bords aux hautes fréquences.
+</p>
+
+
+<img src="/Vision/dft_mag_norm.png">
+        <div class="legend">
+            <p>
+                spectre de magnitude
+            </p>
+        </div>
+
+<img src="/Vision/dft_phase.png">
+        <div class="legend">
+            <p>
+                Spectre de phase
+            </p>
+        </div>
+
+<h3>Détection des lignes dominantes (Hough)</h3>
+<p>
+Le spectre est normalisé entre 0 et 255, puis seuillé pour ne garder que les pics d’intensité :
+</p>
+
+
+<img src="/Vision/dft_mag_seuil.png">
+        <div class="legend">
+            <p>
+                Spectre de magnitude avec un seuillage
+            </p>
+        </div>
+
+<p>
+La <strong>transformée de Hough</strong> détecte alors les lignes :
+</p>
+
+
+<p>
+Les angles des lignes détectées sont extraits et filtrés pour supprimer les horizontales et verticales exactes.
+Le <strong>dominant angle</strong> (orientation de la grille) est calculé par la médiane :
+
+\[
+\theta_\text{dominant} = \text{mediane des angles filtrés}
+\]
+</p>
+
+
+<h3> Correction de l’inclinaison (Deskew)</h3>
+<p>
+Pour redresser la grille, on applique une rotation inverse autour du centre de l’image :
+</p>
+<p>
+matrice_rotation = getRotationMatrix2D((x_c, y_c), - \(\theta_\text{skew}\), 1.0)
+</p>
+<p>
+corrected = warpAffine(img, rotation_matrix, (cols, rows))
+</p>
+<p>
+Ainsi, la grille est alignée verticalement et horizontalement.
+</p>
+
+
+<img src="/Vision/dft_result.png">
+        <div class="legend">
+            <p>
+                image avec l'inclinaison corrigée
+            </p>
+        </div>
+
+
+         <details>    
+        <summary> <b style="color: red;">Algorithme 2D-DFT en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import cv2 as cv
+import numpy as np
+import argparse
+import random as rng
+import matplotlib.pyplot as plt
+
+
+def detect_grid_orientation(image_path):
+    img = cv.imread(image_path, cv.IMREAD_GRAYSCALE)
+    if img is None:
+        print("Erreur : image introuvable.")
+        return
+
+    # Padding optimal pour DFT >> donne une taille optimale (multiple de 2/3/5) pour accélérer la DFT. 
+    rows, cols = img.shape
+    m = cv.getOptimalDFTSize(rows)
+    n = cv.getOptimalDFTSize(cols)
+    padded = cv.copyMakeBorder(img, 0, m - rows, 0, n - cols, cv.BORDER_CONSTANT, value=[0, 0, 0]) # bords noir
+
+    # Appliquer DFT
+    planes = [np.float32(padded), np.zeros(padded.shape, np.float32)]  #  crée une image complexe >> partie reel = image, imaginaire = 0.
+
+    complexI = cv.merge(planes) # creation de la matrice complexe tel que pixel I = Re + j*Im
+
+    cv.dft(complexI, complexI) # on a matrice entré et sortie >> la même ici 
+
+    cv.split(complexI, planes) # permet de re obtenir deux matrice séparer
+
+    mag = cv.magnitude(planes[0], planes[1]) # spectre de puissance. Sqrt(Re² + Im²)
+    mag += 1 # ajout de 1 puis log() : transformation logarithmique pour mieux visualiser les détails 
+    cv.log(mag, mag)  # transformation log
+
+
+    phase = cv.phase(planes[0], planes[1], angleInDegrees=True)
+
+    # Centre du spectre
+    mag = mag[0:mag.shape[0] & -2, 0:mag.shape[1] & -2] # on enlève un éventuel pixel de trop (si dimensions impaires) avec & -2,  force les dimensions à être paires, pour bien diviser l’image en 4 blocs égaux
+    cx, cy = mag.shape[1] // 2, mag.shape[0] // 2 #cx = milieu colonne, cy = milieu ligne >> pour centre de l’image en coordonnées (cy, cx)
+    q0, q1 = mag[0:cy, 0:cx], mag[0:cy, cx:] #  # quadrant 0 = haut gauche, # quadrant 1 = haut droite,...
+    q2, q3 = mag[cy:, 0:cx], mag[cy:, cx:]
+    tmp = np.copy(q0) # q0 <-> q3 (haut-gauche avec bas-droite)
+    mag[0:cy, 0:cx] = q3
+    mag[cy:, cx:] = tmp
+    tmp = np.copy(q1) # q1 <-> q2 (haut-droite avec bas-gauche
+    mag[0:cy, cx:] = q2
+    mag[cy:, 0:cx] = tmp
+    #les lignes structurelles (ex : texte, grille) facilement visibles et Le spectre symétrique et plus interprétable
+
+    # Normaliser pour affichage et traitement
+    mag_norm = cv.normalize(mag, None, 0, 255, cv.NORM_MINMAX) #met les valeurs du spectre entre 0 et 255
+    mag_norm = np.uint8(mag_norm)
+
+    plt.hist(mag_norm.ravel(), bins=256)
+    plt.title("Histogramme des intensités du spectre")
+    plt.show()
+
+    # Seuillage pour détecter les pics
+    _, thresh = cv.threshold(mag_norm, 180, 255, cv.THRESH_BINARY)
+    # Détection des lignes (transformée de Hough)
+    lines = cv.HoughLines(thresh, 1, np.pi / 180, 100)
+    angles = []
+    if lines is not None:
+        for rho, theta in lines[:, 0]:
+            angle_deg = np.rad2deg(theta)
+            if angle_deg < 180:  # On ignore les doublons symétriques
+                angles.append(angle_deg)
+
+        # Filtrage : on ne garde que les angles non verticaux ni horizontaux exacts
+        filtered_angles = [a for a in angles if abs(a - 90) > 1 and abs(a) > 1]
+        if filtered_angles:
+            dominant_angle = np.median(filtered_angles)
+            print(f"Angle d'orientation détecté de la grille : {dominant_angle:.2f}°")
+        else:
+            print("Aucune orientation dominante détectée.")
+    else:
+        print("Aucune ligne détectée dans le spectre.")
+
+    median_angle = np.median(angles)
+    skew_angle = median_angle - 90 if median_angle > 90 else median_angle
+    print(f"[INFO] Angle détecté : {skew_angle:.2f}°")
+
+    # Étape 4 : Rotation inverse (deskew)
+    center = (cols // 2, rows // 2)
+    rotation_matrix = cv.getRotationMatrix2D(center, -skew_angle, 1.0)
+    corrected = cv.warpAffine(img, rotation_matrix, (cols, rows), flags=cv.INTER_LINEAR, borderMode=cv.BORDER_REPLICATE)
+
+    # Affichage
+    plt.imshow(img, cmap = 'gray')
+    plt.axis('off')  # Hide axes
+    plt.show()
+    plt.imshow(phase, cmap = 'gray')
+    plt.axis('off')  # Hide axes
+    plt.show()
+    plt.imshow(mag_norm, cmap = 'gray')
+    plt.axis('off')  # Hide axes
+    plt.show()
+    plt.imshow(thresh, cmap = 'gray')
+    plt.axis('off')  # Hide axes
+    plt.show()
+    plt.imshow(corrected, cmap = 'gray')
+    plt.axis('off')  # Hide axes
+    plt.show()
+   
+
+# Exemple d'utilisation
+detect_grid_orientation("grille3.jpg")  
+        </code></pre>
+    </details>
+
+    
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>

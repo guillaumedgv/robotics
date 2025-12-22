@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Remapping</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <!-- Contenu principal -->
+    <aside class="sidebar">
+      <h3>Vision par Ordinateur</h3>
+      <ul>
+        <ul>
+        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="/Vision/Derive.html">Dérivé</a></li>
+        <li><a href="/Vision/Hough.html">Transformé de Hough </a></li>
+        <li><a href="/Vision/Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="/Vision/Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="/Vision/polygone.html">Distance aux contours & Moments</a></li>
+         <li><a href="/Vision/remappinge.html" class="active">Remapping </a></li>
+
+      </ul>
+      </ul>
+    </aside> 
+
+    <main class="content">
+
+        <h1>Visualisation interactive et transformations d’images</h1>
+
+    
+
+        <h3> Transformations géométriques par remapping interactif</h3>
+
+        <p>
+        Le premier code met en œuvre la fonction <em>remap</em>, qui permet
+        d’appliquer des <strong>transformations géométriques personnalisées</strong>
+        à une image à l’aide de cartes de correspondance.
+        Chaque pixel de l’image de sortie est associé à une position
+        <span>\((x',y')\)</span> dans l’image d’origine.
+        </p>
+
+        <p>
+        Mathématiquement, le remapping s’écrit :
+        </p>
+
+        <p>
+        \[
+        I_{\text{out}}(x,y) = I_{\text{in}}( \text{map}_x(x,y), \text{map}_y(x,y) )
+        \]
+        </p>
+
+        <p>
+        Dans ce programme, plusieurs transformations sont définies :
+        </p>
+
+        <ul>
+        <li>un <strong>zoom centré</strong> sur la région centrale de l’image,</li>
+        <li>une <strong>symétrie verticale</strong>,</li>
+        <li>une <strong>symétrie horizontale</strong>,</li>
+        <li>une <strong>rotation de 180°</strong>.</li>
+        </ul>
+
+        <p>
+        Un bouton interactif permet de passer d’une transformation à l’autre
+        sans relancer le programme.
+        </p>
+
+         <img src="/Vision/remap.png">
+        <div class="legend">
+            <p>
+                Fenetre interactive
+            </p>
+        </div>
+
+           <details>    
+        <summary> <b style="color: red;">Algorithme de remapping en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
+
+# === Chargement de l'image ===
+src = cv2.imread('be.jpg')          # Charger l’image depuis le disque
+src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)  # Conversion BGR → RGB pour matplotlib
+
+# === Initialisation du remapping ===
+h, w = src.shape[:2]                # Dimensions de l’image
+map_x = np.zeros((h, w), dtype=np.float32)  # Carte de correspondance X
+map_y = np.zeros((h, w), dtype=np.float32)  # Carte de correspondance Y
+ind = [0]                           # Index du type de transformation (mutable)
+
+# === Définition des différentes transformations ===
+def update_map(ind_val):
+
+    # Zoom sur la région centrale
+    if ind_val == 0:
+        cx, cy = w / 2, h / 2      # centre de l’image
+        zoom = 2.0                # facteur de zoom
+
+        for i in range(h):
+            for j in range(w):
+                # coordonnées inverses (image source)
+                x = (j - cx) / zoom + cx
+                y = (i - cy) / zoom + cy
+
+                map_x[i, j] = x
+                map_y[i, j] = y
+
+    # Symétrie verticale (flip haut/bas)
+    elif ind_val == 1:
+        for i in range(h):
+            map_x[i, :] = np.arange(w)
+        for j in range(w):
+            map_y[:, j] = h - np.arange(h)
+
+    # Symétrie horizontale (flip gauche/droite)
+    elif ind_val == 2:
+        for i in range(h):
+            map_x[i, :] = w - np.arange(w)
+        for j in range(w):
+            map_y[:, j] = np.arange(h)
+
+    # Symétrie horizontale + verticale (rotation 180°)
+    elif ind_val == 3:
+        for i in range(h):
+            map_x[i, :] = w - np.arange(w)
+        for j in range(w):
+            map_y[:, j] = h - np.arange(h)
+
+# === Application du premier remapping ===
+update_map(ind[0])
+dst = cv2.remap(src, map_x, map_y, cv2.INTER_LINEAR)  # Interpolation linéaire
+
+# === Affichage avec matplotlib ===
+fig, ax = plt.subplots()
+plt.subplots_adjust(bottom=0.2)
+img_display = ax.imshow(dst)
+ax.set_axis_off()
+
+# === Bouton pour changer de transformation ===
+ax_button = plt.axes([0.4, 0.05, 0.2, 0.075])
+btn = Button(ax_button, 'Next Map')
+
+# Callback appelé lors du clic sur le bouton
+def on_click(event):
+    ind[0] = (ind[0] + 1) % 4        # Passer à la transformation suivante
+    update_map(ind[0])
+    remapped = cv2.remap(src, map_x, map_y, cv2.INTER_LINEAR)
+    img_display.set_data(remapped)  # Mise à jour de l’image affichée
+    fig.canvas.draw_idle()
+
+btn.on_clicked(on_click)
+
+plt.show()
+
+        </code></pre>
+    </details>
+
+        <hr>
+
+        <h3> Ajustement interactif de la luminosité, du contraste et du gamma</h3>
+
+        <p>
+        Le second code propose une interface interactive permettant de modifier
+        en temps réel les <strong>paramètres photométriques</strong> d’une image :
+        luminosité, contraste et correction gamma.
+        </p>
+
+        <p>
+        La luminosité et le contraste sont appliqués par une transformation affine :
+        </p>
+
+        <p>
+        \[
+        I'(x,y) = \alpha \, I(x,y) + \beta
+        \]
+        </p>
+
+        <p>
+        où <span>\(\alpha\)</span> contrôle le contraste et <span>\(\beta\)</span>
+        la luminosité.
+        La correction gamma est définie par :
+        </p>
+
+        <p>
+        \[
+        I_{\text{gamma}}(x,y) = I(x,y)^{\frac{1}{\gamma}}
+        \]
+        </p>
+
+        <p>
+        Des curseurs interactifs permettent d’ajuster ces paramètres en continu,
+        tandis qu’une case à cocher permet de basculer en <strong>niveaux de gris</strong>.
+        Un bouton ou une touche clavier permet de réinitialiser l’image.
+        </p>
+
+        <img src="/Vision/logi_contrast_gamma.png">
+        <div class="legend">
+            <p>
+                Fenetre interactive
+            </p>
+        </div>
+
+           <details>    
+        <summary> <b style="color: red;">Algorithme modification luminosité, contraste et du gamma en Python</b>
+            </summary>
+        <pre><button class="copy-btn" onclick="copyCode()">Copier</button><code id="code-block">
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button, CheckButtons
+
+# === Chargement et préparation de l'image ===
+img = cv2.imread('ah.jpg')              # Charger l’image depuis le disque
+img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Conversion BGR → RGB (pour matplotlib)
+
+# === États initiaux des réglages ===
+initial_state = {
+    'brightness': 1.0,   # luminosité
+    'contrast': 1.0,     # contraste
+    'gamma': 1.0,        # correction gamma
+    'grayscale': False  # mode niveaux de gris
+}
+
+# État courant (modifiable via l’interface)
+current_state = initial_state.copy()
+
+# === Application des ajustements ===
+def apply_adjustments():
+    # Ajustement de la luminosité
+    img_mod = img_rgb.astype(np.float32) * current_state['brightness']
+
+    # Ajustement du contraste (autour du gris moyen 127.5)
+    img_mod = ((img_mod - 127.5) * current_state['contrast'] + 127.5)
+
+    # Normalisation entre 0 et 1
+    img_mod = np.clip(img_mod, 0, 255) / 255.0
+
+    # Correction gamma
+    img_mod = np.power(img_mod, 1.0 / current_state['gamma']) * 255
+
+    # Retour au format image 8 bits
+    img_mod = np.clip(img_mod, 0, 255).astype(np.uint8)
+
+    # Conversion en niveaux de gris si activée
+    if current_state['grayscale']:
+        img_gray = cv2.cvtColor(img_mod, cv2.COLOR_RGB2GRAY)
+        return cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
+
+    return img_mod
+
+# === Mise en place de la figure ===
+fig, ax = plt.subplots()
+plt.subplots_adjust(left=0.3, bottom=0.35)
+img_display = ax.imshow(apply_adjustments())  # Affichage initial
+ax.set_axis_off()
+
+# === Sliders ===
+ax_brightness = plt.axes([0.3, 0.25, 0.6, 0.03])
+ax_contrast = plt.axes([0.3, 0.2, 0.6, 0.03])
+ax_gamma = plt.axes([0.3, 0.15, 0.6, 0.03])
+
+# Curseurs interactifs
+s_brightness = Slider(ax_brightness, 'Brightness', 0.0, 2.0, valinit=1.0)
+s_contrast = Slider(ax_contrast, 'Contrast', 0.0, 3.0, valinit=1.0)
+s_gamma = Slider(ax_gamma, 'Gamma', 0.1, 3.0, valinit=1.0)
+
+# === Case à cocher : niveaux de gris ===
+ax_checkbox = plt.axes([0.05, 0.6, 0.2, 0.1])
+checkbox = CheckButtons(ax_checkbox, ['Grayscale'], [False])
+
+# === Bouton Reset ===
+ax_reset = plt.axes([0.05, 0.5, 0.2, 0.05])
+button_reset = Button(ax_reset, 'Reset')
+
+# === Fonction de mise à jour ===
+def update(_=None):
+    # Récupération des valeurs des sliders
+    current_state['brightness'] = s_brightness.val
+    current_state['contrast'] = s_contrast.val
+    current_state['gamma'] = s_gamma.val
+
+    # Mise à jour de l’image affichée
+    img_display.set_data(apply_adjustments())
+    fig.canvas.draw_idle()
+
+# === Fonction de remise à zéro ===
+def reset(event=None):
+    # Réinitialisation de l’état
+    for key in initial_state:
+        current_state[key] = initial_state[key]
+
+    # Réinitialisation des sliders
+    s_brightness.reset()
+    s_contrast.reset()
+    s_gamma.reset()
+
+    # Désactivation du mode niveaux de gris si actif
+    checkbox.set_active(0) if checkbox.get_status()[0] else None
+
+    update()
+
+# === Gestion de la case Grayscale ===
+def toggle_grayscale(label):
+    current_state['grayscale'] = not current_state['grayscale']
+    update()
+
+# === Gestion du clavier ===
+def on_key(event):
+    if event.key == 'r':   # touche "r" pour reset
+        reset()
+
+# === Connexion des événements ===
+s_brightness.on_changed(update)
+s_contrast.on_changed(update)
+s_gamma.on_changed(update)
+checkbox.on_clicked(toggle_grayscale)
+button_reset.on_clicked(reset)
+fig.canvas.mpl_connect('key_press_event', on_key)
+
+plt.show()
+
+        </code></pre>
+    </details>
+
+
+    </main>
+</div>
+
+<footer>
+    © 2025 - Guillaume Dengreville
+</footer>
+
+</body>
+</html>
