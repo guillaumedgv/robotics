@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Derive</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_vision.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -88,9 +88,19 @@
     <aside class="sidebar">
       <h3>Vision par Ordinateur</h3>
       <ul>
-        <li><a href="/Vision/Transformation_Morpho.html">Transformation Morphologique</a></li>
-        <li><a href="/Vision/Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
-        <li><a href="/Vision/Derive.html" class="active">Dérivé</a></li>
+        <ul>
+        <li><a href="Transformation_Morpho.html">Transformation Morphologique</a></li>
+        <li><a href="Pattern_Reconnaissance.html">Reconnaissance de motifs </a></li>
+        <li><a href="Derive.html">Dérivé</a></li>
+        <li><a href="Hough.html">Transformé de Hough </a></li>
+        <li><a href="Extract_line.html">Extraction de lignes</a></li>
+        <li><a href="Convex_hull.html">Enveloppe convexe</a></li>
+        <li><a href="polygone.html">Distance aux contours & Moments</a></li>
+        <li><a href="remappinge.html">Remapping</a></li>
+        <li><a href="affine_dft.html" >Transformation affine & DFT</a></li>
+        <li><a href="Watershed.html" class="active">Algorithme Watershed</a></li>
+
+      </ul>
       </ul>
     </aside> 
 
@@ -185,7 +195,7 @@
 
   <h3>Exemple de dérivé</h3>
 
-  <img src="/Vision/scharr.png">
+  <img src="scharr.png">
         <div class="legend">
             <p>
                 Dérivé avec Scharr
@@ -281,7 +291,7 @@ K_y =
 
 <h3>Exemple</h3>
 
-  <img src="/Vision/laplace.png"> 
+  <img src="laplace.png"> 
         <div class="legend">
             <p>
                 Dérivé seconde respectivement avec Laplacian() et 2 x Sobel() 
@@ -364,7 +374,7 @@ G = \sqrt{G_x^2 + G_y^2}, \quad
 
 <h3>Exemple</h3>
 
-  <img src="/Vision/canny.png"> 
+  <img src="canny.png"> 
         <div class="legend">
             <p>
                 Dérivé Canny() 
@@ -393,7 +403,7 @@ plt.show()
 
       <h3>Manuellement</h3>
 
-    <img src="/Vision/canny_manual.png"> 
+    <img src="canny_manual.png"> 
         <div class="legend">
             <p>
                 Dérivé Canny() 
@@ -476,4 +486,5 @@ plt.show()
 </footer>
 
 </body>
+
 </html>
