@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Articulations</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_autre.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -103,7 +103,7 @@
         <hr>
         <h3>Engrenage simple (Spur gearbox)</h3>
 
-        <img src="/Autre/spur.png">
+        <img src="spur.png">
         <div class="legend">
             <p>
                 Entrainement par engranage externe et interne (M = moteur, E = escalve)
@@ -129,7 +129,7 @@
         Par ailleurs un rapport \( r &gt; 1 \) correspond à une réduction de vitesse et à une augmentation du couple.
         </p>
 
-        <img src="/Autre/spur_gif.gif">
+        <img src="spur_gif.gif">
 
         <p>
         Les <strong>engrenages droits internes</strong> sont composés d’une roue dentée dont les dents sont situées sur la face intérieure, engrenant avec un pignon externe. Contrairement aux engrenages externes, les deux roues tournent dans le <em>même sens</em>. Cette configuration permet des ensembles plus compacts et des rapports de réduction élevés.
@@ -197,7 +197,7 @@
         <p>
             Par la suite on va parler d'engrenages simple sans prendre compte de leurs potentiels complexités. 
             Si vous voulez en apprendre plus je vous conseil le cours de <em>A. Bhatia</em>
-            Vous pouvez le retrouver <a href="/Autre/M06-031 - Basic Fundamentals of Gear Drives.pdf">ici</a>
+            Vous pouvez le retrouver <a href="M06-031 - Basic Fundamentals of Gear Drives.pdf">ici</a>
         </p>
 
         <p>
@@ -209,7 +209,7 @@
         <hr>
         <h3>Engranage planétaire (Planetory gearbox)</h3>
 
-         <img src="/Autre/planetary.png">
+         <img src="planetary.png">
         <div class="legend">
             <p>
                 Entrainement par engranage planétaire 
@@ -242,7 +242,7 @@
         et \( Z_s \) et \( Z_c \) le nombre de dents du soleil et de la couronne.
         </p>
 
-        <img src="/Autre/planetary_gif.gif">
+        <img src="planetary_gif.gif">
         <div class="legend">
             <p>
                 Entrainement par engranage planétaire (Soleil moteurs & Porte-satellite sortie)
@@ -322,7 +322,7 @@
         <hr>
         <h3>Engranage harmonique (harmonic gearbox)</h3>
 
-        <img src="/Autre/harmonic.png">
+        <img src="harmonic.png">
         <div class="legend">
             <p>
                 Entrainement par engranage harmonique
@@ -361,7 +361,7 @@
         \( \omega_{entrée} \) la vitesse angulaire du générateur d’onde, et \( \omega_{sortie} \) celle du flexspline.
         </p>
 
-         <img src="/Autre/HarmonicDriveAni.gif">
+         <img src="HarmonicDriveAni.gif">
         <div class="legend">
             <p>
                 Entrainement par engranage harmonique
@@ -394,7 +394,7 @@
         <hr>
         <h3>Cumule Harmonique et Planétaire</h3>
 
-        <img src="/Autre/cumule.webp">
+        <img src="cumule.webp">
         <div class="legend">
             <p>
                 Exemple d'entrainement par cumule d'engranage harmonique & planétaire
@@ -410,7 +410,7 @@
         <h3>Engranage cycloidal (cycloidal gearbox)</h3>
 
 
-          <img src="/Autre/cycloidal_img.jpg">
+          <img src="cycloidal_img.jpg">
         <div class="legend">
             <p>
                 Entrainement par engranage harmonique
@@ -436,7 +436,7 @@
         où \( N \) est le nombre de dents de l’anneau extérieur, \( n \) le nombre de lobes du disque cycloïdal.
         </p>
         
-        <img src="/Autre/Cycloidal_drive.gif">
+        <img src="Cycloidal_drive.gif">
         <div class="legend">
             <p>
                 Entrainement par engranage harmonique
@@ -458,7 +458,7 @@
         <hr>
         <h3>Entrainement par cabestan (capstan drive)</h3>
 
-        <img src="/Autre/capstain.png">
+        <img src="capstain.png">
         <div class="legend">
             <p>
                 Entrainement par engranage harmonique
@@ -495,7 +495,7 @@
         important pour un vitesse assez lente de base.
         </p>
 
-        <img src="/Autre/capstan_autre.jpg">
+        <img src="capstan_autre.jpg">
         <div class="legend">
             <p>
                 Entrainement par engranage harmonique
@@ -526,4 +526,5 @@
   </footer>
 
 </body>
+
 </html>
