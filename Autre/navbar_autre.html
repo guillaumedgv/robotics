@@ -1,0 +1,63 @@
+<nav>
+  <ul>
+    <li><a href="../index.html" >Accueil</a></li>
+    <li>
+      <a href="#">Modélisation Systèmes et Robotique ▼</a>
+      <ul>
+        <li><a href="../Modelisation/Robotique_theorique/Robotique_theorique.html">Robotique Théorique</a></li>
+        <li><a href="../Modelisation/Commande_optimale.html">Commande Optimale</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#">Projets Hardware ▼</a>
+      <ul>
+        <li><a href="../Projet/Delta.html">Robot Delta</a></li>
+        <li><a href="../Projet/Gravity_Cancel.html">Robot Anti Gravité</a></li>
+        <li><a href="../Projet/Balance.html">Robot Self Balancing</a></li>
+      </ul>
+    </li>
+     <li>
+      <a href="Vision_ordinateur.html" class="active">Vision par Ordinateur </a>
+    </li>
+    <li>
+      <a href="#">Automatisme et Automatique ▼</a>
+      <ul>
+        <li><a href="../Automatique/Automatique_lineaire.html">Automatique linéaire</a></li>
+        <li><a href="../Automatique/Automatique_non_lineaire.html">Automatique non-linéaire</a></li>
+        <li><a href="../Automatique/PLC_Com/PLC_COM.html">PLC : Protocole de COM </a></li>
+        <li><a href="../Automatique/PLC_Composants/Composant.html">PLC : Composant</a></li>
+        <li><a href="../Automatique/PLC_Language/PLC_Prog.html">PLC : Language de Programmation </a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#">Autres (Hardware et Technique) ▼</a>
+      <ul>
+        <li><a href="Motorisation.html">Motorisation</a></li>
+        <li><a href="Articulation.html">Articulation</a></li>
+      </ul>
+    </li>
+    <li><a href="../A_propos.html">À propos</a></li>
+    <!-- Night mode toggle button inside navbar -->
+     <li class="night-mode-btn">
+      <button id="themeToggle">🌙 Night Mode</button>
+    </li>
+  </ul>
+</nav>
+
+<script>
+  // Toggle night mode
+  const themeToggle = document.getElementById("themeToggle"); // On récupère dans le document l’élément qui a l’id="themeToggle" >> déclencheur du changement de thème
+  themeToggle.addEventListener("click", () => { // On écoute le clic sur ce bouton.
+    document.body.classList.toggle("night"); // Cette ligne ajoute ou enlève la classe night sur la balise <body>
+    if(document.body.classList.contains("night")){
+      themeToggle.textContent = "☀️ Day Mode";
+    } else {
+      themeToggle.textContent = "🌙 Night Mode";
+    }
+  });
+</script>
+
+
+
+
+
