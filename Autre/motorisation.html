@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Motorisations</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <script>
   // Load navbar dynamically from external file
-  fetch("/navbar.html")
+  fetch("navbar_autre.html")
     .then(response => response.text())  // Read the content as text
     .then(data => {
       // Insert the navbar HTML into the page
@@ -103,7 +103,7 @@
 
     <h3>Moteur DC brushed (à balais)</h3>
 
-    <img src="/Autre/moteur_cc.png">
+    <img src="moteur_cc.png">
 
 
     <p>
@@ -142,7 +142,7 @@
    
     <h3>Moteur Brushless DC (CC sans balais)</h3>
 
-    <img src="/Autre/moteur_cc_brushless.png">
+    <img src="moteur_cc_brushless.png">
     <p>
     Le moteur CC sans balais (BLDC) fonctionne sans collecteur ni balais : la commutation du courant
     est assurée électroniquement par un contrôleur. Le rotor est constitué d’aimants permanents,
@@ -205,7 +205,7 @@
 
     <h3>Moteur pas à pas (Stepper motor)</h3>
 
-    <img src="/Autre/stepper.png">
+    <img src="stepper.png">
 
     <p>
     Le moteur pas à pas est un type particulier de moteur brushless <em>inrunner</em> dans lequel le rotor se déplace
@@ -243,7 +243,7 @@
 
     <h3>Moteur synchrone</h3>
 
-    <img src="/Autre/moteur_synchrone.png">
+    <img src="moteur_synchrone.png">
     <p>
     Le moteur synchrone fonctionne grâce à l'interaction entre un champ magnétique tournant créé par le stator alimenté en courant alternatif,
      et le champ magnétique constant du rotor alimenté en courant DC (agis comme un aimant permanant).
@@ -280,7 +280,7 @@
 
     <h3>Moteur asynchrone (ou à induction)</h3>
 
-    <img src="/Autre/moteur_asynchrone.png">
+    <img src="moteur_asynchrone.png">
     <p>
     Le moteur asynchrone fonctionne grâce à un champ magnétique tournant créé par le stator,
     alimenté en courant alternatif. Ce champ induit des courants électriques dans le rotor
@@ -338,7 +338,7 @@
 
     <h3>Moteur synchrone à réluctance (SynRM)</h3>
 
-    <img src="/Autre/moteur_synRM.png">
+    <img src="moteur_synRM.png">
     <p>
     Le moteur synchrone à réluctance fonctionne grâce à un champ magnétique tournant créé par le stator,
     alimenté en courant alternatif. Le rotor, constitué de tôles ferromagnétiques sans aimants ni
@@ -370,7 +370,7 @@
 
     <h3>Moteur synchrone à reluctance & aimants permanents intérieurs (IPMSynRM)</h3>
 
-    <img src="/Autre/IPMsynRM.png">
+    <img src="IPMsynRM.png">
     <p>
     Le moteur IPM-SynRM (Interior Permanent Magnet Synchronous Reluctance Motor) combine
     le fonctionnement d’un moteur synchrone à réluctance et celui d’un moteur synchrone à
@@ -403,7 +403,7 @@
 
    <h3>Moteur à flux axial</h3>
 
-   <img src="/Autre/moteur_axial.png">
+   <img src="moteur_axial.png">
     <p>
     Le moteur à flux axial se distingue par une géométrie différente des moteurs électriques
     classiques à flux radial. Le champ magnétique circule parallèlement à l’axe de rotation,
@@ -463,7 +463,7 @@
 
     <h3>Moteur linéaire</h3>
 
-    <img src="/Autre/motor_linear.png">
+    <img src="motor_linear.png">
 
     <p>
     Le moteur linéaire est essentiellement un moteur électrique déroulé et "à plat" : au lieu
@@ -493,7 +493,7 @@
 
   
     <h3>Servomoteurs</h3>
-    <img src="/Autre/servo.jpg">
+    <img src="servo.jpg">
     <p>
     Un servomoteur est un moteur électrique associé à un système de contrôle qui permet de réguler
     précisément la position, la vitesse ou le couple de l’arbre moteur. Il peut être basé sur un moteur
@@ -509,7 +509,7 @@
 
    <h3>Glissement (Slip) dans les moteurs électriques</h3>
 
-   <img src="/Autre/slip.png">
+   <img src="slip.png">
     <p>
     Le glissement (<em>slip</em>) est un concept fondamental des moteurs à induction. Il correspond à la
     différence relative entre la vitesse du champ magnétique tournant créé par le stator
@@ -551,7 +551,7 @@
 
     <h3>Champ magnétique tournant (RMF – Rotating Magnetic Field)</h3>
 
-    <img src="/Autre/RMF.png">
+    <img src="RMF.png">
     <p>
     Le champ magnétique tournant (RMF) est le principe fondamental à la base du fonctionnement
     de la majorité des moteurs à courant alternatif. Il est créé par des enroulements du stator
@@ -784,7 +784,7 @@
 
     <h3>Commande de moteur par trois boucles : position, vitesse et couple</h3>
 
-    <img src="/Autre/commande.png">
+    <img src="commande.png">
 
     <p>
     La commande avancée des moteurs électriques utilise souvent une architecture en trois boucles
@@ -840,12 +840,12 @@
     </p>
 
      <p>
-      Un cours pour comprendre plus en détail : <a href="https://fr.scribd.com/doc/100451662/Variateurs-de-vitesse-De-la-regulation-cascade-a-la-commande-vectorielle-PSIM?utm_source=chatgpt.com">ici</a>.
+      Un cours pour comprendre plus en détail : <a href="https://fr.scribd.com/doc/100451662/Variateurs-de-vitesse-De-la-regulation-cascade-a-la-commande-vectorielle-PSIM">ici</a>.
     </p>
 
    <h3>Redresseur</h3>
 
-   <img src="/Autre/redresseur.png">
+   <img src="redresseur.png">
     <p>
     Le redresseur convertit une tension alternative (AC) en tension continue (DC). Il est
     généralement réalisé à l’aide de diodes ou de thyristors. La valeur moyenne de la tension
@@ -863,7 +863,7 @@
 
     <h3>Bus continu (DC Link)</h3>
 
-    <img src="/Autre/dc_bus.png">
+    <img src="dc_bus.png">
     <p>
     Le bus continu est la partie intermédiaire d’un variateur de vitesse située entre le
     redresseur et l’onduleur. Il sert à stocker et stabiliser l’énergie électrique sous forme
@@ -888,7 +888,7 @@
 
     <h3>Onduleur</h3>
 
-    <img src="/Autre/onduleur.png">
+    <img src="onduleur.png">
     <p>
     L’onduleur transforme une tension continue en une tension alternative de fréquence et
     d’amplitude contrôlées. Il utilise des interrupteurs électroniques (IGBT, MOSFET) commandés
@@ -902,7 +902,7 @@
 
     <h3>Variateur de vitesse (VFD)</h3>
 
-    <img src="/Autre/vfd.png">
+    <img src="vfd.png">
 
     <p>
     Un variateur de vitesse (VFD – Variable Frequency Drive) combine un redresseur, un bus
@@ -930,4 +930,5 @@
   </footer>
 
 </body>
+
 </html>
