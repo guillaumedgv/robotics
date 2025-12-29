@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Motorisations</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <main class="content">
+
+    <h1>Motorisations</h1>
+
+    <p>
+        La motorisation désigne l’ensemble des systèmes mécaniques ou électriques qui permettent de transformer une source d’énergie en mouvement. 
+        La motorisation éléctrique en particulier joue un rôle essentiel dans de nombreux domaines pointus, les machines peuvent fonctionner plus rapidement, avec plus de précision et de régularité...
+    </p>
+
+    <p>
+        La technologie de ce type de moteur a beacuoup évolué au court des ages et elle continue aujourd'hui. Je vais donc présenter ici un résumé
+        des différentes technologie de motorisation disponible sur le marché.
+    </p>
+
+    <hr>
+    <h2>Moteurs DC (ou CC en français)</h2>
+
+    <h3>Moteur DC brushed (à balais)</h3>
+
+    <img src="/Autre/moteur_cc.png">
+
+
+    <p>
+    Le moteur DC à balais fonctionne grâce à un collecteur et des balais qui assurent
+    l’inversion du courant dans l’induit. Lorsqu’un courant traverse les bobines du rotor 
+    placées dans le champ magnétique créé par le stator (aimants permanant pour les très petit moteurs ou électroaimants créé 
+    avec plus de bobinage), une force électromagnétique apparaît (force de Laplace) qui provoque 
+    la rotation du rotor ;  Cette commutation mécanique permet de maintenir
+    la rotation.
+    </p>
+
+    <p>
+      Dans le cas ou le champ magnétique est créé avec un éléctroaimant, il existe deux configurations : 
+      en parallele (ou shunt) ou en serie. 
+      <ul>
+        <li>
+          La configuration en serie a un bon couple de demarrage mais il diminue fortement avec la charge
+        </li>
+        <li>
+          La configuration a un couple de démarrage plus faible mais a une vitesse presque constante peu import la charge
+        </li>
+      </ul>
+    </p>
+
+    <p>A cause de la force EMF de retour, un demarreur approprié est nécéssaire pour les gros moteurs</p>
+
+    <p>
+    Il est simple à commander mais présente des inconvénients comme l’usure
+    des balais, des pertes mécaniques et des étincelles.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=A3b3Km5KVXs">ici</a>.
+    </p>
+
+   
+    <h3>Moteur Brushless DC (CC sans balais)</h3>
+
+    <img src="/Autre/moteur_cc_brushless.png">
+    <p>
+    Le moteur CC sans balais (BLDC) fonctionne sans collecteur ni balais : la commutation du courant
+    est assurée électroniquement par un contrôleur. Le rotor est constitué d’aimants permanents,
+    tandis que le stator comporte des bobinages fixes. Lorsque le contrôleur alimente successivement
+    les bobines du stator, il crée un champ magnétique tournant qui interagit avec les aimants du rotor,
+    générant une force électromagnétique qui entraîne la rotation du rotor. Cette
+    commutation électronique permet une rotation continue, plus fiable et plus efficace que dans
+    un moteur à balais.
+    </p>
+
+    <p>
+    La commutation nécessite la connaissance de la position du rotor, qui peut être obtenue de deux manières :
+    <ul>
+      <li>
+        Avec capteurs (capteurs Hall) : ils fournissent directement la position du rotor, facilitant le
+        démarrage et le contrôle à basse vitesse
+      </li>
+      <li>
+        Sans capteurs (sensorless) : la position du rotor est estimée à partir de la force électromotrice
+        de retour (EMF), ce qui simplifie la construction mais complique le démarrage
+      </li>
+    </ul>
+    </p>
+
+  <p>
+  Dans de nombreux moteurs brushless, c’est la partie extérieure (la cloche) qui tourne, un choix de
+  conception appelé <em>outrunner</em>. Cette architecture présente plusieurs avantages :
+  
+  
+  <ul>
+    <li>
+      <strong>Couple plus élevé</strong> : les aimants étant placés plus loin de l’axe de rotation, le bras de levier
+      est plus grand, ce qui augmente le couple à courant égal
+    </li>
+    <li>
+      <strong>Vitesse plus faible</strong> : le moteur fournit naturellement une vitesse de rotation inférieure,
+      souvent suffisante sans réducteur mécanique
+    </li>
+    <li>
+      <strong>Meilleure dissipation thermique</strong> : la cloche tournante favorise la ventilation et l’évacuation
+      de la chaleur produite par les bobinages du stator
+    </li>
+    <li>
+      <strong>Compacité mécanique</strong> : pour une même puissance, cette configuration permet un moteur plus
+      court et mieux adapté aux applications à fort couple
+    </li>
+  </ul>
+  </p>
+
+
+    <p>
+    Grâce à l’absence de balais, le moteur CC sans balais offre un meilleur rendement, une durée de vie
+    plus longue et moins d’entretien, mais il nécessite impérativement un contrôleur électronique
+    adapté pour le démarrage et le fonctionnement.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=bCEiOnuODac">ici</a>.
+    </p>
+
+    <h3>Moteur pas à pas (Stepper motor)</h3>
+
+    <img src="/Autre/stepper.png">
+
+    <p>
+    Le moteur pas à pas est un type particulier de moteur brushless <em>inrunner</em> dans lequel le rotor se déplace
+    par incréments angulaires fixes appelés <em>pas</em>. Le stator est composé de plusieurs phases
+    bobinées, alimentées dans un ordre précis afin d’aligner le rotor (souvent à dents ou à aimants
+    permanents) sur le champ magnétique produit. Chaque impulsion électrique correspond à un
+    déplacement angulaire déterminé, ce qui permet un positionnement précis sans nécessiter de
+    capteur de position.
+    </p>
+
+    <p>
+    La principale différence entre un moteur pas à pas et un moteur brushless classique réside dans
+    leur mode de fonctionnement :
+    <ul>
+      <li>
+        Le moteur pas à pas est conçu pour le <strong>positionnement précis</strong>, avec une rotation
+        discrète et un couple élevé à basse vitesse, mais un rendement plus faible et une vitesse limitée
+      </li>
+      <li>
+        Le moteur brushless classique est optimisé pour une <strong>rotation continue</strong>, un meilleur
+        rendement, des vitesses élevées et un contrôle fin du couple et de la vitesse, généralement
+        avec une boucle de régulation
+      </li>
+    </ul>
+    </p>
+
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=eyqwLiowZiU">ici</a>.
+    </p>
+
+
+    <hr>
+    <h2>Moteurs AC (ou triphasés en français)</h2>
+
+    <h3>Moteur synchrone</h3>
+
+    <img src="/Autre/moteur_synchrone.png">
+    <p>
+    Le moteur synchrone fonctionne grâce à l'interaction entre un champ magnétique tournant créé par le stator alimenté en courant alternatif,
+     et le champ magnétique constant du rotor alimenté en courant DC (agis comme un aimant permanant).
+    Le rotor, s’aligne sur ce champ magnétique et tourne à la même vitesse que celui-ci peut importe la charge appliqué.
+    </p>
+
+    <p>
+    Le moteur synchrone ne démarre généralement pas seul lorsqu’il est directement alimenté
+    sur le réseau ; il nécessite un système de démarrage (souvent une cage à écureuil) ou un variateur de vitesse pour
+    atteindre la vitesse synchrone et assurer la stabilité de rotation.
+    </p>
+
+    <p>
+    Il offre un excellent rendement, une vitesse parfaitement constante, une très bonne précision et un bon contrôle du
+    couple, mais son pilotage est plus complexe et requiert une électronique de commande
+    adaptée, notamment dans les applications modernes à vitesse variable.
+    </p>
+
+    <p>
+      La vitesse de synchronisme est donnée par :
+    </p>
+    <p>
+    \[
+    n_s = \frac{60 \cdot f}{p}
+    \]
+    </p>
+
+     <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=Vk2jDXxZIhs">ici</a>.
+    </p>
+
+    
+    
+
+    <h3>Moteur asynchrone (ou à induction)</h3>
+
+    <img src="/Autre/moteur_asynchrone.png">
+    <p>
+    Le moteur asynchrone fonctionne grâce à un champ magnétique tournant créé par le stator,
+    alimenté en courant alternatif. Ce champ induit des courants électriques dans le rotor
+    (généralement en cage d’écureuil), ce qui génère à son tour un champ
+    magnétique qui interagit avec celui du stator et produit le couple moteur. Le rotor tourne
+    à une vitesse légèrement inférieure à celle du champ tournant : cette différence de vitesse,
+    appelée <em>slip</em> (ou glissmeent en français), est indispensable au fonctionnement du moteur.
+    </p>
+
+
+    <p>
+    Le moteur asynchrone démarre naturellement lorsqu’il est alimenté sur le réseau électrique,
+    mais il absorbe un courant de démarrage important. Ainsi il est commun de gérer le depart d'un tel moteur avec un commutateur pour changer 
+    la connexion entre les bobines entre etoile ou delta. 
+    </p>
+
+    <p>
+    Il est très utilisé dans l’industrie (90% des moteurs) grâce à sa grande robustesse, son faible coût et sa bonne
+    fiabilité, cependant sa vitesse dépend de la charge et de la fréquence d’alimentation (très commun d'utiliser un VFD pour le controler), et son
+    rendement est généralement inférieur à celui d’un moteur synchrone à aimants permanents.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=AQqyGNOP_3o">ici</a>
+      et une autre <a href="https://www.youtube.com/watch?v=km8MSWm39Z0">là</a>.
+    </p>
+
+    <p>
+    Les moteurs asynchrones peuvent avoir deux types de rotors principaux : le rotor à cage
+    d’écureuil et le rotor bobiné avec bagues (Slip Ring). Ces deux conceptions influencent
+    la manière dont le moteur démarre et développe son couple.
+    </p>
+
+    <ul>
+      <li>
+        <strong>Rotor à cage d’écureuil :</strong> le rotor est constitué de barres conductrices
+        en aluminium ou cuivre court-circuitées aux extrémités. Il est robuste, simple et peu
+        coûteux. Cependant, le couple de démarrage est limité, et le courant de démarrage peut
+        être très élevé. C’est la conception la plus répandue dans l’industrie pour sa fiabilité.
+      </li>
+      <li>
+        <strong>Rotor bobiné à bagues (Slip Ring) :</strong> le rotor comporte des bobines
+        alimentées via des bagues et des balais. Cette conception permet d’insérer des résistances
+        externes dans le circuit rotorique, ce qui améliore le couple de démarrage et réduit le
+        courant d’appel. Elle est idéale pour les moteurs de forte puissance ou les applications
+        nécessitant un démarrage progressif.
+      </li>
+    </ul>
+
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=JPn5Ou-N0b0">ici</a>.
+    </p>
+
+
+    <h3>Moteur synchrone à réluctance (SynRM)</h3>
+
+    <img src="/Autre/moteur_synRM.png">
+    <p>
+    Le moteur synchrone à réluctance fonctionne grâce à un champ magnétique tournant créé par le stator,
+    alimenté en courant alternatif. Le rotor, constitué de tôles ferromagnétiques sans aimants ni
+    bobinages, présente des chemins de réluctance variables. Il s’aligne naturellement sur le champ
+    magnétique du stator de manière à minimiser la réluctance, ce qui génère le couple moteur. Le rotor
+    tourne exactement à la vitesse du champ tournant : il n’y a donc pas de glissement, il est synchrone.
+    </p>
+
+    <p>
+    Le moteur SynRM ne peut pas démarrer directement sur le réseau électrique ; il nécessite
+    un variateur de vitesse (VFD) pour créer le champ tournant et assurer le démarrage et le contrôle
+    du couple. Le pilotage vectoriel permet d’exploiter efficacement l’anisotropie du rotor et
+    d’optimiser les performances du moteur.
+    </p>
+
+    <p>
+    Le moteur synchrone à réluctance est de plus en plus utilisé dans l’industrie en raison de sa
+    robustesse, de l’absence d’aimants permanents (pas de terres rares), de son bon rendement (meilleur que les moteurs à induction) et de
+    son faible coût de maintenance. Sa vitesse est indépendante de la charge et uniquement liée à la
+    fréquence d’alimentation imposée par le variateur, ce qui en fait une alternative intéressante aux
+    moteurs asynchrones et synchrones à aimants permanents.
+    </p>
+
+     <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=-1fj2ZwBUug">ici</a>.
+    </p>
+
+    
+
+    <h3>Moteur synchrone à reluctance & aimants permanents intérieurs (IPMSynRM)</h3>
+
+    <img src="/Autre/IPMsynRM.png">
+    <p>
+    Le moteur IPM-SynRM (Interior Permanent Magnet Synchronous Reluctance Motor) combine
+    le fonctionnement d’un moteur synchrone à réluctance et celui d’un moteur synchrone à
+    aimants permanents. Le stator, alimenté en courant alternatif, crée un champ magnétique
+    tournant, tandis que le rotor comporte des aimants permanents intégrés à l’intérieur de sa
+    structure, disposés de manière à créer une anisotropie de réluctance. Le couple moteur est
+    donc produit à la fois par l’interaction des aimants avec le champ statorique et par l’effet de
+    réluctance. Le rotor tourne exactement à la vitesse du champ tournant, sans glissement.
+    </p>
+
+    <p>
+    Comme les autres moteurs synchrones, le moteur IPM-SynRM ne peut pas démarrer
+    directement sur le réseau électrique. Il nécessite un variateur de vitesse (VFD) et un
+    pilotage vectoriel pour assurer le démarrage, le contrôle précis du couple et l’exploitation
+    optimale des deux composantes de couple (aimants et réluctance).
+    </p>
+
+    <p>
+    Le moteur IPM-SynRM offre un excellent compromis entre rendement, densité de puissance
+    et robustesse mécanique. L’utilisation d’aimants internes permet une meilleure tenue
+    mécanique à haute vitesse et un fonctionnement sûr en affaiblissement de flux. Il est
+    largement utilisé dans les applications industrielles à haut rendement, la traction
+    électrique et les entraînements à vitesse variable.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=esUb7Zy5Oio">ici</a>.
+    </p>
+    
+
+   <h3>Moteur à flux axial</h3>
+
+   <img src="/Autre/moteur_axial.png">
+    <p>
+    Le moteur à flux axial se distingue par une géométrie différente des moteurs électriques
+    classiques à flux radial. Le champ magnétique circule parallèlement à l’axe de rotation,
+    entre des disques de rotor et de stator. Le stator, alimenté en courant alternatif, crée un
+    champ magnétique tournant qui interagit avec le rotor (souvent équipé d’aimants permanents),
+    générant le couple moteur. Selon la technologie utilisée, le moteur à flux axial fonctionne
+    généralement en régime synchrone et sans glissement.
+    </p>
+
+    <p>
+    Les moteurs à flux axial peuvent être réalisés sous plusieurs architectures :
+    </p>
+    <ul>
+      <li>
+        <strong>Simple rotor / simple stator</strong> : conception compacte et simple
+      </li>
+      <li>
+        <strong>Double rotor / simple stator</strong> : couple plus élevé et meilleure utilisation du flux
+      </li>
+      <li>
+        <strong>Simple rotor / double stator</strong> : meilleure répartition des efforts et rendement accru
+      </li>
+    </ul>
+
+    <p>
+    Le moteur à flux axial nécessite généralement un variateur de vitesse pour le démarrage
+    et le contrôle précis du couple et de la vitesse. Grâce à son grand diamètre actif, il offre
+    une forte densité de couple à basse vitesse, ce qui permet souvent de se passer de
+    réducteur mécanique.
+    </p>
+
+    <ul>
+      <li>
+        <strong>Très forte densité de couple</strong> pour un volume réduit
+      </li>
+      <li>
+        <strong>Format plat et compact</strong>, idéal pour les applications à espace limité
+      </li>
+      <li>
+        <strong>Rendement élevé</strong>, notamment avec des aimants permanents
+      </li>
+      <li>
+        <strong>Refroidissement plus complexe</strong> et coût de fabrication généralement plus élevé
+      </li>
+    </ul>
+
+    <p>
+    Les moteurs à flux axial sont utilisés dans des applications exigeantes telles que la
+    mobilité électrique, l’aéronautique, la robotique avancée et les entraînements directs à
+    fort couple.
+    </p>
+
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=8EEVPVNJHjM">ici</a>.
+    </p>
+
+    <h3>Moteur linéaire</h3>
+
+    <img src="/Autre/motor_linear.png">
+
+    <p>
+    Le moteur linéaire est essentiellement un moteur électrique déroulé et "à plat" : au lieu
+    de produire un mouvement rotatif, il génère un mouvement linéaire direct. Le stator et le
+    rotor sont disposés en lignes parallèles, et l’interaction du champ magnétique avec le
+    courant dans les bobines crée une force linéaire selon la loi de Lorentz. Il peut être
+    réalisé en version synchrone (avec aimants permanents ou réluctance) ou asynchrone
+    (induction), selon l’application.
+    </p>
+
+    <p>
+    Les principaux avantages et caractéristiques des moteurs linéaires sont :
+    Précision de positionnement élevée, particulièrement en version synchrone,
+        souvent utilisée dans la robotique ou les machines-outils, pas besoin de réducteurs ou de mécanismes de
+        conversion de mouvement, ce qui réduit les pertes et l’usure et une large gamme de vitesses et forces.
+    </p>
+
+    <p>
+    Les moteurs linéaires sont couramment utilisés dans les systèmes de transport automatisés,
+    les machines-outils CNC, la robotique de précision, les actionneurs industriels et les
+    applications nécessitant un mouvement rapide et précis sans transmission mécanique.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=uf_Z57gAJTc">ici</a>.
+    </p>
+
+  
+    <h3>Servomoteurs</h3>
+    <img src="/Autre/servo.jpg">
+    <p>
+    Un servomoteur est un moteur électrique associé à un système de contrôle qui permet de réguler
+    précisément la position, la vitesse ou le couple de l’arbre moteur. Il peut être basé sur un moteur
+    CC, brushless ou synchrone, et inclut généralement un encodeur ou un capteur de position pour
+    fournir un retour d’information au contrôleur. Grâce à ce retour et à l’électronique de commande,
+    le servomoteur peut atteindre et maintenir une position exacte, effectuer des mouvements
+    précis et rapides, et ajuster le couple en fonction de la charge. 
+    </p>
+
+
+    <hr>
+    <h2>Concepts importants</h2>
+
+   <h3>Glissement (Slip) dans les moteurs électriques</h3>
+
+   <img src="/Autre/slip.png">
+    <p>
+    Le glissement (<em>slip</em>) est un concept fondamental des moteurs à induction. Il correspond à la
+    différence relative entre la vitesse du champ magnétique tournant créé par le stator
+    (vitesse de synchronisme) et la vitesse réelle du rotor. Cette différence de vitesse est
+    indispensable pour induire des courants dans le rotor et permettre la production du couple
+    moteur.
+    </p>
+
+    <ul>
+      <li>
+        <strong>Slip nul</strong> : si le rotor tournait exactement à la vitesse de synchronisme, aucun courant
+        ne serait induit dans le rotor et le couple serait nul
+      </li>
+      <li>
+        <strong>Slip au démarrage</strong> : lorsque le rotor est à l’arrêt, le glissement est maximal
+        (slip = 1), ce qui entraîne un courant élevé et un couple important
+      </li>
+      <li>
+        <strong>Slip en régime nominal</strong> : en fonctionnement normal, le glissement est faible
+        (quelques pourcents), et il augmente avec la charge mécanique
+      </li>
+    </ul>
+
+    <p>
+    Le glissement est généralement défini par la relation :
+    </p>
+    <p>
+    \[
+    s = \frac{n_s - n}{n_s}
+    \]
+    </p>
+
+    <p>
+    où <strong>n<sub>s</sub></strong> est la vitesse de synchronisme et <strong>n</strong> la vitesse du rotor. Le glissement
+    influence directement le couple, le rendement et les pertes du moteur, et constitue la
+    principale différence de fonctionnement entre les moteurs asynchrones et synchrones.
+    </p>
+
+
+    <h3>Champ magnétique tournant (RMF – Rotating Magnetic Field)</h3>
+
+    <img src="/Autre/RMF.png">
+    <p>
+    Le champ magnétique tournant (RMF) est le principe fondamental à la base du fonctionnement
+    de la majorité des moteurs à courant alternatif. Il est créé par des enroulements du stator
+    alimentés par des courants alternatifs déphasés (généralement triphasés). La superposition
+    de ces champs magnétiques variables engendre un champ résultant qui tourne dans l’espace
+    à une vitesse constante appelée vitesse de synchronisme.
+    </p>
+
+    <ul>
+      <li>
+        <strong>Création du RMF</strong> : des courants sinusoïdaux déphasés de 120° dans les bobinages
+        du stator produisent un champ magnétique tournant uniforme
+      </li>
+      <li>
+        <strong>Vitesse du RMF</strong> : elle dépend uniquement de la fréquence d’alimentation et du
+        nombre de paires de pôles, selon la relation
+        \[
+        n_s = \frac{60 \cdot f}{p}
+        \]
+      </li>
+      <li>
+        <strong>Interaction avec le rotor</strong> : le RMF induit des courants dans le rotor (moteur
+        asynchrone) ou s’accroche au champ du rotor (moteur synchrone) pour produire le couple
+      </li>
+    </ul>
+
+    <p>
+    Le nombre de champs magnétiques (ou plus précisément le nombre de pôles du champ tournant)
+    dans un moteur électrique est déterminé par la manière dont les bobinages du stator sont
+    conçus et connectés. En modifiant la disposition des enroulements ou leur mode de connexion
+    (par exemple par un couplage Dahlander), il est possible de changer le nombre de pôles et
+    donc la vitesse de synchronisme du champ magnétique tournant. Dans les systèmes modernes
+    pilotés par variateur de vitesse, le nombre de pôles est généralement fixe, et la vitesse est
+    principalement contrôlée en ajustant la fréquence d’alimentation, tandis que la structure
+    du bobinage fixe le nombre de champs disponibles.
+    </p>
+
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=wqrGHeuxUvI">ici</a>.
+    </p>
+
+    <h3>Force électromotrice de retour (Back EMF)</h3>
+
+    <p>
+    La force électromotrice de retour (<em>Back EMF</em>) est la tension induite dans les enroulements
+    d’un moteur lorsque le rotor tourne dans un champ magnétique. Selon la loi de Faraday–Lenz,
+    elle s’oppose à la tension d’alimentation et augmente avec la vitesse du moteur, jouant ainsi
+    un rôle clé dans son autorégulation.
+    </p>
+
+    <p>
+    Elle est proportionnelle à la vitesse de rotation :
+    </p>
+
+    <p>
+    \[
+    E = k_e \cdot \omega
+    \]
+    </p>
+
+    <p>
+    Le courant absorbé par le moteur dépend alors de la différence entre la tension appliquée et
+    la Back EMF :
+    </p>
+
+    <p>
+    \[
+    I = \frac{V - E}{R}
+    \]
+    </p>
+
+    <p>
+    À vide, la Back EMF est élevée et le courant faible ; sous charge, la vitesse diminue, la Back
+    EMF baisse, le courant augmente et le couple produit permet de compenser la charge. Lorsque
+    le moteur est à l’arrêt, la Back EMF est nulle, ce qui explique le courant de démarrage élevé.
+    </p>
+
+    <p>
+    La présence de la Back EMF influence directement la conception des moteurs électriques.
+    Elle impose un dimensionnement précis des enroulements (résistance et inductance) afin de
+    limiter le courant de démarrage et les pertes Joule. La constante de Back EMF \(k_e\) est liée
+    au nombre de spires, au flux magnétique et à la géométrie du moteur, ce qui conditionne le
+    compromis entre vitesse maximale et couple disponible. Elle impacte également le choix des
+    aimants, du circuit magnétique et de l’électronique de commande, qui doivent être capables
+    de fournir la tension nécessaire pour dépasser la Back EMF à haute vitesse et assurer un
+    fonctionnement stable et efficace sur toute la plage de fonctionnement.
+    </p>
+
+     <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=5mf4NmmLWnE">ici</a>.
+    </p>
+
+    <h3>Équations de base pour les moteurs électriques</h3>
+
+    <p>
+    Pour concevoir, dimensionner ou analyser un moteur électrique, plusieurs équations fondamentales
+    sont utilisées, couvrant les aspects électriques, mécaniques et magnétiques.
+    </p>
+
+    <h4>1. Vitesse et synchronisme (moteurs AC)</h4>
+    <p>
+    La vitesse de synchronisme du champ magnétique tournant :
+    </p>
+    <p>
+    \[
+    n_s = \frac{60 \cdot f}{p}
+    \]
+    où <strong>n_s</strong> est en tr/min, <strong>f</strong> la fréquence en Hz, et <strong>p</strong> le nombre de paires de pôles.
+    </p>
+    <p>
+    Pour les moteurs asynchrones, le glissement (<em>slip</em>) est :
+    </p>
+    <p>
+    \[
+    s = \frac{n_s - n}{n_s}
+    \]
+    où <strong>n</strong> est la vitesse réelle du rotor.
+    </p>
+
+    <h4>2. Tension et courant</h4>
+    <p>
+    Pour un moteur DC, la force contre-électromotrice (Back EMF) :
+    </p>
+    <p>
+    \[
+    E = k_e \cdot \omega
+    \]
+    et le courant dans les enroulements :
+    \[
+    I = \frac{V - E}{R}
+    \]
+    où <strong>V</strong> est la tension d’alimentation, <strong>R</strong> la résistance du bobinage, et <strong>ω</strong> la vitesse angulaire.
+    </p>
+
+    <h4>3. Couple et puissance</h4>
+    <p>
+    Le couple électromagnétique est proportionnel au courant :
+    </p>
+    <p>
+    \[
+    T = k_t \cdot I
+    \]
+    </p>
+    <p>
+    La puissance mécanique développée par le moteur :
+    </p>
+    <p>
+    \[
+    P = T \cdot \omega
+    \]
+    où <strong>P</strong> est en watts et <strong>ω</strong> en rad/s.
+    </p>
+
+    <h4>4. Énergie et flux magnétique</h4>
+    <p>
+    La force électromotrice dans un enroulement dû au flux magnétique :
+    </p>
+    <p>
+    \[
+    E = N \frac{d\Phi}{dt}
+    \]
+    où <strong>N</strong> est le nombre de spires et <strong>Φ</strong> le flux magnétique en Weber.
+    </p>
+
+    <h4>5. Puissance électrique</h4>
+    <p>
+    Puissance absorbée par le moteur DC :
+    </p>
+    <p>
+    \[
+    P_e = V \cdot I
+    \]
+    et pour un moteur AC monophasé :
+    </p>
+    <p>
+    \[
+    P_e = V \cdot I \cdot \cos\phi
+    \]
+    où <strong>φ</strong> est le déphasage entre tension et courant.
+    </p>
+
+    <h4>6. Loi V/f pour moteurs AC</h4>
+    <p>
+    Pour maintenir le flux constant dans un moteur AC piloté par variateur :
+    </p>
+    <p>
+    \[
+    \frac{V}{f} = \text{constante}
+    \]
+    </p>
+
+    <h4>7. Tension DC après redressement</h4>
+    <p>
+    Redressement monophasé ou triphasé :
+    </p>
+    <p>
+    \[
+    V_{DC} \approx \frac{2\sqrt{2}}{\pi} V_{AC} \quad \text{(monophasé)}
+    \]
+    \[
+    V_{DC} \approx \sqrt{3} \cdot V_{LL} \quad \text{(triphasé)}
+    \]
+    </p>
+
+    <h4>8. Rendement et pertes</h4>
+    <p>
+    Rendement du moteur :
+    </p>
+    <p>
+    \[
+    \eta = \frac{P_{mécanique}}{P_{électrique}} = \frac{T \cdot \omega}{V \cdot I}
+    \]
+    </p>
+
+    <h4>9. Glissement et fréquence rotorique</h4>
+    <p>
+    Dans un moteur asynchrone, la fréquence du courant rotorique :
+    </p>
+    <p>
+    \[
+    f_r = s \cdot f
+    \]
+    où <strong>f</strong> est la fréquence statorique et <strong>s</strong> le glissement.
+    </p>
+
+
+    <hr>
+    <h2>Commande et alimentation</h2>
+
+    <h3>Commande de moteur par trois boucles : position, vitesse et couple</h3>
+
+    <img src="/Autre/commande.png">
+
+    <p>
+    La commande avancée des moteurs électriques utilise souvent une architecture en trois boucles
+    emboîtées pour contrôler de manière précise le **couple**, la **vitesse** et la **position**. Chaque
+    boucle a un rôle spécifique et agit sur la suivante pour garantir stabilité et performance.
+    </p>
+
+    <h4> Boucle de couple (ou courant)</h4>
+    <p>
+    La boucle interne contrôle directement le courant dans les enroulements du moteur, qui est
+    proportionnel au couple produit :
+    </p>
+    <p>
+    \[
+    T = k_t \cdot I
+    \]
+    </p>
+    <p>
+    Cette boucle est la plus rapide et permet de réagir aux variations de charge pour maintenir
+    le couple désiré. Elle utilise souvent un régulateur PI pour ajuster le courant cible en
+    fonction de l’erreur de couple.
+    </p>
+
+    <h4> Boucle de vitesse</h4>
+    <p>
+    La boucle intermédiaire contrôle la vitesse du rotor en comparant la vitesse réelle <strong>ω</strong>
+    à la consigne <strong>ω<sub>ref</sub></strong>. L’erreur de vitesse produit une consigne de couple
+    ou de courant pour la boucle interne :
+    </p>
+    <p>
+    \[
+    T_{ref} = K_v \cdot (\omega_{ref} - \omega)
+    \]
+    </p>
+    <p>
+    Cette boucle permet de maintenir une vitesse stable même en présence de variations de
+    charge ou de perturbations.
+    </p>
+
+    <h4> Boucle de position</h4>
+    <p>
+    La boucle externe contrôle la position du rotor en comparant la position réelle θ à la consigne
+    θ<sub>ref</sub>. L’erreur de position génère une consigne de vitesse pour la boucle de vitesse :
+    </p>
+    <p>
+    \[
+    \omega_{ref} = K_p \cdot (\theta_{ref} - \theta)
+    \]
+    </p>
+    <p>
+    Cette boucle assure un positionnement précis et peut être utilisée pour des applications
+    comme la robotique, les servomécanismes ou les machines-outils.
+    </p>
+
+     <p>
+      Un cours pour comprendre plus en détail : <a href="https://fr.scribd.com/doc/100451662/Variateurs-de-vitesse-De-la-regulation-cascade-a-la-commande-vectorielle-PSIM?utm_source=chatgpt.com">ici</a>.
+    </p>
+
+   <h3>Redresseur</h3>
+
+   <img src="/Autre/redresseur.png">
+    <p>
+    Le redresseur convertit une tension alternative (AC) en tension continue (DC). Il est
+    généralement réalisé à l’aide de diodes ou de thyristors. La valeur moyenne de la tension
+    redressée dépend de la tension AC d’entrée :
+    </p>
+ 
+    <p>
+    Le redresseur constitue la première étape d’un variateur de vitesse, en alimentant le bus
+    continu.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=tYNgzn7KkZU">ici</a>.
+    </p>
+
+    <h3>Bus continu (DC Link)</h3>
+
+    <img src="/Autre/dc_bus.png">
+    <p>
+    Le bus continu est la partie intermédiaire d’un variateur de vitesse située entre le
+    redresseur et l’onduleur. Il sert à stocker et stabiliser l’énergie électrique sous forme
+    de tension continue à l’aide de condensateurs (et parfois d’inductances). Sa tension est
+    liée à la tension alternative redressée :
+    </p>
+    <p>
+    \[
+    V_{DC} \approx \sqrt{2} \cdot V_{AC}
+    \]
+    </p>
+
+
+    <p>
+    Le bus continu permet de découpler le réseau électrique de l’onduleur, de réduire les
+    ondulations de tension et de fournir l’énergie instantanée nécessaire lors des variations
+    rapides de couple ou de vitesse du moteur. Dans certaines applications, il peut également
+    intégrer des systèmes de freinage (résistance de freinage) ou de récupération d’énergie
+    pour dissiper ou réinjecter l’énergie excédentaire.
+    </p>
+
+
+    <h3>Onduleur</h3>
+
+    <img src="/Autre/onduleur.png">
+    <p>
+    L’onduleur transforme une tension continue en une tension alternative de fréquence et
+    d’amplitude contrôlées. Il utilise des interrupteurs électroniques (IGBT, MOSFET) commandés
+    en modulation de largeur d’impulsion (PWM). La fréquence de sortie fixe la vitesse du champ
+    magnétique tournant.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=qVeERT4nyz8">ici</a>.
+    </p>
+
+    <h3>Variateur de vitesse (VFD)</h3>
+
+    <img src="/Autre/vfd.png">
+
+    <p>
+    Un variateur de vitesse (VFD – Variable Frequency Drive) combine un redresseur, un bus
+    continu et un onduleur pour contrôler la vitesse et le couple d’un moteur AC. La loi
+    <em>V/f</em> est souvent utilisée pour maintenir le flux moteur constant.
+    </p>
+
+    <p>
+    En ajustant la fréquence et la tension, le VFD permet un démarrage progressif, une
+    réduction du courant d’appel et un contrôle précis de la vitesse du moteur.
+    </p>
+
+    <p>
+      Une video pour comprendre plus en détail : <a href="https://www.youtube.com/watch?v=HayryySX_po">ici</a>
+      et <a href="https://www.youtube.com/watch?v=DXjXh0cF8Kc">là</a>.
+    </p>
+
+
+
+    </main>
+</div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>

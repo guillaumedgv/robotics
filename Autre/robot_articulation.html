@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Articulations</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Navbar dynamique -->
+  <div id="navbar"></div>
+
+  <!-- --- MathJax for LaTeX equations --- -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script>
+  // Load navbar dynamically from external file
+  fetch("/navbar.html")
+    .then(response => response.text())  // Read the content as text
+    .then(data => {
+      // Insert the navbar HTML into the page
+      document.getElementById("navbar").innerHTML = data;
+
+      // ----------------------------
+      // Highlight the current page
+      // ----------------------------
+      const currentPath = window.location.pathname;  // e.g., "/index.html"
+      const links = document.querySelectorAll("#navbar nav a"); // all nav links
+
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (!href) return; // Skip links without href
+
+        // Normalize paths (remove leading slash) to compare properly
+        const normalizedHref = href.replace(/^\//, "");
+        const normalizedPath = currentPath.replace(/^\//, "");
+
+        if (normalizedPath.endsWith(normalizedHref)) {
+          // ✅ Mark link of current page as active
+          link.classList.add("active");
+
+          // If the link is in a submenu, also highlight its parent
+          const parentLi = link.closest("ul")?.closest("li");
+          if (parentLi) {
+            const parentLink = parentLi.querySelector(":scope > a");
+            if (parentLink) parentLink.classList.add("active-parent");
+          }
+        } else {
+          // Remove active class from other links
+          link.classList.remove("active");
+        }
+      });
+
+      // ----------------------------
+      // Night mode toggle button
+      // ----------------------------
+      const themeToggle = document.getElementById("themeToggle");
+
+      // On page load, check if user previously enabled night mode
+      if (localStorage.getItem("nightMode") === "true") {
+        document.body.classList.add("night");
+        if (themeToggle) themeToggle.textContent = "☀️ Day Mode";
+      }
+
+      // Set up click listener for the button
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("night"); // Toggle night mode
+
+          // Save current mode in localStorage to persist across pages
+          const isNight = document.body.classList.contains("night");
+          localStorage.setItem("nightMode", isNight);
+
+          // Update button text based on current mode
+          themeToggle.textContent = isNight ? "☀️ Day Mode" : "🌙 Night Mode";
+        });
+      }
+    })
+    .catch(error => console.error("Erreur chargement navbar :", error));
+</script>
+
+
+<div class="container">
+    <main class="content">
+
+        <h1>Les articulations robotiques</h1>
+
+        <p>
+           Les articulations d’un robot sont les liaisons mécaniques entre ses différentes parties, 
+           qui permettent le mouvement relatif des segments et rendent possible le positionnement de l’effecteur final dans l’espace.
+        </p>
+
+        <p>
+            Celles-ci ont un rôle crucial : elles transforment l’énergie mécanique transmise par les moteurs en un mouvement fluide.
+            Pour réaliser cette transformation, plusieurs techniques sont utilisées, chacune présentant des avantages et des inconvénients.
+            On regroupe ces technologie sous la terminaison de <em><b>gearbox.</b></em>
+            Par la suite, je présenterai les différentes gearbox employées afin de mieux les appréhender.
+        </p>
+
+        <hr>
+        <h3>Engrenage simple (Spur gearbox)</h3>
+
+        <img src="/Autre/spur.png">
+        <div class="legend">
+            <p>
+                Entrainement par engranage externe et interne (M = moteur, E = escalve)
+            </p>
+        </div>
+
+        <p> 
+        Les <strong>engrenages droits externes</strong> (spur externes) sont constitués de deux roues dentées dont les dents sont situées sur la face extérieure et qui engrènent l’une avec l’autre. Lorsque l’engrenage moteur entraîne l’engrenage mené, les deux roues tournent en <em>sens opposés</em>. Ce type d’engrenage est simple à concevoir, robuste et très utilisé pour la transmission de puissance.
+        </p>
+
+        <p>
+        Le <strong>rapport de réduction</strong> d’un engrenage externe dépend du nombre de dents de chaque roue. Il s’exprime par :
+        </p>
+
+        <p>
+        $$
+        r = \frac{\omega_{entrée}}{\omega_{sortie}} = \frac{Z_{mené}}{Z_{menant}}
+        $$
+        </p>
+
+        <p>
+        où \( Z_{menant} \) est le nombre de dents de l’engrenage moteur, \( Z_{mené} \) celui de l’engrenage entraîné, et \( \omega \) la vitesse angulaire.  
+        Par ailleurs un rapport \( r &gt; 1 \) correspond à une réduction de vitesse et à une augmentation du couple.
+        </p>
+
+        <img src="/Autre/spur_gif.gif">
+
+        <p>
+        Les <strong>engrenages droits internes</strong> sont composés d’une roue dentée dont les dents sont situées sur la face intérieure, engrenant avec un pignon externe. Contrairement aux engrenages externes, les deux roues tournent dans le <em>même sens</em>. Cette configuration permet des ensembles plus compacts et des rapports de réduction élevés.
+        </p>
+
+        
+        <p>
+            Cependant ce type de gearbox est peu utilisé dans le monde de la robotique car il est plus 
+            volumineux et pèse plus lourd que d'autre solution.
+        </p>
+
+        <p>
+        Néanmoins le rapport de réduction pour un engrenage interne s’écrit :
+        </p>
+
+        <p>
+        $$
+        r = \frac{\omega_{entrée}}{\omega_{sortie}} = \frac{Z_{couronne}}{Z_{couronne} - Z_{pignon}}
+        $$
+        </p>
+
+        <p> 
+        où \( Z_{couronne} \) est le nombre de dents de la roue interne et \( Z_{pignon} \) celui du pignon moteur.  
+        </p>
+
+     
+
+
+
+        <p>
+        En supposant une transmission idéale sans pertes, la puissance mécanique est conservée :
+        </p>
+
+        <p>
+        $$
+        P = C \cdot \omega = \text{constante}
+        $$
+        </p>
+
+        <p>
+        Il en découle que le <strong>couple de sortie</strong> augmente proportionnellement au rapport de réduction :
+        </p>
+
+        <p>
+        $$
+        C_{sortie} = C_{entrée} \cdot r
+        $$
+        </p>
+
+        <p>
+        Dans un système réel, il est nécessaire de prendre en compte le <strong>rendement</strong> \( \eta \), qui représente les pertes mécaniques dues aux frottements et aux déformations :
+        </p>
+
+        <p>
+        $$
+        C_{sortie} = C_{entrée} \cdot r \cdot \eta
+        $$
+        </p>
+
+
+        
+
+
+        <div class="highlight">
+        <p>
+            Par la suite on va parler d'engrenages simple sans prendre compte de leurs potentiels complexités. 
+            Si vous voulez en apprendre plus je vous conseil le cours de <em>A. Bhatia</em>
+            Vous pouvez le retrouver <a href="/Autre/M06-031 - Basic Fundamentals of Gear Drives.pdf">ici</a>
+        </p>
+
+        <p>
+            Néanmoins, on peut noter que l'on utilise très souvent des engrenages hélicoidales pour pouvoir transmettre
+            plus de couple.
+        </p>
+        </div>
+
+        <hr>
+        <h3>Engranage planétaire (Planetory gearbox)</h3>
+
+         <img src="/Autre/planetary.png">
+        <div class="legend">
+            <p>
+                Entrainement par engranage planétaire 
+            </p>
+        </div>
+
+        <p>
+        Les <strong>engrenages planétaires</strong>, également appelés engrenages épicycloïdaux, sont constitués de trois éléments principaux : 
+        le <em>pignon solaire</em> (soleil), la <em>couronne</em> (roue à denture interne) et un ou plusieurs <em>satellites</em> montés sur un porte-satellites. 
+        Cette architecture permet d’obtenir des rapports de réduction élevés dans un encombrement réduit, tout en répartissant efficacement les efforts mécaniques.
+        </p>
+
+        <p>
+        Le fonctionnement d’un engrenage planétaire dépend de l’élément entraîné, de l’élément bloqué et de l’élément utilisé comme sortie. 
+        Selon cette configuration, les vitesses de rotation et le sens de rotation peuvent varier. 
+        </p>
+
+        <p>
+        La relation fondamentale reliant les vitesses angulaires s’écrit :
+        </p>
+
+        <p>
+        $$
+        \frac{\omega_s - \omega_p}{\omega_c - \omega_p} = - \frac{Z_c}{Z_s}
+        $$
+        </p>
+
+        <p>
+        où \( \omega_s \), \( \omega_c \) et \( \omega_p \) représentent respectivement les vitesses angulaires du soleil, de la couronne et du porte-satellites, 
+        et \( Z_s \) et \( Z_c \) le nombre de dents du soleil et de la couronne.
+        </p>
+
+        <img src="/Autre/planetary_gif.gif">
+        <div class="legend">
+            <p>
+                Entrainement par engranage planétaire (Soleil moteurs & Porte-satellite sortie)
+            </p>
+        </div>
+
+        <p>
+        Dans la pratique, on rencontre fréquemment les configurations suivantes :
+        </p>
+
+        <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+            <th>Élément moteur</th>
+            <th>Élément bloqué</th>
+            <th>Sortie</th>
+            <th>Rapport de réduction \( r = \frac{\omega_{entrée}}{\omega_{sortie}} \)</th>
+            <th>Sens de rotation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            <td>Soleil</td>
+            <td>Couronne</td>
+            <td>Porte-satellites</td>
+            <td>\( r = 1 + \frac{Z_c}{Z_s} \)</td>
+            <td>Même sens</td>
+            </tr>
+            <tr>
+            <td>Couronne</td>
+            <td>Soleil</td>
+            <td>Porte-satellites</td>
+            <td>\( r = 1 + \frac{Z_s}{Z_c} \)</td>
+            <td>Même sens</td>
+            </tr>
+            <tr>
+            <td>Soleil</td>
+            <td>Porte-satellites</td>
+            <td>Couronne</td>
+            <td>\( r = - \frac{Z_c}{Z_s} \)</td>
+            <td>Opposé</td>
+            </tr>
+            <tr>
+            <td>Couronne</td>
+            <td>Porte-satellites</td>
+            <td>Soleil</td>
+            <td>\( r = - \frac{Z_s}{Z_c} \)</td>
+            <td>Opposé</td>
+            </tr>
+        </tbody>
+        </table>
+
+        <p>
+        Grâce à leur polyvalence et à leur bon rapport couple/encombrement, les engrenages planétaires constituent une très bonne solution pour les réducteurs robotiques 
+        (en particulier si c'est couplé avec un moteur brushless puisque l'on peut entierement les rentrer à l'interieur).
+        On en utilise en générale plusieurs etages à la suite des autres pour avoir un bon rapport de reduction.
+        </p>
+
+        <p>
+            Une video Youtube pour parfaire la compréhension : <a href="https://www.youtube.com/watch?v=Ho4AniHtgxM">How Planetary Gears Work | 3D Printed Planetary Gearbox Design and Test</a>
+
+        </p>
+
+        
+
+        <div class="highlight">
+            <p>
+                Une règle à rescpecter pour un bon fonctionnement de ce type de gearbox est que
+                <ul>
+                    <li>\( Z_c\) = \( Z_s\) + \( 2 * Z_{satellite}\)</li>
+                    <li>\( Z_{satellite}\) = \( Z_s\) + \(k\),   avec \( k\) la constante jusqu'a ce que \(Z_{satellite}\) soit un nombre premier.</li>
+                </ul>
+               
+            </p>
+        </div>
+
+        <hr>
+        <h3>Engranage harmonique (harmonic gearbox)</h3>
+
+        <img src="/Autre/harmonic.png">
+        <div class="legend">
+            <p>
+                Entrainement par engranage harmonique
+            </p>
+        </div> 
+
+        <p>
+        Un engrenage harmonique est composé de trois éléments principaux : 
+        le <strong>générateur d’onde</strong>, le <strong>flexspline</strong> (roue flexible à denture externe) et la <strong>couronne</strong> (roue rigide à denture interne). 
+        Le générateur d’onde déforme le flexspline de manière elliptique, ce qui provoque un engrènement progressif des dents avec la couronne.
+        </p>
+
+        <p>
+        Le principe de fonctionnement repose sur une légère différence de nombre de dents entre le flexspline et la couronne. 
+        À chaque rotation du générateur d’onde, le flexspline se décale de quelques dents par rapport à la couronne, ce qui engendre une réduction de vitesse très importante.
+        </p>
+
+        <p>
+        On note \( Z_c\) = \( Z_{flex} + 2\)
+        </p>
+
+        <p>
+        Le rapport de réduction d’un engrenage harmonique s’exprime par :
+        </p>
+
+        <p>
+        $$
+        r = \frac{\omega_{entrée}}{\omega_{sortie}} = \frac{Z_c}{Z_c - Z_f}
+        $$
+        </p>
+
+       
+
+        <p>
+        où \( Z_c \) est le nombre de dents de la couronne rigide, \( Z_f \) le nombre de dents du flexspline, 
+        \( \omega_{entrée} \) la vitesse angulaire du générateur d’onde, et \( \omega_{sortie} \) celle du flexspline.
+        </p>
+
+         <img src="/Autre/HarmonicDriveAni.gif">
+        <div class="legend">
+            <p>
+                Entrainement par engranage harmonique
+            </p>
+        </div> 
+
+        <p>
+        Dans la configuration la plus courante, la couronne est fixe, le générateur d’onde est moteur et le flexspline constitue la sortie. 
+        Cette configuration permet d’obtenir des rapports de réduction typiquement compris entre <strong>30:1 et 160:1</strong> en un seul étage.
+        Cette qualité en plus de leur faible jeu (quasi nul), leur compacité et leur excellente répétabilité en font un très bon choix pour des articulations robotiques.
+        </p>
+
+
+
+        <p>
+            Une video Youtube pour parfaire la compréhension : <a href="https://www.youtube.com/watch?v=xlnNj9F37MA">What is Strain Wave Gear a.k.a. Harmonic Drive? A Perfect Gear Set For Robotics Applications!?</a>
+
+        </p>
+
+        <div class="highlight">
+            <p>
+                Le rayon du générateur d’onde est dimensionné en fonction du module du flexspline afin de garantir une déformation adéquate et un engrènement efficace des dents.
+            </p>
+
+            <p>
+                La variation du rayon du générateur d’onde correspond approximativement au module du flexspline (± m), ce qui implique que le diamètre effectif maximal du générateur d’onde coïncide avec le cercle primitif externe du flexspline, garantissant ainsi un engrènement correct des dents lors de la déformation.    
+            </p>
+        </div>
+
+        <hr>
+        <h3>Cumule Harmonique et Planétaire</h3>
+
+        <img src="/Autre/cumule.webp">
+        <div class="legend">
+            <p>
+                Exemple d'entrainement par cumule d'engranage harmonique & planétaire
+            </p>
+        </div> 
+
+        <p>
+            On peut cumuler les bienfaits d'une gearbox ahrmonique et planétaire. 
+            Une articulation combinant les deux permet d’obtenir un rapport de réduction élevé, un couple important et un jeu quasi nul, au prix d’une complexité mécanique et d’un rendement global légèrement réduits.
+        </p>
+
+        <hr>
+        <h3>Engranage cycloidal (cycloidal gearbox)</h3>
+
+
+          <img src="/Autre/cycloidal_img.jpg">
+        <div class="legend">
+            <p>
+                Entrainement par engranage harmonique
+            </p>
+        </div> 
+
+        <p>
+        Le principe repose sur un <strong>mécanisme cycloïdal</strong> où un disque excentrique ou un <em>cam</em> entraîne deux ou plus disque cycloidale (au plus meilleur est la répartition des forces) qui vont eux-même entrainer des rouleaux disposés autour d’un axe. 
+        Cette configuration permet une répartition uniforme des forces et un excellent rendement mécanique.
+        </p>
+
+        <p>
+        Le rapport de réduction d’un réducteur cycloïdal s’exprime par :
+        </p>
+
+        <p>
+        $$
+        r = \frac{\omega_{entrée}}{\omega_{sortie}} = \frac{N - n}{n}
+        $$
+        </p>
+
+        <p>
+        où \( N \) est le nombre de dents de l’anneau extérieur, \( n \) le nombre de lobes du disque cycloïdal.
+        </p>
+        
+        <img src="/Autre/Cycloidal_drive.gif">
+        <div class="legend">
+            <p>
+                Entrainement par engranage harmonique
+            </p>
+        </div> 
+
+        <p>
+        La configuration la plus courante fixe l’anneau extérieur, l’entrée est assurée par le disque excentrique et la sortie est l’arbre relié aux rouleaux. 
+        Cette configuration permet d’obtenir des rapports de réduction typiquement compris entre <strong>10:1 et 100:1</strong> en un seul étage.
+        Les grandes qulité de ces articulations sont la possibilité de transmettre un couple très élevé pour une très grande 
+        durée de vie et resistance.
+        </p>
+
+        <p>
+            Une video Youtube pour parfaire la compréhension : <a href="https://www.youtube.com/watch?v=OsS9-FzKN6s">What is Cycloidal Drive? Designing, 3D Printing and Testing</a>
+
+        </p>
+
+        <hr>
+        <h3>Entrainement par cabestan (capstan drive)</h3>
+
+        <img src="/Autre/capstain.png">
+        <div class="legend">
+            <p>
+                Entrainement par engranage harmonique
+            </p>
+        </div> 
+
+        <p>
+        Un <strong>entraînement par cabestan</strong> est un système de transmission utilisant un câble, une corde ou une courroie enroulée autour d’un tambour ou d’une poulie. 
+        Il permet de transmettre un mouvement rotatif ou linéaire avec un rapport de réduction contrôlable par le diamètre du tambour et le nombre de spires.
+        </p>
+
+        <p>
+        Le principe repose sur la <strong>friction entre le câble et le tambour</strong>. 
+        Lorsque le tambour tourne, le câble enroulé transmet le mouvement à l’arbre de sortie ou à une charge linéaire. 
+        </p>
+
+            <p>
+            Le rapport de réduction peut s’exprimer par :
+            </p>
+
+            <p> 
+            $$
+            r = \frac{\omega_{entrée}}{\omega_{sortie}} = - \frac{D_{tambour}}{D_{roue\_menée}}
+            $$
+            </p>
+
+        <p>
+        où \( D_{tambour} \) est le diamètre du tambour moteur, \( D_{roue\_menée} \) le diamètre de la poulie entraînée, 
+        et \( \omega \) la vitesse angulaire correspondante. Dans le cas d’un déplacement linéaire, la vitesse de sortie est proportionnelle à la vitesse périphérique du tambour.
+        </p>
+
+        <p>
+        Dans la pratique, un entraînement par cabestan est souvent associé avec un moteur brushless à rotor externe qui allie un couple
+        important pour un vitesse assez lente de base.
+        </p>
+
+        <img src="/Autre/capstan_autre.jpg">
+        <div class="legend">
+            <p>
+                Entrainement par engranage harmonique
+            </p>
+        </div> 
+
+        <p>
+            On utilise ce type d'entrainement surtout pour les robots des articulations nécéssitant peu
+            de range de mouvement, typiquement des robot mobile (pour les jambes).
+        </p>
+
+        <p>
+            Un point sensible est de trouver un cable avec un facteur d'étirement et d'usure assez faible 
+            pour les applications longues durées.
+        </p>
+
+        <p>
+            Une video Youtube pour parfaire la compréhension : <a href="https://www.youtube.com/watch?v=MwIBTbumd1Q">High Precision Speed Reducer Using Rope</a>
+
+        </p>
+
+        
+    </main>
+</div>
+
+  <footer>
+    © 2025 - Guillaume Dengreville
+  </footer>
+
+</body>
+</html>
