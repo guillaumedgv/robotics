@@ -782,7 +782,69 @@
     <hr>
     <h2>Commande et alimentation</h2>
 
-    <h3>Commande de moteur par trois boucles : position, vitesse et couple</h3>
+    <h3>Commande vectorielle AC (Field-Oriented Control, FOC)</h3>
+
+      <img src="commande_FOC.png">
+    
+    <p>
+    La <strong>commande vectorielle</strong>, ou <em>Field-Oriented Control (FOC)</em>, est une technique
+    avancée pour contrôler les moteurs AC ou brushless avec précision. L'idée principale est de
+    découpler le contrôle du <strong>couple</strong> et du <strong>flux magnétique</strong> du rotor, 
+    comme dans un moteur DC, même pour un moteur AC.
+    </p>
+    
+    <h4>1. Transformation en référentiel rotorique</h4>
+    <p>
+    Le courant triphasé du stator \((i_a, i_b, i_c)\) est transformé en un système à deux axes
+    orthogonaux dans le référentiel tournant du rotor (axes <strong>d</strong> et <strong>q</strong>) :
+    </p>
+    <p>
+    \[
+    \begin{bmatrix} i_d \\ i_q \end{bmatrix} = 
+    \frac{2}{3} 
+    \begin{bmatrix} 
+    \cos\theta & \cos(\theta-\frac{2\pi}{3}) & \cos(\theta+\frac{2\pi}{3}) \\
+    -\sin\theta & -\sin(\theta-\frac{2\pi}{3}) & -\sin(\theta+\frac{2\pi}{3}) 
+    \end{bmatrix}
+    \begin{bmatrix} i_a \\ i_b \\ i_c \end{bmatrix}
+    \]
+    </p>
+    
+    <p>
+    - \(i_d\) : courant aligné avec le flux du rotor (flux axis)  
+    - \(i_q\) : courant responsable du couple (torque axis)  
+    - \(\theta\) : angle du rotor
+    </p>
+    
+    <h4>2. Relation courant → couple et flux</h4>
+    <p>
+    Dans ce référentiel, le couple du moteur est directement proportionnel au courant \(i_q\) :
+    </p>
+    <p>
+    \[
+    T = \frac{3}{2} p \Phi i_q
+    \]
+    </p>
+    <p>
+    où :  
+    - \(p\) : nombre de paires de pôles  
+    - \(\Phi\) : flux magnétique du rotor
+    </p>
+    
+    <p>
+    Le flux produit par \(i_d\) peut être maintenu constant ou contrôlé séparément pour optimiser
+    le fonctionnement du moteur.
+    </p>
+    
+    <h4>Boucle de contrôle FOC</h4>
+    <ul>
+      <li>La <strong>boucle interne</strong> régule \(i_q\) pour atteindre le couple désiré.</li>
+      <li>La <strong>boucle flux</strong> régule \(i_d\) pour maintenir ou ajuster le flux du rotor.</li>
+      <li>Les signaux générés sont reconvertis en tensions triphasées via la transformation inverse
+      (Inverse Park et Clarke) pour piloter l’onduleur.</li>
+    </ul>
+
+    <h3>Commande de moteur DC par trois boucles : position, vitesse et couple</h3>
 
     <img src="commande.png">
 
@@ -932,3 +994,4 @@
 </body>
 
 </html>
+
