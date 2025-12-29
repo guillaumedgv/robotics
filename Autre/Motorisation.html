@@ -504,10 +504,203 @@
     </p>
 
 
-    <hr>
-    <h2>Concepts importants</h2>
+      <hr>
+      <h2>Resumé</h2>
+      
+    <table border="1" cellspacing="0" cellpadding="8">
+  <thead>
+    <tr>
+      <th>Type de moteur</th>
+      <th>Principe</th>
+      <th>Avantages</th>
+      <th>Inconvénients</th>
+      <th>Applications typiques</th>
+    </tr>
+  </thead>
 
-    
+  <tbody>
+
+    <tr>
+      <td><strong>DC à balais</strong></td>
+      <td>Commutation mécanique par balais</td>
+      <td>
+        <ul>
+          <li>Commande très simple</li>
+          <li>Bon couple au démarrage</li>
+          <li>Faible coût</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Usure des balais</li>
+          <li>Étincelles et bruit</li>
+          <li>Rendement limité</li>
+        </ul>
+      </td>
+      <td>Jouets, petits actionneurs, anciens systèmes</td>
+    </tr>
+
+    <tr>
+      <td><strong>Brushless DC (BLDC)</strong></td>
+      <td>Commutation électronique</td>
+      <td>
+        <ul>
+          <li>Excellent rendement</li>
+          <li>Longue durée de vie</li>
+          <li>Faible maintenance</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Contrôleur obligatoire</li>
+          <li>Commande plus complexe</li>
+          <li>Coût supérieur</li>
+        </ul>
+      </td>
+      <td>Drones, ventilateurs, véhicules électriques</td>
+    </tr>
+
+    <tr>
+      <td><strong>Moteur pas à pas</strong></td>
+      <td>Rotation par pas discrets</td>
+      <td>
+        <ul>
+          <li>Positionnement précis sans capteur</li>
+          <li>Couple élevé à basse vitesse</li>
+          <li>Commande simple</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Vibrations</li>
+          <li>Rendement faible</li>
+          <li>Décrochage possible</li>
+        </ul>
+      </td>
+      <td>Imprimantes 3D, CNC, robotique</td>
+    </tr>
+
+    <tr>
+      <td><strong>Moteur asynchrone</strong></td>
+      <td>Induction par glissement</td>
+      <td>
+        <ul>
+          <li>Très robuste</li>
+          <li>Faible coût</li>
+          <li>Peu d’entretien</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Glissement</li>
+          <li>Courant de démarrage élevé</li>
+          <li>Contrôle précis difficile sans VFD</li>
+        </ul>
+      </td>
+      <td>Industrie, pompes, compresseurs</td>
+    </tr>
+
+    <tr>
+      <td><strong>Moteur synchrone</strong></td>
+      <td>Rotor synchronisé avec le champ</td>
+      <td>
+        <ul>
+          <li>Vitesse constante</li>
+          <li>Très bon rendement</li>
+          <li>Contrôle précis</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Démarrage complexe</li>
+          <li>Commande coûteuse</li>
+        </ul>
+      </td>
+      <td>Servomoteurs, entraînements de précision</td>
+    </tr>
+
+    <tr>
+      <td><strong>Synchrone à réluctance (SynRM)</strong></td>
+      <td>Alignement sur la réluctance minimale</td>
+      <td>
+        <ul>
+          <li>Sans aimants</li>
+          <li>Bon rendement</li>
+          <li>Robuste</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>VFD obligatoire</li>
+          <li>Commande vectorielle requise</li>
+        </ul>
+      </td>
+      <td>Industrie moderne, moteurs IE4/IE5</td>
+    </tr>
+
+    <tr>
+      <td><strong>IPM-SynRM</strong></td>
+      <td>Couple aimants + réluctance</td>
+      <td>
+        <ul>
+          <li>Très haut rendement</li>
+          <li>Forte densité de puissance</li>
+          <li>Excellent contrôle du couple</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Coût élevé</li>
+          <li>Commande complexe</li>
+        </ul>
+      </td>
+      <td>Traction électrique, industrie haut rendement</td>
+    </tr>
+
+    <tr>
+      <td><strong>Moteur à flux axial</strong></td>
+      <td>Flux magnétique parallèle à l’axe</td>
+      <td>
+        <ul>
+          <li>Très forte densité de couple</li>
+          <li>Format compact et plat</li>
+          <li>Rendement élevé</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Refroidissement complexe</li>
+          <li>Coût de fabrication élevé</li>
+        </ul>
+      </td>
+      <td>Mobilité électrique, aéronautique, robotique</td>
+    </tr>
+
+    <tr>
+      <td><strong>Moteur linéaire</strong></td>
+      <td>Mouvement linéaire direct</td>
+      <td>
+        <ul>
+          <li>Très haute précision</li>
+          <li>Pas de transmission mécanique</li>
+          <li>Réponse rapide</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Coût élevé</li>
+          <li>Intégration complexe</li>
+        </ul>
+      </td>
+      <td>CNC, transport automatisé, robotique</td>
+    </tr>
+
+  </tbody>
+</table>
+
+      
+    <hr>
+    <h2>Concepts importants</h2>    
 
    <h3>Glissement (Slip) dans les moteurs électriques</h3>
 
@@ -980,6 +1173,7 @@
 </body>
 
 </html>
+
 
 
 
