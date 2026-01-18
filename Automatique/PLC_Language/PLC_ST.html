@@ -282,7 +282,7 @@
         
         PREV_ERREUR:= ERREUR;
         
-        IF NEW_LEVEL > 10.0 THEN	// pour eviter les
+        IF NEW_LEVEL > 10.0 THEN	// pour eviter les overshoot de l'output
             NEW_LEVEL := 10.0;
         ELSIF NEW_LEVEL < -10.0 THEN
             NEW_LEVEL := -10.0;
@@ -400,4 +400,5 @@
 </body>
 
 </html>
+
 
