@@ -252,36 +252,82 @@
         Cela permet de réutiliser du code et de simplifier la logique interne du FB
         </p>
         <pre>
-        FUNCTION_BLOCK FB_Moteur
+        FUNCTION_BLOCK PID_LEVEL_CONTROL
         VAR_INPUT
-            start : BOOL;
-            stop  : BOOL;
+        	TANK_LEVEL: REAL;
+        	KP: REAL;
+        	KI: REAL;
+        	KD: REAL;
         END_VAR
         VAR_OUTPUT
-            running : BOOL;
+            NEW_LEVEL : REAL;
+        END_VAR
+        VAR CONSTANT
+            D_T : REAL := 0.05;   // 50 ms --> on peut modifier la valeur de temps de cycle dans la task
         END_VAR
         VAR
-            interne : BOOL;
+        	OBJECTIF: REAL:= 7; // plus pro de le mettre en apelle de la fonction mais bon 
+        	ERREUR: REAL;
+        	SUM_ERREUR: REAL:= 0;
+        	PREV_ERREUR: REAL:=0; 
+        	
         END_VAR
 
-        running := start AND NOT stop;
-        interne := running;
-        END_FUNCTION_BLOCK
+          ----------
+
+        ERREUR := OBJECTIF - TANK_LEVEL;
+        SUM_ERREUR:= SUM_ERREUR + ERREUR*D_T;
+        
+        NEW_LEVEL:= KP*ERREUR + KI*SUM_ERREUR + KD*((ERREUR-PREV_ERREUR)/D_T);
+        
+        PREV_ERREUR:= ERREUR;
+        
+        IF NEW_LEVEL > 10.0 THEN	// pour eviter les
+            NEW_LEVEL := 10.0;
+        ELSIF NEW_LEVEL < -10.0 THEN
+            NEW_LEVEL := -10.0;
+        END_IF;
+          
+        </pre>
+        
+        <p>
+          Pour apeller cette fonction on ferait :
+        </p>
+     
+        <pre>
+            fbPID(     // on doit declarer fbPID : PID_LEVEL_CONTROL; dans les variables avant
+            TANK_LEVEL := LEVEL_METER,
+            KP := 20.0,
+            KI := 0.1, 
+            KD := 0.01
+        	);
+        	
+        	VAL_PID := fbPID.NEW_LEVEL; // on écrit .output --> ici le output est NEW_LEVEL donc 
         </pre>
 
         <p>
         <b>Function</b> : fonction de calcul pure sans état interne.  
         </p>
         <pre>
-        FUNCTION fSomme : INT
+        FUNCTION Square : REAL
         VAR_INPUT
-            a : INT;
-            b : INT;
+            x : REAL;
         END_VAR
 
-        fSomme := a + b;
-        END_FUNCTION
+        ------
+
+        Square := x * x;
+          
         </pre>
+
+        <p>
+          Pour apeller cette fonction on ferait :
+        </p>
+     
+        <pre>
+            y := Square(x := 5.0);
+        </pre>
+
 
         <h3>Boucles et structures de contrôle basique</h3>
   
@@ -354,3 +400,4 @@
 </body>
 
 </html>
+
