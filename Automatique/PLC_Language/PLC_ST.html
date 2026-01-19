@@ -178,20 +178,29 @@
 
         <h3>Type de table / structure</h3>
         <p>
-        <b>Structured Data</b> : regroupement de plusieurs variables.  
+        <b>Structured Data</b> : regroupement de plusieurs variables. (>> : données de capteur, paramètre d'un equipement... --> donnée complexe !) <br>
         Exemple : 
         <pre>
-        STRUCT Point
+        TYPE Point
+        STRUCT 
             x : REAL;
             y : REAL;
             z : REAL;
         END_STRUCT
+        END_TYPE
         </pre>
 
-        <b>Enumerated Data</b> : ensemble fini de valeurs symboliques.  
+        <b>Enumerated Data</b> : ensemble fini de valeurs symboliques.  (>> : Etat d'un système à état EXCLUSIF, étape de sequance...) <br>
+        Parfait pour utiliser CASE <br>
         Exemple : 
         <pre>
-        TYPE Etat : (Marche, Arret, Pause);
+        TYPE EtatMachine :
+        (
+            Arret,
+            Demarrage,
+            Production,
+            Defaut
+        );
         END_TYPE
         </pre>
 
@@ -338,24 +347,34 @@
             vitesse := 0;
         END_IF
 
-        CASE mode OF
-            0: status := 'Arret';
-            1: status := 'Marche';
-            2: status := 'Pause';
-        END_CASE
+        CASE etat OF
+            Arret:
+              Moteur := FALSE;
+              Alarme := FALSE;
+      
+            Demarrage:
+              Moteur := TRUE;
+              Alarme := FALSE;
+      
+          Production:
+              Moteur := TRUE;
+              // logique de production ici
+      
+          Defaut:
+              Moteur := FALSE;
+              Alarme := TRUE;
+          ELSE
+            Etat := Defaut;
+          END_CASE
 
         FOR i := 1 TO 10 DO
-            somme := somme + tab[i];
+            somme := somme + tab[i]; // avec un array 
         END_FOR
 
-        WHILE capteur = TRUE DO
+        WHILE capteur = TRUE DO   // Attention avec While >> bloque le cycle PLC
             compteur := compteur + 1;
         END_WHILE
 
-        REPEAT
-            compteur := compteur + 1;
-        UNTIL compteur >= 10
-        END_REPEAT
         </pre>
 
         On utilise EXIT pour sortir d'une boucle ou RETURN si on est dans un fonction.
@@ -379,7 +398,7 @@
             stopBtn  : BOOL;
         END_VAR
 
-        // Appel du function block
+        // Appel du function block --> bien nommer chaque variable avec son nom dans prgm original
         moteur1(start := startBtn, stop := stopBtn);
 
         // Calcul de vitesse limitée
@@ -400,5 +419,6 @@
 </body>
 
 </html>
+
 
 
